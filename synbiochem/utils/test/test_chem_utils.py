@@ -7,9 +7,10 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
+# pylint: disable=too-many-public-methods
 import unittest
 
-import synbiochem.utils.chemistry_utils as chm_util
+import synbiochem.utils.chem_utils as chm_util
 
 
 class Test(unittest.TestCase):

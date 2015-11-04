@@ -223,7 +223,7 @@ def _get_elem_matrix(all_elem_comp, all_charges):
     elements = [elem_comp.keys() for elem_comps in all_elem_comp
                 for elem_comp in elem_comps]
 
-    for element in set(itertools.chain(*elements)):
+    for element in set([item for sublist in elements for item in sublist]):
         a_matrix.append([elem_comp[element] if element in elem_comp else 0
                          for elem_comps in all_elem_comp
                          for elem_comp in elem_comps])
