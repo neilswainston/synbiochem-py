@@ -155,6 +155,17 @@ def get_elem_comp(formula):
     return elem_comp
 
 
+def parse_equation(equation, separator='='):
+    '''Parses chemical equation strings.'''
+    equation_terms = [re.split('\\s+\\+\\s+', equation_side)
+                      for equation_side in
+                      re.split('\\s*' + separator + '\\s*', equation)]
+
+    # Add reactants and products:
+    return _get_reaction_participants(equation_terms[0], -1) + \
+        _get_reaction_participants(equation_terms[1], 1)
+
+
 def balance(reaction_def, optional_comp=None, max_stoich=8):
     '''Applies linear programming to balance reaction.'''
     if optional_comp is None:
@@ -182,6 +193,18 @@ def balance(reaction_def, optional_comp=None, max_stoich=8):
 
     return balanced, _compare_reaction_defs(reaction_def, balanced_def), \
         balanced_def
+
+
+def _get_reaction_participants(equation_term, stoich_factor):
+    '''Adds reaction participants to a list of participants.'''
+    if len(equation_term) == 1 and len(equation_term[0]) == 0:
+        return []
+
+    all_terms = [participant.split() for participant in equation_term]
+    return [(terms[0], stoich_factor)
+            if len(terms) == 1
+            else (terms[1], stoich_factor * float(terms[0]))
+            for terms in all_terms]
 
 
 def _get_elem_comp(formula, idx):

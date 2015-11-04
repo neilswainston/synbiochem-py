@@ -24,8 +24,19 @@ class Test(unittest.TestCase):
         '''Tests get_elem_comp method.'''
         self.assertEqual(chm_util.get_elem_comp('Fe4S'), {'Fe': 4, 'S': 1})
 
+    def test_parse_equation(self):
+        '''Tests parse_equation method.'''
+        eqn = '5.6 Fe4S + -3.2 water = 17.8 SiO2'
+        self.assertEqual(chm_util.parse_equation(eqn),
+                         [('Fe4S', -5.6), ('water', 3.2), ('SiO2', 17.8)])
+
+    def test_parse_equation_error(self):
+        '''Tests parse_equation method (with error).'''
+        eqn = '5.6 Fe4S + -3.2 water = n+m SiO2'
+        self.assertRaises(ValueError, chm_util.parse_equation, eqn)
+
     def test_balance_unbalanced(self):
-        '''Tests get_elem_comp method.'''
+        '''Tests get_elem_comp method for unbalanced reaction.'''
         unbalanced = [('CO2', 0, -1.0), ('C5H7O4', -1, -1.0),
                       ('C3H3O3', -1, 1.0)]
         is_balanced, was_balanced, _ = chm_util.balance(unbalanced)
@@ -34,7 +45,7 @@ class Test(unittest.TestCase):
         self.assertFalse(was_balanced)
 
     def test_balance_balanced(self):
-        '''Tests get_elem_comp method.'''
+        '''Tests get_elem_comp method for balanced reaction.'''
         balanced = [('C5H7O4', -1, -1.0), ('H', 1, 1.0),
                     ('C3H3O3', -1, 2.0), ('CO2', 0, -1.0)]
         is_balanced, was_balanced, _ = chm_util.balance(balanced)
