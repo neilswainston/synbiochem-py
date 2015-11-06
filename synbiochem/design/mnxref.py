@@ -8,7 +8,6 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 @author:  neilswainston
 '''
 import csv
-import traceback
 import urllib2
 import synbiochem.utils.chem_utils as chem_utils
 
@@ -47,6 +46,8 @@ class MnxRefReader(object):
         for values in self.__read_data('chem_prop.tsv'):
             if not values[0].startswith('#'):
                 props = dict(zip(chem_prop_keys, values))
+                _convert_to_float(props, 'charge')
+                _convert_to_float(props, 'mass')
                 self.__chem_data[values[0]] = props
 
     def __read_chem_xref(self):
@@ -71,7 +72,6 @@ class MnxRefReader(object):
         for values in self.__read_data('reac_prop.tsv'):
             if not values[0].startswith('#'):
                 props = dict(zip(reac_prop_keys, values))
-                self.__reac_data[values[0]] = props
 
                 try:
                     participants = chem_utils.parse_equation(
@@ -80,8 +80,11 @@ class MnxRefReader(object):
                     for participant in participants:
                         if participant[0] not in self.__chem_data:
                             self.__add_chem(participant[0])
+
+                    self.__reac_data[values[0]] = props
                 except ValueError:
-                    print traceback.print_exc()
+                    print 'WARNING: Suspected polymerisation reaction: ' + \
+                        values[0] + '\t' + str(props)
 
     def __add_chem(self, chem_id):
         '''Adds a chemical with given id.'''
@@ -94,6 +97,16 @@ class MnxRefReader(object):
         strings.'''
         return list(csv.reader(urllib2.urlopen(self.__source + filename),
                                delimiter='\t'))
+
+
+def _convert_to_float(dictionary, key):
+    '''Converts a key value in a dictionary to a float.'''
+    if key in dictionary and dictionary[key] is not None and \
+            len(str(dictionary[key])) > 0:
+        dictionary[key] = float(dictionary[key])
+    else:
+        # Remove key:
+        dictionary.pop(key, None)
 
 
 def main():

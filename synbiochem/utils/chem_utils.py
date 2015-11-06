@@ -264,6 +264,7 @@ def _get_reaction_def(stoichs, all_formulae, all_charges):
 def _compare_reaction_defs(def1, def2):
     '''Returns True/False depending on whether reaction definitions are
     equal.'''
-    return len(def1) == len(def2) and \
+    return def1 is not None and def2 is not None and \
+        len(def1) == len(def2) and \
         all([x[0] == y[0] and x[1] == y[1] and math_utils.isclose(x[2], y[2])
              for x, y in zip(sorted(def1), sorted(def2))])
