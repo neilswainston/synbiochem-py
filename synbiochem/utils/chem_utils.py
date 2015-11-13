@@ -10,8 +10,6 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 import itertools
 import re
 
-from scipy.optimize import linprog
-
 import synbiochem.utils.math_utils as math_utils
 
 
@@ -243,13 +241,10 @@ def _optimise(a_matrix, max_stoich, num_opt_formulae):
                                     num_opt_formulae * 2) + \
         [(0.0, max_stoich)] * num_opt_formulae * 2
 
-    res = linprog([1] * len(a_matrix[0]),
-                  A_eq=a_matrix,
-                  b_eq=[0.0] * (len(a_matrix)),
-                  bounds=bounds,
-                  options={'disp': True})
-
-    return res.success, res.x.tolist()
+    return math_utils.linprog([1] * len(a_matrix[0]),
+                              A_eq=a_matrix,
+                              b_eq=[0.0] * (len(a_matrix)),
+                              bounds=bounds)
 
 
 def _get_reaction_def(stoichs, all_formulae, all_charges):
