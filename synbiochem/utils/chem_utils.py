@@ -166,7 +166,7 @@ def parse_equation(equation, separator='='):
         _get_reaction_participants(equation_terms[1], 1)
 
 
-def balance(reaction_def, optional_comp=None, max_stoich=8):
+def balance(reaction_def, optional_comp=None, max_stoich=8.0):
     '''Applies linear programming to balance reaction.'''
     if optional_comp is None:
         optional_comp = [('H', 1), ('H2O', 0)]
@@ -239,15 +239,17 @@ def _get_elem_matrix(all_elem_comp, all_charges):
 
 def _optimise(a_matrix, max_stoich, num_opt_formulae):
     '''Optimise linear program and return result.'''
-    bounds = [(1, max_stoich)] * (len(a_matrix[0]) - num_opt_formulae * 2) + \
-        [(0, max_stoich)] * num_opt_formulae * 2
+    bounds = [(1.0, max_stoich)] * (len(a_matrix[0]) -
+                                    num_opt_formulae * 2) + \
+        [(0.0, max_stoich)] * num_opt_formulae * 2
 
     res = linprog([1] * len(a_matrix[0]),
                   A_eq=a_matrix,
-                  b_eq=[0] * (len(a_matrix)),
-                  bounds=bounds)
+                  b_eq=[0.0] * (len(a_matrix)),
+                  bounds=bounds,
+                  options={'disp': True})
 
-    return res.success, res.x
+    return res.success, res.x.tolist()
 
 
 def _get_reaction_def(stoichs, all_formulae, all_charges):
@@ -257,7 +259,7 @@ def _get_reaction_def(stoichs, all_formulae, all_charges):
                                 for idx, formulae in enumerate(all_formulae)
                                 for x in formulae],
                                [y for charges in all_charges for y in charges],
-                               stoichs)
+                               _simplify_stoichs(stoichs))
             if c > 1e-8]
 
 
@@ -268,3 +270,9 @@ def _compare_reaction_defs(def1, def2):
         len(def1) == len(def2) and \
         all([x[0] == y[0] and x[1] == y[1] and math_utils.isclose(x[2], y[2])
              for x, y in zip(sorted(def1), sorted(def2))])
+
+
+def _simplify_stoichs(stoichs):
+    '''Attempts to simplify stoichs of 1.00000001 to 1.0.'''
+    return [float(round(stoich)) if math_utils.isclose(stoich, round(stoich))
+            else stoich for stoich in stoichs]
