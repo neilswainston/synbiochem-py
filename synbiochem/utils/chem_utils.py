@@ -242,9 +242,9 @@ def _optimise(a_matrix, max_stoich, num_opt_formulae):
         [(0.0, max_stoich)] * num_opt_formulae * 2
 
     return math_utils.linprog([1] * len(a_matrix[0]),
-                              A_eq=a_matrix,
-                              b_eq=[0.0] * (len(a_matrix)),
-                              bounds=bounds)
+                              a_matrix,
+                              [0.0] * (len(a_matrix)),
+                              bounds)
 
 
 def _get_reaction_def(stoichs, all_formulae, all_charges):

@@ -48,6 +48,8 @@ class MnxRefReader(object):
                 props = dict(zip(chem_prop_keys, values))
                 _convert_to_float(props, 'charge')
                 _convert_to_float(props, 'mass')
+                props = {key: value for key, value in props.iteritems()
+                         if value != ''}
                 self.__chem_data[values[0]] = props
 
     def __read_chem_xref(self):
