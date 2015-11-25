@@ -8,6 +8,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 @author:  neilswainston
 '''
 import unittest
+
 import synbiochem.utils.structure_utils as struct_utils
 
 

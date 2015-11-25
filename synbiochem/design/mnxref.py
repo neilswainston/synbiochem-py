@@ -9,7 +9,9 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 '''
 import csv
 import urllib2
+
 import synbiochem.utils.chem_utils as chem_utils
+
 
 _METANETX_URL = 'http://metanetx.org/cgi-bin/mnxget/mnxref/'
 

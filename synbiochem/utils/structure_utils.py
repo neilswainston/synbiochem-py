@@ -23,6 +23,7 @@ from Bio.PDB.Polypeptide import PPBuilder
 
 import synbiochem.utils.io_utils as io_utils
 
+
 _DIR = 'structure_utils'
 
 
