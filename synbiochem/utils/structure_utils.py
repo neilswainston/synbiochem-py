@@ -88,8 +88,10 @@ def get_seq_struct(pdb_ids):
                     str_data = ''
 
             elif in_field:
-                # Do something:
                 str_data += line[:-1]
+
+    seq_struct = {key: val for key, val in seq_struct.iteritems()
+                  if val[0] is not None}
 
     return seq_struct
 
@@ -164,7 +166,8 @@ def sample_seqs(sample_size, struct_patt):
 
             seqs.extend(random.sample(matches, min(len(matches),
                                                    sample_size - len(seqs))))
-        except TypeError:
+        except TypeError, err:
+            print err
             print 'Error in structure_utils'
             print str(len(seqs))
 
