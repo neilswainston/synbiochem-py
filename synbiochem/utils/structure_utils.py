@@ -157,19 +157,13 @@ def sample_seqs(sample_size, struct_patt):
     while len(seqs) < sample_size:
         pdb_ids = get_pdb_ids(sample_size)
         seq_struct = get_seq_struct(pdb_ids)
-        try:
-            assert all([len(v[0]) == len(v[1]) for v in seq_struct.values()])
 
-            matches = set([v[0][slice(*(m.span()))]
-                           for v in seq_struct.values()
-                           for m in patt.finditer(v[1])])
+        matches = set([v[0][slice(*(m.span()))]
+                       for v in seq_struct.values()
+                       for m in patt.finditer(v[1])])
 
-            seqs.extend(random.sample(matches, min(len(matches),
-                                                   sample_size - len(seqs))))
-        except TypeError, err:
-            print err
-            print 'Error in structure_utils'
-            print str(len(seqs))
+        seqs.extend(random.sample(matches, min(len(matches),
+                                               sample_size - len(seqs))))
 
     return seqs[:sample_size]
 
