@@ -8,6 +8,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 @author:  neilswainston
 '''
 # pylint: disable=no-member
+# pylint: disable=too-few-public-methods
 
 from collections import defaultdict
 from functools import partial
@@ -30,11 +31,13 @@ class TheanetsBase(object):
         self._momentum = momentum
         self._exp = None
 
-    def train(self, x_data, y_data, outputs, split=0.75, hidden_layers=None):
-        '''Train the network. Accepts list of floats as x_data,
-        and list of anything as y_data.'''
+    def _train(self, data, outputs, split=0.75, hidden_layers=None):
+        '''Train the network.'''
         if hidden_layers is None:
             hidden_layers = [2]
+
+        x_data = data[0]
+        y_data = data[1]
 
         # Check lengths of x_data and y_data are equal,
         # assume all tuples in x_data are of the same length.
@@ -63,11 +66,13 @@ class Classifier(TheanetsBase):
         self.__y_map = None
 
     def train(self, x_data, y_data, split=0.75, hidden_layers=None):
+        '''Train the network.'''
         y_enum = _enumerate(y_data)
         y_data = numpy.array([y[1] for y in y_enum], dtype=numpy.int32)
         self.__y_map = dict(set(y_enum))
-        return super(Classifier, self).train(x_data, y_data, len(self.__y_map),
-                                             split, hidden_layers)
+        return super(Classifier, self)._train((x_data, y_data),
+                                              len(self.__y_map), split,
+                                              hidden_layers)
 
     def classify(self, x_test, y_test):
         '''Classifies and analyses test data.'''
@@ -92,9 +97,10 @@ class Regressor(TheanetsBase):
                                         learning_rate, momentum)
 
     def train(self, x_data, y_data, split=0.75, hidden_layers=None):
+        '''Train the network.'''
         y_data = numpy.array(y_data, dtype=numpy.float32)
-        return super(Regressor, self).train(x_data, y_data, len(y_data[0]),
-                                            split, hidden_layers)
+        return super(Regressor, self)._train((x_data, y_data), len(y_data[0]),
+                                             split, hidden_layers)
 
     def predict(self, x_test):
         '''Classifies and analyses test data.'''

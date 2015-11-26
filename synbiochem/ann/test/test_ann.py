@@ -7,15 +7,14 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
+# pylint: disable=no-member
 # pylint: disable=too-many-public-methods
-# import climate
+import numpy
 import unittest
 
-from sklearn import datasets, linear_model
+from sklearn import datasets
 from sklearn.datasets.samples_generator import make_blobs
 
-import matplotlib.pyplot as plt
-import numpy as np
 import synbiochem.ann
 
 
@@ -24,7 +23,6 @@ class TestClassifier(unittest.TestCase):
 
     def test_classify(self):
         '''Tests the classify method.'''
-        # climate.enable_default_logging()
 
         # Generate some data, convert to list of floats (inputs) and string
         # 'names' for output classifications:
@@ -49,48 +47,23 @@ class TestRegressor(unittest.TestCase):
     '''Tests the Regressor class.'''
 
     def test_regressor(self):
-        # Load the diabetes dataset
-        diabetes = datasets.load_diabetes()
+        '''Tests the regressor method.'''
 
-        # Use only one feature
-        diabetes_X = diabetes.data[:, np.newaxis, 2]
+        # Load the diabetes dataset:
+        dataset = datasets.load_diabetes()
 
-        # Split the data into training/testing sets
-        diabetes_X_train = diabetes_X[:-20]
-        diabetes_X_test = diabetes_X[-20:]
+        x_data = dataset.data
+        y_data = dataset.target
 
-        # Split the targets into training/testing sets
-        diabetes_y_train = diabetes.target[:-20]
-        diabetes_y_test = diabetes.target[-20:]
+        x_data, y_data = synbiochem.ann.randomise_order(x_data, y_data)
 
-        # Create linear regression object
-        regr = linear_model.LinearRegression()
-
-        # Train the model using the training sets
-        regr.fit(diabetes_X_train, diabetes_y_train)
-
-        # The coefficients
-        print('Coefficients: \n', regr.coef_)
-        # The mean square error
-        print("Resid sum of squares: %.2f"
-              % np.mean((regr.predict(diabetes_X_test) - diabetes_y_test) **
-                        2))
-        # Explained variance score: 1 is perfect prediction
-        print('Variance score: %.2f' %
-              regr.score(diabetes_X_test, diabetes_y_test))
+        # Split data into training and classifying:
+        ind = int(0.8 * len(x_data))
 
         regressor = synbiochem.ann.Regressor()
-        y_train = [[y] for y in diabetes_y_train]
-        regressor.train(diabetes_X_train, y_train)
-        y_pred = regressor.predict(diabetes_X_test)
+        y_train = [[y] for y in y_data[:ind]]
+        regressor.train(x_data[:ind], y_train, hidden_layers=[12])
+        y_pred = regressor.predict(x_data[ind:])
 
-        # Plot outputs
-        plt.scatter(diabetes_X_test, diabetes_y_test,  color='black')
-        plt.scatter(
-            diabetes_X_test, regr.predict(diabetes_X_test), color='blue')
-        plt.scatter(diabetes_X_test, y_pred, color='red')
-
-        plt.xticks(())
-        plt.yticks(())
-
-        plt.show()
+        self.assertTrue(numpy.sqrt(numpy.mean((y_data[ind:] - y_pred) ** 2)) <
+                        200)
