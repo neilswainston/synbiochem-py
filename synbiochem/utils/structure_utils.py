@@ -156,6 +156,7 @@ def sample_seqs(sample_size, struct_patt):
     patt = re.compile(struct_patt)
 
     while len(seqs) < sample_size:
+        print struct_patt + '\t' + str(len(seqs))
         pdb_ids = get_pdb_ids(sample_size)
         seq_struct = get_seq_struct(pdb_ids)
 

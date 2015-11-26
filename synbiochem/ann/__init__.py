@@ -30,7 +30,7 @@ class TheanetsBase(object):
         self._momentum = momentum
         self._exp = None
 
-    def train(self, x_data, y_data, split=0.75, hidden_layers=None):
+    def train(self, x_data, y_data, outputs, split=0.75, hidden_layers=None):
         '''Train the network. Accepts list of floats as x_data,
         and list of anything as y_data.'''
         if hidden_layers is None:
@@ -40,7 +40,7 @@ class TheanetsBase(object):
         # assume all tuples in x_data are of the same length.
         assert len(x_data) == len(y_data)
 
-        layers = [len(x_data[0])] + hidden_layers + [len(y_data)]
+        layers = [len(x_data[0])] + hidden_layers + [outputs]
         self._exp = theanets.Experiment(self._network, layers=layers)
         x_data = numpy.array(x_data, dtype=numpy.float32)
 
@@ -66,8 +66,8 @@ class Classifier(TheanetsBase):
         y_enum = _enumerate(y_data)
         y_data = numpy.array([y[1] for y in y_enum], dtype=numpy.int32)
         self.__y_map = dict(set(y_enum))
-        return super(Classifier, self).train(x_data, y_data, split,
-                                             hidden_layers)
+        return super(Classifier, self).train(x_data, y_data, len(self.__y_map),
+                                             split, hidden_layers)
 
     def classify(self, x_test, y_test):
         '''Classifies and analyses test data.'''
@@ -81,6 +81,24 @@ class Classifier(TheanetsBase):
         return [inv_y_map[y] for y in y_pred], inv_y_map, \
             classification_report(y_test, y_pred), \
             confusion_matrix(y_test, y_pred)
+
+
+class Regressor(TheanetsBase):
+    '''Simple regressor in Theanets.'''
+
+    def __init__(self, optimize='sgd', learning_rate=0.01,
+                 momentum=0.5):
+        super(Regressor, self).__init__(theanets.Regressor, optimize,
+                                        learning_rate, momentum)
+
+    def train(self, x_data, y_data, split=0.75, hidden_layers=None):
+        y_data = numpy.array(y_data, dtype=numpy.float32)
+        return super(Regressor, self).train(x_data, y_data, len(y_data[0]),
+                                            split, hidden_layers)
+
+    def predict(self, x_test):
+        '''Classifies and analyses test data.'''
+        return self._exp.network.predict(x_test)
 
 
 def randomise_order(x_data, y_data):
