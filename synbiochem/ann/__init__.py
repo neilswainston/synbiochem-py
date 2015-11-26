@@ -19,16 +19,16 @@ from sklearn.metrics import classification_report, confusion_matrix
 import theanets
 
 
-class Classifier(object):
-    '''Simple classifier in Theanets.'''
+class TheanetsBase(object):
+    '''Base class for Classifier and Regressor.'''
 
-    def __init__(self, optimize='sgd', learning_rate=0.01,
+    def __init__(self, network, optimize='sgd', learning_rate=0.01,
                  momentum=0.5):
-        self.__optimize = optimize
-        self.__learning_rate = learning_rate
-        self.__momentum = momentum
-        self.__exp = None
-        self.__y_map = None
+        self._network = network
+        self._optimize = optimize
+        self._learning_rate = learning_rate
+        self._momentum = momentum
+        self._exp = None
 
     def train(self, x_data, y_data, split=0.75, hidden_layers=None):
         '''Train the network. Accepts list of floats as x_data,
@@ -40,27 +40,41 @@ class Classifier(object):
         # assume all tuples in x_data are of the same length.
         assert len(x_data) == len(y_data)
 
-        layers = [len(x_data[0])] + hidden_layers + [len(set(y_data))]
-        self.__exp = theanets.Experiment(theanets.Classifier, layers=layers)
+        layers = [len(x_data[0])] + hidden_layers + [len(y_data)]
+        self._exp = theanets.Experiment(self._network, layers=layers)
         x_data = numpy.array(x_data, dtype=numpy.float32)
-        y_enum = _enumerate(y_data)
-        y_data = numpy.array([y[1] for y in y_enum], dtype=numpy.int32)
-        self.__y_map = dict(set(y_enum))
 
         # Split data into training and validation:
         ind = int(split * len(x_data))
-        self.__exp.train((x_data[:ind], y_data[:ind]),
-                         (x_data[ind:], y_data[ind:]),
-                         optimize=self.__optimize,
-                         learning_rate=self.__learning_rate,
-                         momentum=self.__momentum)
+        self._exp.train((x_data[:ind], y_data[:ind]),
+                        (x_data[ind:], y_data[ind:]),
+                        optimize=self._optimize,
+                        learning_rate=self._learning_rate,
+                        momentum=self._momentum)
+
+
+class Classifier(TheanetsBase):
+    '''Simple classifier in Theanets.'''
+
+    def __init__(self, optimize='sgd', learning_rate=0.01,
+                 momentum=0.5):
+        super(Classifier, self).__init__(theanets.Classifier, optimize,
+                                         learning_rate, momentum)
+        self.__y_map = None
+
+    def train(self, x_data, y_data, split=0.75, hidden_layers=None):
+        y_enum = _enumerate(y_data)
+        y_data = numpy.array([y[1] for y in y_enum], dtype=numpy.int32)
+        self.__y_map = dict(set(y_enum))
+        return super(Classifier, self).train(x_data, y_data, split,
+                                             hidden_layers)
 
     def classify(self, x_test, y_test):
         '''Classifies and analyses test data.'''
+        y_pred = self._exp.network.classify(x_test)
+
         y_test = numpy.array([self.__y_map[y]
                               for y in y_test], dtype=numpy.int32)
-
-        y_pred = self.__exp.network.classify(x_test)
 
         inv_y_map = {v: k for k, v in self.__y_map.items()}
 
