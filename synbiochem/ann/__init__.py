@@ -36,11 +36,10 @@ class TheanetsBase(object):
         if hidden_layers is None:
             hidden_layers = [2]
 
-        x_data = data[0]
-        y_data = data[1]
+        x_data = _pad(data[0])
+        y_data = _pad(data[1])
 
-        # Check lengths of x_data and y_data are equal,
-        # assume all tuples in x_data are of the same length.
+        # Check lengths of x_data and y_data are equal:
         assert len(x_data) == len(y_data)
 
         layers = [len(x_data[0])] + hidden_layers + [outputs]
@@ -76,7 +75,7 @@ class Classifier(TheanetsBase):
 
     def classify(self, x_test, y_test):
         '''Classifies and analyses test data.'''
-        y_pred = self._exp.network.classify(x_test)
+        y_pred = self._exp.network.classify(_pad(x_test))
 
         y_test = numpy.array([self.__y_map[y]
                               for y in y_test], dtype=numpy.int32)
@@ -104,7 +103,7 @@ class Regressor(TheanetsBase):
 
     def predict(self, x_test):
         '''Classifies and analyses test data.'''
-        return self._exp.network.predict(x_test)
+        return self._exp.network.predict(_pad(x_test))
 
 
 def randomise_order(x_data, y_data):
@@ -114,6 +113,17 @@ def randomise_order(x_data, y_data):
     data = zip(x_data, y_data)
     random.shuffle(data)
     return zip(*data)
+
+
+def _pad(data):
+    '''Pad data with average values if sublists of different lengths.'''
+    try:
+        max_len = max([len(x) for x in data])
+        mean_val = numpy.mean([x for sublist in data for x in sublist])
+        return [x + [mean_val] * (max_len - len(x)) for x in data]
+    except TypeError:
+        # For 1D data, elements cannot be passed to len:
+        return data
 
 
 def _enumerate(lst):
