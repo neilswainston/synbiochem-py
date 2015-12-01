@@ -16,7 +16,7 @@ from synbiochem.utils.job import EventHandler
 class SimulatedAnnealer(object):
     '''Class to perform simulated annealing method.'''
 
-    def __init__(self, solution, acceptance=0.25, max_iter=10000,
+    def __init__(self, solution, acceptance=0.25, max_iter=1000,
                  verbose=False):
         self.__solution = solution
         self.__acceptance = acceptance
@@ -91,22 +91,29 @@ class SimulatedAnnealer(object):
             r_temp *= 1 - cooling_rate
 
         if iteration == self.__max_iter:
-            raise ValueError('Unable to optimise in ' + self.__max_iter +
-                             ' iterations')
-
-        self.__fire_event(iteration, 100, result=True)
+            message = 'Unable to optimise in ' + str(self.__max_iter) + \
+                ' iterations'
+            self.__fire_event('error', 100, iteration, message=message)
+        elif self.__cancelled:
+            self.__fire_event('cancelled', 100, iteration)
+        else:
+            self.__fire_event('finished', 100, iteration, result=True)
 
     def __accept(self, iteration, energy):
         '''Accept the current solution.'''
         self.__solution.accept()
-        self.__fire_event(iteration, float(iteration) / self.__max_iter)
+        self.__fire_event('running', float(iteration) / self.__max_iter * 100,
+                          iteration)
         if self.__verbose:
             print str(iteration) + '\t' + str(energy) + '\t' + \
                 str(self.__solution)
 
-    def __fire_event(self, iteration, progress, result=False):
+    def __fire_event(self, status, progress, iteration, message='',
+                     result=False):
         '''Fires an event.'''
-        event = dict({'progress': progress,
+        event = dict({'status': status,
+                      'message': message,
+                      'progress': progress,
                       'iteration': iteration,
                       'max_iter': self.__max_iter}.items() +
                      self.__solution.get_status().items() +

@@ -37,25 +37,6 @@ class JobThread(Thread):
         for listener in self._event_handler.get_listeners():
             listener.event_fired(event)
 
-    def run(self):
-        '''Performs the task. Should be overridden.'''
-        import time
-
-        progress = 0
-
-        while not self.__cancelled and progress < 100:
-            time.sleep(1)
-            evt = {'job_id': self.__job_id, 'progress': progress}
-            self._event_handler.fire_event(evt)
-            progress += 1
-
-        if self.__cancelled:
-            evt = {'job_id': self.__job_id, 'progress': progress}
-        else:
-            evt = {'job_id': self.__job_id, 'progress': progress}
-
-        self._event_handler.fire_event(evt)
-
 
 class EventHandler(object):
     '''Simple event handler class.'''
