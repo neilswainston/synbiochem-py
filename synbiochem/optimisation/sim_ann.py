@@ -9,15 +9,25 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 '''
 import math
 import random
+
 from synbiochem.utils.job import EventHandler
 
 
 class SimulatedAnnealer(object):
     '''Class to perform simulated annealing method.'''
 
-    def __init__(self, verbose=False):
+    def __init__(self, solution, acceptance=0.25, max_iter=10000,
+                 verbose=False):
+        self.__solution = solution
+        self.__acceptance = acceptance
+        self.__max_iter = max_iter
         self.__verbose = verbose
+        self.__cancelled = False
         self.__ev_hand = EventHandler()
+
+    def cancel(self):
+        '''Cancel job.'''
+        self.__cancelled = True
 
     def add_listener(self, listener):
         '''Adds an event listener.'''
@@ -27,37 +37,39 @@ class SimulatedAnnealer(object):
         '''Removes an event listener.'''
         self.__ev_hand.remove_listener(listener)
 
-    def optimise(self, solution, acceptance=0.25, max_iter=10000):
+    def optimise(self):
         '''Optmises a solution with simulated annealing.'''
 
         # Initialization:
-        counter = 0
+        iteration = 0
         accepts = 0
         rejects = 0
         r_temp = 0.6
         cooling_rate = 1e-3
 
-        energy = solution.get_energy()
+        energy = self.__solution.get_energy()
 
         if self.__verbose:
-            print str(counter) + '\t' + str(energy) + '\t' + \
-                str(solution)
+            print str(iteration) + '\t' + str(energy) + '\t' + \
+                str(self.__solution)
 
-        while energy > acceptance and counter < max_iter:
-            counter += 1
-            energy_new = solution.mutate()
+        while not self.__cancelled \
+                and energy > self.__acceptance \
+                and iteration < self.__max_iter:
+            iteration += 1
+            energy_new = self.__solution.mutate()
 
             if energy_new < energy:
                 # Accept move immediately:
                 energy = energy_new
-                self.__accept(solution, counter, max_iter, energy)
+                self.__accept(iteration, energy)
             elif energy == energy_new:
                 # Take no action:
                 continue
             elif math.exp((energy - energy_new) / r_temp) > random.random():
                 # Accept move based on conditional probability:
                 energy = energy_new
-                self.__accept(solution, counter, max_iter, energy)
+                self.__accept(iteration, energy)
                 accepts += 1
             else:
                 # Reject move:
@@ -78,19 +90,26 @@ class SimulatedAnnealer(object):
 
             r_temp *= 1 - cooling_rate
 
-        if counter == max_iter:
-            raise ValueError('Unable to optimise: ' + str(solution))
+        if iteration == self.__max_iter:
+            raise ValueError('Unable to optimise in ' + self.__max_iter +
+                             ' iterations')
 
-        return (solution, counter)
+        self.__fire_event(iteration, 100, result=True)
 
-    def __accept(self, solution, counter, max_iter, energy):
+    def __accept(self, iteration, energy):
         '''Accept the current solution.'''
-        solution.accept()
-
-        event = dict({'progress': float(counter) / max_iter}.items() +
-                     solution.get_json().items())
-        self.__ev_hand.fire_event(event)
-
+        self.__solution.accept()
+        self.__fire_event(iteration, float(iteration) / self.__max_iter)
         if self.__verbose:
-            print str(counter) + '\t' + str(energy) + '\t' + \
-                str(solution)
+            print str(iteration) + '\t' + str(energy) + '\t' + \
+                str(self.__solution)
+
+    def __fire_event(self, iteration, progress, result=False):
+        '''Fires an event.'''
+        event = dict({'progress': progress,
+                      'iteration': iteration,
+                      'max_iter': self.__max_iter}.items() +
+                     self.__solution.get_status().items() +
+                     (self.__solution.get_result() if result else {}).items())
+
+        self.__ev_hand.fire_event(event)
