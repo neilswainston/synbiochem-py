@@ -16,7 +16,7 @@ from synbiochem.utils.job import EventHandler
 class SimulatedAnnealer(object):
     '''Class to perform simulated annealing method.'''
 
-    def __init__(self, solution, acceptance=0.25, max_iter=1000,
+    def __init__(self, solution, acceptance=0.25, max_iter=10000,
                  verbose=False):
         self.__solution = solution
         self.__acceptance = acceptance
@@ -95,9 +95,11 @@ class SimulatedAnnealer(object):
                 ' iterations'
             self.__fire_event('error', 100, iteration, message=message)
         elif self.__cancelled:
-            self.__fire_event('cancelled', 100, iteration)
+            self.__fire_event('cancelled', 100, iteration,
+                              message='Job cancelled')
         else:
-            self.__fire_event('finished', 100, iteration, result=True)
+            self.__fire_event('finished', 100, iteration,
+                              message='Job completed', result=True)
 
     def __accept(self, iteration, energy):
         '''Accept the current solution.'''
@@ -116,7 +118,8 @@ class SimulatedAnnealer(object):
                       'progress': progress,
                       'iteration': iteration,
                       'max_iter': self.__max_iter}.items() +
-                     self.__solution.get_status().items() +
+                     self.__solution.get_query().items() +
+                     self.__solution.get_update().items() +
                      (self.__solution.get_result() if result else {}).items())
 
         self.__ev_hand.fire_event(event)
