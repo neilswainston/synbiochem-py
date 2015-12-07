@@ -158,11 +158,15 @@ def sample_seqs(sample_size, struct_patt):
     while len(seqs) < sample_size:
         print struct_patt + '\t' + str(len(seqs))
         pdb_ids = get_pdb_ids(sample_size)
-        seq_struct = get_seq_struct(pdb_ids)
+        seq_structs = get_seq_struct(pdb_ids)
+        matches = []
 
-        matches = set([v[0][slice(*(m.span()))]
-                       for v in seq_struct.values()
-                       for m in patt.finditer(v[1])])
+        for pdb_ids, seq_struct in seq_structs.iteritems():
+            for match in patt.finditer(seq_struct[1]):
+                matches.append([seq_struct[0][slice(*(match.span()))],
+                                seq_struct[1][slice(*(match.span()))],
+                                pdb_ids,
+                                match.span()])
 
         seqs.extend(random.sample(matches, min(len(matches),
                                                sample_size - len(seqs))))
