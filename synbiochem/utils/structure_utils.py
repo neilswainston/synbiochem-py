@@ -14,8 +14,6 @@ import pylab
 import random
 import re
 import scipy.spatial
-import tempfile
-import urllib
 
 from Bio import SeqUtils
 from Bio.PDB.PDBParser import PDBParser
@@ -25,22 +23,31 @@ import synbiochem.utils.io_utils as io_utils
 
 
 _DIR = 'structure_utils'
+_PDB_DIR = 'pdb'
 
 
-def get_pdb_ids(max_ids=None):
-    '''Returns all PDB ids.'''
-    source_url = 'http://www.uniprot.org/uniprot/?query=database:pdb' \
-        + '&format=tab&columns=id,database(PDB)'
-    target_filename = os.path.join(os.path.expanduser('~'), _DIR,
-                                   'pdb_ids.txt')
+def get_pdb_ids(max_ids=None, local_only=False):
+    '''Returns PDB ids.'''
+    if local_only:
+        # Returns local PDB ids.
+        pdb_dir = os.path.join(os.path.expanduser('~'), _DIR, _PDB_DIR)
+        ids = [filename[:-4].upper()
+               for _, _, files in os.walk(pdb_dir)
+               for filename in files if filename.endswith('.pdb')]
+    else:
+        # Returns all PDB ids.
+        source_url = 'http://www.uniprot.org/uniprot/?query=database:pdb' \
+            + '&format=tab&columns=id,database(PDB)'
+        target_filename = os.path.join(os.path.expanduser('~'), _DIR,
+                                       'pdb_ids.txt')
 
-    with open(io_utils.get_file(source_url, target_filename)) as fle:
-        ids = [x for line in fle
-               for x in line.split()[1].split(';')
-               if len(x) > 0 and x != 'Cross-reference']
+        with open(io_utils.get_file(source_url, target_filename)) as fle:
+            ids = [x for line in fle
+                   for x in line.split()[1].split(';')
+                   if len(x) > 0 and x != 'Cross-reference']
 
-        return ids if max_ids is None \
-            else random.sample(ids, min(len(ids), max_ids))
+    return ids if max_ids is None \
+        else random.sample(ids, min(len(ids), max_ids))
 
 
 def get_seq_struct(pdb_ids):
@@ -107,10 +114,11 @@ def get_sequences(pdb_id):
 
 def get_structure(pdb_id):
     '''Returns a PDB structure.'''
-    with tempfile.TemporaryFile() as pdb_file:
-        opener = urllib.URLopener()
-        opener.retrieve('http://www.rcsb.org/pdb/files/' + pdb_id + '.pdb',
-                        pdb_file.name)
+    source_url = 'http://www.rcsb.org/pdb/files/' + pdb_id + '.pdb'
+    target_filename = os.path.join(os.path.expanduser('~'), _DIR, _PDB_DIR,
+                                   pdb_id + '.pdb')
+
+    with open(io_utils.get_file(source_url, target_filename)) as pdb_file:
         parser = PDBParser(QUIET=True)
         return parser.get_structure(pdb_id, pdb_file.name)
 
@@ -150,14 +158,14 @@ def plot_proximities(pdb_id):
               name + ' proximity plot')
 
 
-def sample_seqs(sample_size, struct_patt):
+def sample_seqs(sample_size, struct_patt, local_only=False):
     '''Sample sequence and structure data.'''
     seqs = []
     patt = re.compile(struct_patt)
 
     while len(seqs) < sample_size:
         print struct_patt + '\t' + str(len(seqs))
-        pdb_ids = get_pdb_ids(sample_size)
+        pdb_ids = get_pdb_ids(sample_size, local_only)
         seq_structs = get_seq_struct(pdb_ids)
         matches = []
 
