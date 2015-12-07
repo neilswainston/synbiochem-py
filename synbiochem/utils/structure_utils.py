@@ -104,12 +104,13 @@ def get_seq_struct(pdb_ids):
     return seq_struct
 
 
-def get_sequences(pdb_id):
+def get_sequences(pdb_id, chain=None):
     '''Gets the sequences in a PDB file.'''
     return [SeqUtils.seq1(''.join([residue.get_resname()
                                    for residue in chn
                                    if 'CA' in residue.child_dict]))
-            for chn in get_structure(pdb_id).get_chains()]
+            for chn in get_structure(pdb_id).get_chains()
+            if chain is None or chain == chn.get_id()]
 
 
 def get_structure(pdb_id):
@@ -139,11 +140,14 @@ def calc_proximities(pdb_id):
             for coord in coords]
 
 
-def get_phi_psi_data(pdb_id):
+def get_phi_psi_data(pdb_id, chain=None):
     '''Gets phi and phi angle data.'''
     builder = PPBuilder()
     return [polypep.get_phi_psi_list()
-            for polypep in builder.build_peptides(get_structure(pdb_id))]
+            for model in get_structure(pdb_id)
+            for chn in model
+            if chain is None or chain == chn.get_id()
+            for polypep in builder.build_peptides(chn)]
 
 
 def plot_proximities(pdb_id):
@@ -164,7 +168,6 @@ def sample_seqs(sample_size, struct_patt, local_only=False):
     patt = re.compile(struct_patt)
 
     while len(seqs) < sample_size:
-        print struct_patt + '\t' + str(len(seqs))
         pdb_ids = get_pdb_ids(sample_size, local_only)
         seq_structs = get_seq_struct(pdb_ids)
         matches = []
