@@ -15,8 +15,8 @@ import os
 import random
 import re
 import subprocess
+import tempfile
 import urllib2
-import uuid
 
 
 AA_CODES = {'Ala': 'A',
@@ -186,10 +186,10 @@ class CodonOptimiser(object):
         return codon_usage_table
 
 
-def get_minimum_free_energy(exec_dir, sequences):
+def get_minimum_free_energy(sequences):
     '''Returns minimum free energy of supplied DNA / RNA sequences.'''
-    with open(_get_temp_filename(), 'w') as input_file, \
-            open(_get_temp_filename(), 'w') as output_file:
+    with open(tempfile.NamedTemporaryFile(), 'w') as input_file, \
+            open(tempfile.NamedTemporaryFile(), 'w') as output_file:
 
         for i, sequence in enumerate(sequences):
             input_file.write('>Seq' + str(i) + '\n' + sequence + '\n')
@@ -197,7 +197,7 @@ def get_minimum_free_energy(exec_dir, sequences):
 
         input_file.close()
 
-        proc = subprocess.Popen(os.path.join(exec_dir, 'RNAfold'),
+        proc = subprocess.Popen('RNAfold',
                                 stdin=open(input_file.name),
                                 stdout=output_file)
 
@@ -214,9 +214,6 @@ def get_minimum_free_energy(exec_dir, sequences):
 
                 if src:
                     mfes.append(float(src.group()))
-
-        _cleanup(os.getcwd(), input_file.name)
-        _cleanup(os.getcwd(), output_file.name)
 
         return mfes
 
@@ -362,8 +359,3 @@ def _cleanup(drctry, pattern):
     for filename in os.listdir(drctry):
         if re.search(pattern, filename):
             os.remove(os.path.join(drctry, filename))
-
-
-def _get_temp_filename():
-    '''Gets temporary file name.'''
-    return str(uuid.uuid1()) + '.txt'
