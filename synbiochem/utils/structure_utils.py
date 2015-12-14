@@ -104,6 +104,46 @@ def get_seq_struct(pdb_ids):
     return seq_struct
 
 
+def get_pep_struct(outfilepath, length):
+    '''Returns sequence and structure.'''
+    seq = None
+    pdb_id = None
+    chain = None
+    str_data = ''
+
+    source_url = 'http://www.rcsb.org/pdb/files/ss.txt'
+    target_filename = os.path.join(os.path.expanduser('~'), _DIR,
+                                   'ss.txt')
+
+    count = 0
+
+    with open(io_utils.get_file(source_url, target_filename)) as infile, \
+            open(outfilepath, 'w') as outfile:
+        for line in infile:
+            if line.startswith('>'):
+                tokens = tuple(re.split('>|:', line.strip())[1:])
+
+                if tokens[2] == 'sequence':
+                    if seq is not None:
+                        for i in range(len(seq) - length + 1):
+                            count += 1
+                            outfile.write('\t'.join([seq[i:i + length],
+                                                     str_data[i:i + length],
+                                                     pdb_id, chain,
+                                                     str(i),
+                                                     str(i + length)]) + '\n')
+                else:
+                    seq = str_data
+
+                str_data = ''
+                pdb_id = tokens[0]
+                chain = tokens[1]
+            else:
+                str_data += line[:-1]
+
+    print count
+
+
 def get_sequences(pdb_id, chain=None):
     '''Gets the sequences in a PDB file.'''
     return [SeqUtils.seq1(''.join([residue.get_resname()
@@ -205,3 +245,6 @@ def _plot(values, plot_filename, plot_format, title, max_value=None):
     cbar.set_ticks([min_val, max_val])
 
     pylab.savefig(plot_filename, format=plot_format)
+
+
+get_pep_struct('out.txt', 9)
