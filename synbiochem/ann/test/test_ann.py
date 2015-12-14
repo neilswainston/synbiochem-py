@@ -34,8 +34,8 @@ class TestClassifier(unittest.TestCase):
         # Split data into training and classifying:
         ind = int(0.8 * len(x_data))
 
-        classifier = synbiochem.ann.Classifier()
-        classifier.train(x_data[:ind], y_data[:ind])
+        classifier = synbiochem.ann.Classifier(x_data[:ind], y_data[:ind])
+        classifier.train()
 
         y_test = y_data[ind:]
         y_pred, _, _, _ = classifier.classify(x_data[ind:], y_test)
@@ -52,17 +52,18 @@ class TestRegressor(unittest.TestCase):
         # Load the diabetes dataset:
         dataset = datasets.load_diabetes()
 
-        x_data = dataset.data
-        y_data = dataset.target
+        x_data = dataset.data.tolist()
+        y_data = dataset.target.tolist()
 
         x_data, y_data = synbiochem.ann.randomise_order(x_data, y_data)
 
         # Split data into training and classifying:
         ind = int(0.8 * len(x_data))
 
-        regressor = synbiochem.ann.Regressor()
         y_train = [[y] for y in y_data[:ind]]
-        regressor.train(x_data[:ind], y_train, hidden_layers=[12])
+        regressor = synbiochem.ann.Regressor(x_data[:ind], y_train)
+
+        regressor.train(hidden_layers=[12])
         y_pred = regressor.predict(x_data[ind:])
 
         self.assertTrue(numpy.sqrt(numpy.mean((y_data[ind:] - y_pred) ** 2)) <
