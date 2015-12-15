@@ -7,7 +7,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
-import itertools
+import abc
 import numpy
 import random
 
@@ -44,14 +44,12 @@ class Chromosome(object):
 
 
 class GeneticAlgorithm(object):
-    '''Class to run a genetic algorithm.
-    Basic implementation involves calculating a set of numbers that sum to
-    a given target.'''
+    '''Base class to run a genetic algorithm.'''
+    __metaclass__ = abc.ABCMeta
 
-    def __init__(self, pop_size, args, target):
+    def __init__(self, pop_size, args):
         self.__pop_size = pop_size
         self.__args = args
-        self.__target = target
         self.__population = [self.__get_individual()
                              for _ in xrange(pop_size)]
 
@@ -65,6 +63,11 @@ class GeneticAlgorithm(object):
         raise ValueError('Unable to optimise in ' + str(max_iter) +
                          ' iterations.')
 
+    @abc.abstractmethod
+    def _fitness(self, individual):
+        '''Determine the fitness of an individual.'''
+        return
+
     def __get_individual(self):
         'Create a member of the population.'
         return {k: self.__get_arg(args) for k, args in self.__args.iteritems()}
@@ -73,15 +76,11 @@ class GeneticAlgorithm(object):
         return random.randint(args[0], args[1]) if isinstance(args, tuple) \
             else random.choice(args)
 
-    def __fitness(self, individual):
-        '''Determine the fitness of an individual.'''
-        return abs(self.__target - sum(individual.values()))
-
     def __evolve(self, retain=0.2, random_select=0.05, mutate=0.01):
         # Ensure uniqueness in population:
         self.__population = list(numpy.unique(numpy.array(self.__population)))
 
-        graded = sorted([(self.__fitness(x), x) for x in self.__population])
+        graded = sorted([(self._fitness(x), x) for x in self.__population])
 
         if graded[0][0] == 0:
             return graded[0][1]
@@ -120,6 +119,6 @@ class GeneticAlgorithm(object):
 
         self.__population.extend(children)
 
-        # print numpy.mean([self.__fitness(ind) for ind in self.__population])
+        # print numpy.mean([self._fitness(ind) for ind in self.__population])
 
         return None

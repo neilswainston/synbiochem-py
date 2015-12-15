@@ -29,14 +29,14 @@ class TestChromosome(unittest.TestCase):
             chrom1.get_chromosome() + chrom2.get_chromosome(), 2 ** length - 1)
 
 
-class TestGeneticAlgorithm(unittest.TestCase):
+class TestSumGeneticAlgorithm(unittest.TestCase):
 
     def test_run(self):
         args = dict(enumerate([[5, 10]] + [(random.randint(0, 20),
                                             random.randint(80, 100))
                                            for _ in range(10)]))
         target = 321
-        genetic_algorithm = gen_alg.GeneticAlgorithm(100, args, target)
+        genetic_algorithm = SumGeneticAlgorithm(100, args, target)
         self.assertEqual(sum(genetic_algorithm.run(100000).values()), target)
 
     def test_run_error(self):
@@ -44,5 +44,19 @@ class TestGeneticAlgorithm(unittest.TestCase):
                                             random.randint(80, 100))
                                            for _ in range(10)]))
         target = 936073
-        genetic_algorithm = gen_alg.GeneticAlgorithm(100, args, target)
+        genetic_algorithm = SumGeneticAlgorithm(100, args, target)
         self.assertRaises(ValueError, genetic_algorithm.run)
+
+
+class SumGeneticAlgorithm(gen_alg.GeneticAlgorithm):
+    '''Class to run a genetic algorithm.
+    Basic implementation involves calculating a set of numbers that sum to
+    a given target.'''
+
+    def __init__(self, pop_size, args, target):
+        super(SumGeneticAlgorithm, self).__init__(pop_size, args)
+        self.__target = target
+
+    def _fitness(self, individual):
+        '''Determine the fitness of an individual.'''
+        return abs(self.__target - sum(individual.values()))
