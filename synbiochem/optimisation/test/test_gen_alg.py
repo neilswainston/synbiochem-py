@@ -32,15 +32,17 @@ class TestChromosome(unittest.TestCase):
 class TestGeneticAlgorithm(unittest.TestCase):
 
     def test_run(self):
-        args = dict(enumerate([(random.randint(0, 20), random.randint(80, 100))
-                               for _ in range(10)]))
+        args = dict(enumerate([[5, 10]] + [(random.randint(0, 20),
+                                            random.randint(80, 100))
+                                           for _ in range(10)]))
         target = 321
         genetic_algorithm = gen_alg.GeneticAlgorithm(100, args, target)
-        self.assertEqual(sum(genetic_algorithm.run(100000)), target)
+        self.assertEqual(sum(genetic_algorithm.run(100000).values()), target)
 
     def test_run_error(self):
-        args = dict(enumerate([(random.randint(0, 20), random.randint(80, 100))
-                               for _ in range(10)]))
+        args = dict(enumerate([[5, 10]] + [(random.randint(0, 20),
+                                            random.randint(80, 100))
+                                           for _ in range(10)]))
         target = 936073
         genetic_algorithm = gen_alg.GeneticAlgorithm(100, args, target)
         self.assertRaises(ValueError, genetic_algorithm.run)

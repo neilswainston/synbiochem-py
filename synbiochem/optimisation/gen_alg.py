@@ -8,6 +8,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 @author:  neilswainston
 '''
 import itertools
+import numpy
 import random
 
 
@@ -66,17 +67,19 @@ class GeneticAlgorithm(object):
 
     def __get_individual(self):
         'Create a member of the population.'
-        return [random.randint(val[0], val[1]) for val in self.__args.values()]
+        return {k: self.__get_arg(args) for k, args in self.__args.iteritems()}
+
+    def __get_arg(self, args):
+        return random.randint(args[0], args[1]) if isinstance(args, tuple) \
+            else random.choice(args)
 
     def __fitness(self, individual):
         '''Determine the fitness of an individual.'''
-        return abs(self.__target - sum(individual))
+        return abs(self.__target - sum(individual.values()))
 
     def __evolve(self, retain=0.2, random_select=0.05, mutate=0.01):
         # Ensure uniqueness in population:
-        self.__population.sort()
-        self.__population = list(
-            k for k, _ in itertools.groupby(self.__population))
+        self.__population = list(numpy.unique(numpy.array(self.__population)))
 
         graded = sorted([(self.__fitness(x), x) for x in self.__population])
 
@@ -96,8 +99,7 @@ class GeneticAlgorithm(object):
         for individual in self.__population:
             if mutate > random.random():
                 pos = random.randint(0, len(individual) - 1)
-                individual[pos] = random.randint(self.__args[pos][0],
-                                                 self.__args[pos][1])
+                individual[pos] = self.__get_arg(self.__args[pos])
 
         # Breed parents to create children:
         children = []
@@ -108,9 +110,16 @@ class GeneticAlgorithm(object):
 
             if male != female:
                 pos = random.randint(0, len(male))
-                child = male[:pos] + female[pos:]
+
+                child = dict({k: v for k, v in male.iteritems()
+                              if k < pos}.items() +
+                             {k: v for k, v in female.iteritems()
+                              if k >= pos}.items())
+
                 children.append(child)
 
         self.__population.extend(children)
+
+        # print numpy.mean([self.__fitness(ind) for ind in self.__population])
 
         return None
