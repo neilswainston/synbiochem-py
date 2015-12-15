@@ -15,8 +15,7 @@ from functools import partial
 from itertools import count
 import numpy
 import random
-
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report, confusion_matrix, f1_score
 import theanets
 
 
@@ -39,9 +38,9 @@ class TheanetsBase(object):
               hidden_dropout=0.0, input_dropout=0.0):
         '''Train the network.'''
         if hidden_layers is None:
-            hidden_layers = [2]
+            hidden_layers = [len(self._x_data[0])]
 
-        layers = [len(self._x_data[0])] + hidden_layers + [self._outputs]
+        layers = [len(self._x_data[0])] + [hidden_layers] + [self._outputs]
         self._exp = theanets.Experiment(self._network, layers=layers)
 
         # Split data into training and validation:
@@ -90,7 +89,7 @@ class Classifier(TheanetsBase):
 
         return [inv_y_map[y] for y in y_pred], inv_y_map, \
             classification_report(y_test, y_pred), \
-            confusion_matrix(y_test, y_pred)
+            confusion_matrix(y_test, y_pred), f1_score(y_test, y_pred)
 
 
 class Regressor(TheanetsBase):

@@ -245,6 +245,3 @@ def _plot(values, plot_filename, plot_format, title, max_value=None):
     cbar.set_ticks([min_val, max_val])
 
     pylab.savefig(plot_filename, format=plot_format)
-
-
-get_pep_struct('out.txt', 9)
