@@ -9,7 +9,9 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 '''
 # pylint: disable=no-member
 # pylint: disable=too-many-public-methods
+import random
 import unittest
+
 import synbiochem.optimisation.gen_alg as gen_alg
 
 
@@ -30,11 +32,15 @@ class TestChromosome(unittest.TestCase):
 class TestGeneticAlgorithm(unittest.TestCase):
 
     def test_run(self):
+        args = dict(enumerate([(random.randint(0, 20), random.randint(80, 100))
+                               for _ in range(10)]))
         target = 321
-        genetic_algorithm = gen_alg.GeneticAlgorithm(100, target, 10, 0, 100)
+        genetic_algorithm = gen_alg.GeneticAlgorithm(100, args, target)
         self.assertEqual(sum(genetic_algorithm.run(100000)), target)
 
     def test_run_error(self):
+        args = dict(enumerate([(random.randint(0, 20), random.randint(80, 100))
+                               for _ in range(10)]))
         target = 936073
-        genetic_algorithm = gen_alg.GeneticAlgorithm(100, target, 10, 0, 100)
+        genetic_algorithm = gen_alg.GeneticAlgorithm(100, args, target)
         self.assertRaises(ValueError, genetic_algorithm.run)

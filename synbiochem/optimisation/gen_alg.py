@@ -47,10 +47,11 @@ class GeneticAlgorithm(object):
     Basic implementation involves calculating a set of numbers that sum to
     a given target.'''
 
-    def __init__(self, pop_size, *args):
+    def __init__(self, pop_size, args, target):
         self.__pop_size = pop_size
-        self.__target = args[0]
-        self.__population = [self.__get_individual(*args[1:])
+        self.__args = args
+        self.__target = target
+        self.__population = [self.__get_individual()
                              for _ in xrange(pop_size)]
 
     def run(self, max_iter=1024):
@@ -63,9 +64,9 @@ class GeneticAlgorithm(object):
         raise ValueError('Unable to optimise in ' + str(max_iter) +
                          ' iterations.')
 
-    def __get_individual(self, length, minimum, maximum):
+    def __get_individual(self):
         'Create a member of the population.'
-        return [random.randint(minimum, maximum) for _ in xrange(length)]
+        return [random.randint(val[0], val[1]) for val in self.__args.values()]
 
     def __fitness(self, individual):
         '''Determine the fitness of an individual.'''
@@ -95,12 +96,8 @@ class GeneticAlgorithm(object):
         for individual in self.__population:
             if mutate > random.random():
                 pos = random.randint(0, len(individual) - 1)
-                # this mutation is not ideal, because it
-                # restricts the range of possible values,
-                # but the function is unaware of the min/max
-                # values used to create the individuals,
-                individual[pos] = random.randint(min(individual),
-                                                 max(individual))
+                individual[pos] = random.randint(self.__args[pos][0],
+                                                 self.__args[pos][1])
 
         # Breed parents to create children:
         children = []
