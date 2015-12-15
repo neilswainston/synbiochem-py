@@ -25,3 +25,16 @@ class TestChromosome(unittest.TestCase):
 
         self.assertEqual(
             chrom1.get_chromosome() + chrom2.get_chromosome(), 2 ** length - 1)
+
+
+class TestGeneticAlgorithm(unittest.TestCase):
+
+    def test_run(self):
+        target = 321
+        genetic_algorithm = gen_alg.GeneticAlgorithm(100, target, 10, 0, 100)
+        self.assertEqual(sum(genetic_algorithm.run(100000)), target)
+
+    def test_run_error(self):
+        target = 936073
+        genetic_algorithm = gen_alg.GeneticAlgorithm(100, target, 10, 0, 100)
+        self.assertRaises(ValueError, genetic_algorithm.run)

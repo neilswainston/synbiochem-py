@@ -47,14 +47,15 @@ class GeneticAlgorithm(object):
     Basic implementation involves calculating a set of numbers that sum to
     a given target.'''
 
-    def __init__(self, count, *args):
-        self.__count = count
-        self.__population = [self.__get_individual(*args)
-                             for _ in xrange(count)]
+    def __init__(self, pop_size, *args):
+        self.__pop_size = pop_size
+        self.__target = args[0]
+        self.__population = [self.__get_individual(*args[1:])
+                             for _ in xrange(pop_size)]
 
-    def run(self, target, max_iter=1024):
+    def run(self, max_iter=1024):
         for _ in range(max_iter):
-            result = self.__evolve(target)
+            result = self.__evolve()
 
             if result is not None:
                 return result
@@ -66,25 +67,23 @@ class GeneticAlgorithm(object):
         'Create a member of the population.'
         return [random.randint(minimum, maximum) for _ in xrange(length)]
 
-    def __fitness(self, individual, target):
+    def __fitness(self, individual):
         '''Determine the fitness of an individual.'''
-        return abs(target - sum(individual))
+        return abs(self.__target - sum(individual))
 
-    def __evolve(self, target, retain=0.2, random_select=0.05, mutate=0.01):
-
+    def __evolve(self, retain=0.2, random_select=0.05, mutate=0.01):
         # Ensure uniqueness in population:
         self.__population.sort()
         self.__population = list(
             k for k, _ in itertools.groupby(self.__population))
 
-        graded = sorted([(self.__fitness(x, target), x)
-                         for x in self.__population])
+        graded = sorted([(self.__fitness(x), x) for x in self.__population])
 
         if graded[0][0] == 0:
             return graded[0][1]
 
         graded = [x[1] for x in graded]
-        retain_length = int(self.__count * retain)
+        retain_length = int(self.__pop_size * retain)
 
         # Retain best and randomly add other individuals to promote genetic
         # diversity:
@@ -106,7 +105,7 @@ class GeneticAlgorithm(object):
         # Breed parents to create children:
         children = []
 
-        while len(children) < self.__count - len(self.__population):
+        while len(children) < self.__pop_size - len(self.__population):
             male = random.choice(self.__population)
             female = random.choice(self.__population)
 
@@ -118,7 +117,3 @@ class GeneticAlgorithm(object):
         self.__population.extend(children)
 
         return None
-
-# Example usage
-genetic_algorithm = GeneticAlgorithm(100, 10, 0, 100)
-print genetic_algorithm.run(936, 10)
