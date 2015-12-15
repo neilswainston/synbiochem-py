@@ -7,6 +7,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
+import itertools
 import random
 
 
@@ -30,14 +31,94 @@ class Chromosome(object):
                 mask = 1 << i
                 self.__chromosome = self.__chromosome ^ mask
 
-    def breed(self, other):
+    def breed(self, partner):
         i = int(random.random() * self.__len_chromosome)
-        temp = self.__chromosome
         end = 2 ** i - 1
         start = self.__mask - end
-        self.__chromosome = (other.__chromosome & start) + (temp & end)
-        other.__chromosome = (temp & start) + (other.__chromosome & end)
+        return (partner.__chromosome & start) + (self.__chromosome & end)
 
     def __repr__(self):
         return format(self.__chromosome, '0' + str(self.__len_chromosome) +
                       'b') + '\t' + str(self.__chromosome)
+
+
+class GeneticAlgorithm(object):
+    '''Class to run a genetic algorithm.
+    Basic implementation involves calculating a set of numbers that sum to
+    a given target.'''
+
+    def __init__(self, count, *args):
+        self.__count = count
+        self.__population = [self.__get_individual(*args)
+                             for _ in xrange(count)]
+
+    def run(self, target, max_iter=1024):
+        for _ in range(max_iter):
+            result = self.__evolve(target)
+
+            if result is not None:
+                return result
+
+        raise ValueError('Unable to optimise in ' + str(max_iter) +
+                         ' iterations.')
+
+    def __get_individual(self, length, minimum, maximum):
+        'Create a member of the population.'
+        return [random.randint(minimum, maximum) for _ in xrange(length)]
+
+    def __fitness(self, individual, target):
+        '''Determine the fitness of an individual.'''
+        return abs(target - sum(individual))
+
+    def __evolve(self, target, retain=0.2, random_select=0.05, mutate=0.01):
+
+        # Ensure uniqueness in population:
+        self.__population.sort()
+        self.__population = list(
+            k for k, _ in itertools.groupby(self.__population))
+
+        graded = sorted([(self.__fitness(x, target), x)
+                         for x in self.__population])
+
+        if graded[0][0] == 0:
+            return graded[0][1]
+
+        graded = [x[1] for x in graded]
+        retain_length = int(self.__count * retain)
+
+        # Retain best and randomly add other individuals to promote genetic
+        # diversity:
+        self.__population = graded[:retain_length] + \
+            [ind for ind in graded[retain_length:]
+             if random_select > random.random()]
+
+        # Mutate some individuals:
+        for individual in self.__population:
+            if mutate > random.random():
+                pos = random.randint(0, len(individual) - 1)
+                # this mutation is not ideal, because it
+                # restricts the range of possible values,
+                # but the function is unaware of the min/max
+                # values used to create the individuals,
+                individual[pos] = random.randint(min(individual),
+                                                 max(individual))
+
+        # Breed parents to create children:
+        children = []
+
+        while len(children) < self.__count - len(self.__population):
+            male = random.choice(self.__population)
+            female = random.choice(self.__population)
+
+            if male != female:
+                pos = random.randint(0, len(male))
+                child = male[:pos] + female[pos:]
+                children.append(child)
+
+        self.__population.extend(children)
+
+        return None
+
+# Example usage
+genetic_algorithm = GeneticAlgorithm(100, 10, 0, 100)
+print genetic_algorithm.run(936, 10)
