@@ -47,9 +47,10 @@ class GeneticAlgorithm(object):
     '''Base class to run a genetic algorithm.'''
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, pop_size, args):
+    def __init__(self, pop_size, args, verbose=False):
         self.__pop_size = pop_size
         self.__args = args
+        self.__verbose = verbose
         self.__population = [self.__get_individual()
                              for _ in xrange(pop_size)]
 
@@ -85,6 +86,9 @@ class GeneticAlgorithm(object):
         if graded[0][0] == 0:
             return graded[0][1]
 
+        if self.__verbose:
+            print graded[0]
+
         graded = [x[1] for x in graded]
         retain_length = int(self.__pop_size * retain)
 
@@ -97,8 +101,8 @@ class GeneticAlgorithm(object):
         # Mutate some individuals:
         for individual in self.__population:
             if mutate > random.random():
-                pos = random.randint(0, len(individual) - 1)
-                individual[pos] = self.__get_arg(self.__args[pos])
+                key = random.choice(individual.keys())
+                individual[key] = self.__get_arg(self.__args[key])
 
         # Breed parents to create children:
         children = []
