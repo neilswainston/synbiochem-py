@@ -47,12 +47,19 @@ class GeneticAlgorithm(object):
     '''Base class to run a genetic algorithm.'''
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, pop_size, args, verbose=False):
+    def __init__(self, pop_size, args, retain=0.2, random_select=0.05,
+                 mutate=0.01, verbose=False):
         self.__pop_size = pop_size
         self.__args = args
-        self.__verbose = verbose
-        self.__population = [self.__get_individual()
-                             for _ in xrange(pop_size)]
+        self.__retain = retain
+        self.__random_select = random_select
+        self.__mutate = mutate
+        self._verbose = verbose
+        self.__population = []
+
+        while len(list(numpy.unique(numpy.array(self.__population)))) < \
+                pop_size:
+            self.__population.append(self.__get_individual())
 
     def run(self, max_iter=1024):
         for _ in range(max_iter):
@@ -77,51 +84,58 @@ class GeneticAlgorithm(object):
         return random.randint(args[0], args[1]) if isinstance(args, tuple) \
             else random.choice(args)
 
-    def __evolve(self, retain=0.2, random_select=0.05, mutate=0.01):
-        # Ensure uniqueness in population:
-        self.__population = list(numpy.unique(numpy.array(self.__population)))
-
+    def __evolve(self):
         graded = sorted([(self._fitness(x), x) for x in self.__population])
 
         if graded[0][0] == 0:
             return graded[0][1]
 
-        if self.__verbose:
+        if self._verbose:
             print graded[0]
 
         graded = [x[1] for x in graded]
-        retain_length = int(self.__pop_size * retain)
+        retain_length = int(self.__pop_size * self.__retain)
 
         # Retain best and randomly add other individuals to promote genetic
         # diversity:
         self.__population = graded[:retain_length] + \
             [ind for ind in graded[retain_length:]
-             if random_select > random.random()]
+             if self.__random_select > random.random()]
 
         # Mutate some individuals:
         for individual in self.__population:
-            if mutate > random.random():
+            if self.__mutate > random.random():
                 key = random.choice(individual.keys())
                 individual[key] = self.__get_arg(self.__args[key])
 
-        # Breed parents to create children:
-        children = []
+        # Ensure uniqueness in population:
+        self.__population = list(numpy.unique(numpy.array(self.__population)))
 
-        while len(children) < self.__pop_size - len(self.__population):
+        # Breed parents to create children:
+        new_population = []
+
+        while len(new_population) < self.__pop_size:
             male = random.choice(self.__population)
             female = random.choice(self.__population)
 
             if male != female:
                 pos = random.randint(0, len(male))
 
-                child = dict({k: v for k, v in male.iteritems()
-                              if k < pos}.items() +
-                             {k: v for k, v in female.iteritems()
-                              if k >= pos}.items())
+                male_parts = {k: male[k]
+                              for i, k in enumerate(male.keys())
+                              if i < pos}
+                female_parts = {k: female[k]
+                                for i, k in enumerate(female.keys())
+                                if i >= pos}
 
-                children.append(child)
+                child = dict(male_parts.items() +
+                             female_parts.items())
 
-        self.__population.extend(children)
+                new_population.append(child)
+                new_population = list(
+                    numpy.unique(numpy.array(new_population)))
+
+        self.__population = new_population
 
         # print numpy.mean([self._fitness(ind) for ind in self.__population])
 
