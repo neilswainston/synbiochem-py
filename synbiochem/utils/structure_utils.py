@@ -19,6 +19,7 @@ from Bio import SeqUtils
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.Polypeptide import PPBuilder
 
+import regex
 import synbiochem.utils.io_utils as io_utils
 
 
@@ -205,15 +206,17 @@ def plot_proximities(pdb_id):
 def sample_seqs(sample_size, struct_patt, local_only=False):
     '''Sample sequence and structure data.'''
     seqs = []
-    patt = re.compile(struct_patt)
 
     while len(seqs) < sample_size:
-        pdb_ids = get_pdb_ids(sample_size, local_only)
+        # Get more PDB ids than necessary, as not all PDB entries will contain
+        # desired pattern:
+        pdb_ids = get_pdb_ids(sample_size * 10, local_only)
         seq_structs = get_seq_struct(pdb_ids)
         matches = []
 
         for pdb_ids, seq_struct in seq_structs.iteritems():
-            for match in patt.finditer(seq_struct[1]):
+            for match in regex.finditer(struct_patt, seq_struct[1],
+                                        overlapped=True):
                 matches.append([seq_struct[0][slice(*(match.span()))],
                                 seq_struct[1][slice(*(match.span()))],
                                 pdb_ids,
@@ -222,7 +225,7 @@ def sample_seqs(sample_size, struct_patt, local_only=False):
         seqs.extend(random.sample(matches, min(len(matches),
                                                sample_size - len(seqs))))
 
-    return seqs[:sample_size]
+    return seqs
 
 
 def _plot(values, plot_filename, plot_format, title, max_value=None):
