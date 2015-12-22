@@ -313,6 +313,12 @@ def count_pattern(strings, pattern):
         return [count_pattern(s, pattern) for s in strings]
 
 
+def get_hamming(str1, str2):
+    '''Returns Hamming distance for two sequences, which are assumed to be of
+    the same length.'''
+    return sum(itertools.imap(operator.ne, str1, str2))
+
+
 def _scale(codon_usage):
     '''Scale codon usage values to add to 1.'''
     codon_usage = dict([(key, value / sum(codon_usage.values()))

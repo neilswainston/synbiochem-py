@@ -18,8 +18,9 @@ import scipy.spatial
 from Bio import SeqUtils
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.Polypeptide import PPBuilder
-
 import regex
+
+from synbiochem.utils import sequence_utils
 import synbiochem.utils.io_utils as io_utils
 
 
@@ -203,7 +204,7 @@ def plot_proximities(pdb_id):
               name + ' proximity plot')
 
 
-def sample_seqs(sample_size, struct_patt, local_only=False):
+def sample_seqs(sample_size, struct_patt, min_hamming=3, local_only=False):
     '''Sample sequence and structure data.'''
     seqs = []
 
@@ -222,10 +223,19 @@ def sample_seqs(sample_size, struct_patt, local_only=False):
                                 pdb_ids,
                                 match.span()])
 
-        seqs.extend(random.sample(matches, min(len(matches),
-                                               sample_size - len(seqs))))
+        for match in random.sample(matches, min(len(matches), sample_size -
+                                                len(seqs))):
+            add = True
 
-    return seqs
+            for seq in seqs:
+                if sequence_utils.get_hamming(seq[0], match[0]) < min_hamming:
+                    add = False
+                    break
+
+            if add:
+                seqs.append(match)
+
+    return seqs[:sample_size]
 
 
 def _plot(values, plot_filename, plot_format, title, max_value=None):
