@@ -67,7 +67,9 @@ def get_seq_struct(pdb_ids):
     with open(io_utils.get_file(source_url, target_filename)) as fle:
         for line in fle:
             if line.startswith('>'):
-                if re.match('(?<=\\>)[^:]*', line) in pdb_ids:
+                pdb_id = re.search('(?<=\\>)[^:]*', line).group(0)
+
+                if pdb_id in pdb_ids:
                     if in_field:
                         if tokens[:2] not in seq_struct:
                             seq_struct[tokens[:2]] = [None, None]
@@ -203,21 +205,26 @@ def sample_seqs(sample_size, struct_patts, min_hamming=3, local_only=False):
     seqs = {}
     hammings = {}
 
-    matches = []
-    pdb_ids = get_pdb_ids(local_only=local_only)
-    seq_struct = get_seq_struct(pdb_ids)
-
     for struct_patt in struct_patts:
         seqs[struct_patt] = []
 
         while len(seqs[struct_patt]) < sample_size:
+            matches = []
+            pdb_ids = get_pdb_ids(sample_size, local_only=local_only)
+            seq_struct = get_seq_struct(pdb_ids)
+
             for pdb_ids, seq_struct in seq_struct.iteritems():
-                for match in regex.finditer(struct_patt, seq_struct[1],
-                                            overlapped=True):
-                    matches.append([seq_struct[0][slice(*(match.span()))],
-                                    seq_struct[1][slice(*(match.span()))],
-                                    pdb_ids,
-                                    match.span()])
+                try:
+                    for match in regex.finditer(struct_patt, seq_struct[1],
+                                                overlapped=True):
+                        matches.append([seq_struct[0][slice(*(match.span()))],
+                                        seq_struct[1][slice(*(match.span()))],
+                                        pdb_ids,
+                                        match.span()])
+                except TypeError:
+                    '''Take no action, but accept that seq_struct[1]
+                    (the secondary structure) is occasionally and inexplicably
+                    None.'''
 
             for match in random.sample(matches, min(len(matches), sample_size -
                                                     len(seqs[struct_patt]))):
@@ -234,8 +241,6 @@ def sample_seqs(sample_size, struct_patts, min_hamming=3, local_only=False):
 
                 if add:
                     seqs[struct_patt].append(match)
-
-                    print len(seqs[struct_patt])
 
                     for hamming in curr_hamms:
                         if hamming not in hammings:
