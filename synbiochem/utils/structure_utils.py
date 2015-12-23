@@ -56,8 +56,6 @@ def get_seq_struct(pdb_ids):
     '''Returns sequence and structure.'''
     seq_struct = {}
     pdb_ids = sorted(pdb_ids)
-    pdb_id = pdb_ids.pop(0)
-    pdb_id_fasta = '>' + pdb_id
     in_field = False
     tokens = None
     str_data = ''
@@ -68,8 +66,20 @@ def get_seq_struct(pdb_ids):
 
     with open(io_utils.get_file(source_url, target_filename)) as fle:
         for line in fle:
-            if line.startswith(pdb_id_fasta):
-                if in_field:
+            if line.startswith('>'):
+                if re.match('(?<=\\>)[^:]*', line) in pdb_ids:
+                    if in_field:
+                        if tokens[:2] not in seq_struct:
+                            seq_struct[tokens[:2]] = [None, None]
+
+                        seq_struct[tokens[:2]][0 if tokens[2] == 'sequence'
+                                               else 1] = str_data
+                        str_data = ''
+
+                    tokens = tuple(re.split('>|:', line.strip())[1:])
+                    in_field = True
+
+                elif in_field:
                     if tokens[:2] not in seq_struct:
                         seq_struct[tokens[:2]] = [None, None]
 
@@ -77,22 +87,6 @@ def get_seq_struct(pdb_ids):
                                            else 1] = str_data
                     str_data = ''
 
-                tokens = tuple(re.split('>|:', line.strip())[1:])
-                in_field = True
-
-            elif in_field and line.startswith('>'):
-                if tokens[:2] not in seq_struct:
-                    seq_struct[tokens[:2]] = [None, None]
-
-                seq_struct[tokens[:2]][0 if tokens[2] == 'sequence'
-                                       else 1] = str_data
-                str_data = ''
-
-                if len(pdb_ids) == 0:
-                    break
-                else:
-                    pdb_id = pdb_ids.pop(0)
-                    pdb_id_fasta = '>' + pdb_id
                     in_field = False
                     tokens = None
                     str_data = ''
@@ -204,38 +198,52 @@ def plot_proximities(pdb_id):
               name + ' proximity plot')
 
 
-def sample_seqs(sample_size, struct_patt, min_hamming=3, local_only=False):
+def sample_seqs(sample_size, struct_patts, min_hamming=3, local_only=False):
     '''Sample sequence and structure data.'''
-    seqs = []
+    seqs = {}
+    hammings = {}
 
-    while len(seqs) < sample_size:
-        # Get more PDB ids than necessary, as not all PDB entries will contain
-        # desired pattern:
-        pdb_ids = get_pdb_ids(sample_size * 10, local_only)
-        seq_structs = get_seq_struct(pdb_ids)
-        matches = []
+    matches = []
+    pdb_ids = get_pdb_ids(local_only=local_only)
+    seq_struct = get_seq_struct(pdb_ids)
 
-        for pdb_ids, seq_struct in seq_structs.iteritems():
-            for match in regex.finditer(struct_patt, seq_struct[1],
-                                        overlapped=True):
-                matches.append([seq_struct[0][slice(*(match.span()))],
-                                seq_struct[1][slice(*(match.span()))],
-                                pdb_ids,
-                                match.span()])
+    for struct_patt in struct_patts:
+        seqs[struct_patt] = []
 
-        for match in random.sample(matches, min(len(matches), sample_size -
-                                                len(seqs))):
-            add = True
+        while len(seqs[struct_patt]) < sample_size:
+            for pdb_ids, seq_struct in seq_struct.iteritems():
+                for match in regex.finditer(struct_patt, seq_struct[1],
+                                            overlapped=True):
+                    matches.append([seq_struct[0][slice(*(match.span()))],
+                                    seq_struct[1][slice(*(match.span()))],
+                                    pdb_ids,
+                                    match.span()])
 
-            for seq in seqs:
-                if sequence_utils.get_hamming(seq[0], match[0]) < min_hamming:
-                    add = False
-                    break
+            for match in random.sample(matches, min(len(matches), sample_size -
+                                                    len(seqs[struct_patt]))):
+                add = True
+                curr_hamms = []
+                for vals in seqs.values():
+                    for seq in vals:
+                        hamming = sequence_utils.get_hamming(seq[0], match[0])
+                        if hamming < min_hamming:
+                            add = False
+                            break
+                        else:
+                            curr_hamms.append(hamming)
 
-            if add:
-                seqs.append(match)
+                if add:
+                    seqs[struct_patt].append(match)
 
-    return seqs[:sample_size]
+                    print len(seqs[struct_patt])
+
+                    for hamming in curr_hamms:
+                        if hamming not in hammings:
+                            hammings[hamming] = 0
+
+                        hammings[hamming] += 1
+
+    return seqs, hammings
 
 
 def _plot(values, plot_filename, plot_format, title, max_value=None):
