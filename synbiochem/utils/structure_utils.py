@@ -18,9 +18,7 @@ import scipy.spatial
 from Bio import SeqUtils
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.Polypeptide import PPBuilder
-import regex
 
-from synbiochem.utils import sequence_utils
 import synbiochem.utils.io_utils as io_utils
 
 
@@ -198,57 +196,6 @@ def plot_proximities(pdb_id):
         name = pdb_id + '_' + str(idx + 1)
         _plot(proximities, name + '.' + plot_format, plot_format,
               name + ' proximity plot')
-
-
-def sample_seqs(sample_size, struct_patts, min_hamming=3, local_only=False):
-    '''Sample sequence and structure data.'''
-    seqs = {}
-    hammings = {}
-
-    for struct_patt in struct_patts:
-        seqs[struct_patt] = []
-
-        while len(seqs[struct_patt]) < sample_size:
-            matches = []
-            pdb_ids = get_pdb_ids(sample_size, local_only=local_only)
-            seq_struct = get_seq_struct(pdb_ids)
-
-            for pdb_ids, seq_struct in seq_struct.iteritems():
-                try:
-                    for match in regex.finditer(struct_patt, seq_struct[1],
-                                                overlapped=True):
-                        matches.append([seq_struct[0][slice(*(match.span()))],
-                                        seq_struct[1][slice(*(match.span()))],
-                                        pdb_ids,
-                                        match.span()])
-                except TypeError:
-                    '''Take no action, but accept that seq_struct[1]
-                    (the secondary structure) is occasionally and inexplicably
-                    None.'''
-
-            for match in random.sample(matches, min(len(matches), sample_size -
-                                                    len(seqs[struct_patt]))):
-                add = True
-                curr_hamms = []
-                for vals in seqs.values():
-                    for seq in vals:
-                        hamming = sequence_utils.get_hamming(seq[0], match[0])
-                        if hamming < min_hamming:
-                            add = False
-                            break
-                        else:
-                            curr_hamms.append(hamming)
-
-                if add:
-                    seqs[struct_patt].append(match)
-
-                    for hamming in curr_hamms:
-                        if hamming not in hammings:
-                            hammings[hamming] = 0
-
-                        hammings[hamming] += 1
-
-    return seqs, hammings
 
 
 def _plot(values, plot_filename, plot_format, title, max_value=None):
