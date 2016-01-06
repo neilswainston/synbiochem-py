@@ -33,10 +33,11 @@ class TheanetsBase(object):
         # Check lengths of x_data and y_data are equal:
         assert len(self._x_data) == len(self._y_data)
 
-    def train(self, split=0.75, hidden_layers=None, optimize='sgd',
-              learning_rate=0.01, momentum=0.5, patience=5,
-              min_improvement=0.005, validate_every=1, batch_size=5,
-              hidden_dropout=0.0, input_dropout=0.0):
+    def train(self, split=0.75, hidden_layers=None, input_noise=0.0,
+              hidden_noise=0.0, optimize='sgd', learning_rate=0.01,
+              momentum=0.5, patience=5, min_improvement=0.005,
+              validate_every=1,  batch_size=5, hidden_dropout=0.0,
+              input_dropout=0.0):
         '''Train the network.'''
         if hidden_layers is None:
             hidden_layers = [len(self._x_data[0])]
@@ -48,6 +49,8 @@ class TheanetsBase(object):
         ind = int(split * len(self._x_data))
         self._exp.train((self._x_data[:ind], self._y_data[:ind]),
                         (self._x_data[ind:], self._y_data[ind:]),
+                        input_noise=input_noise,
+                        hidden_noise=hidden_noise,
                         optimize=optimize,
                         learning_rate=learning_rate,
                         momentum=momentum,

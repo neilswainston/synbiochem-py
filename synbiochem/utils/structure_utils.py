@@ -225,5 +225,3 @@ def _plot(residues, values, plot_filename, plot_format, title, max_value=None):
     cbar.set_ticks([min_val, max_val])
 
     pylab.savefig(plot_filename, format=plot_format)
-
-plot_proximities('4KVS')
