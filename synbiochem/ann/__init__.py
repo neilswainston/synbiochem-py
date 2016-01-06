@@ -41,7 +41,7 @@ class TheanetsBase(object):
         if hidden_layers is None:
             hidden_layers = [len(self._x_data[0])]
 
-        layers = [len(self._x_data[0])] + [hidden_layers] + [self._outputs]
+        layers = [len(self._x_data[0])] + hidden_layers + [self._outputs]
         self._exp = theanets.Experiment(self._network, layers=layers)
 
         # Split data into training and validation:
