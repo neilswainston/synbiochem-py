@@ -170,10 +170,15 @@ def calc_proximities(pdb_id):
                if 'CA' in residue.child_dict]
               for chn in chains]
 
-    return [scipy.spatial.distance.cdist(coord, coord, 'euclidean')
+    residues = [[residue.get_id()[1]
+                 for residue in chn
+                 if 'CA' in residue.child_dict]
+                for chn in chains]
+
+    return [(residue, scipy.spatial.distance.cdist(coord, coord, 'euclidean'))
             if len(coord) > 0
             else None
-            for coord in coords]
+            for residue, coord in zip(residues, coords)]
 
 
 def get_phi_psi_data(pdb_id, chain=None):
@@ -194,11 +199,11 @@ def plot_proximities(pdb_id):
 
     for idx, proximities in enumerate(all_proximities):
         name = pdb_id + '_' + str(idx + 1)
-        _plot(proximities, name + '.' + plot_format, plot_format,
-              name + ' proximity plot')
+        _plot(proximities[0], proximities[1], name + '.' + plot_format,
+              plot_format, name + ' proximity plot')
 
 
-def _plot(values, plot_filename, plot_format, title, max_value=None):
+def _plot(residues, values, plot_filename, plot_format, title, max_value=None):
     '''Plots 3d matrix values.'''
     fig = pylab.figure()
     sub_plot = fig.add_subplot(111)
@@ -206,7 +211,9 @@ def _plot(values, plot_filename, plot_format, title, max_value=None):
     cmap = LinearSegmentedColormap.from_list(name='name', colors=['g', 'w'],
                                              N=10)
 
-    cax = sub_plot.imshow(values, interpolation='nearest', cmap=cmap)
+    cax = sub_plot.imshow(values, interpolation='nearest', cmap=cmap,
+                          extent=[residues[0], residues[-1],
+                                  residues[-1], residues[0]])
     cax.set_clim(0.0, max_value)
     sub_plot.set_title(title)
 
@@ -218,3 +225,5 @@ def _plot(values, plot_filename, plot_format, title, max_value=None):
     cbar.set_ticks([min_val, max_val])
 
     pylab.savefig(plot_filename, format=plot_format)
+
+plot_proximities('4KVS')
