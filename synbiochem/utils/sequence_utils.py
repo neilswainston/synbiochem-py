@@ -77,7 +77,7 @@ class CodonOptimiser(object):
                                      'Greater than ' + str(max_repeat_nuc) +
                                      ' repeating nucleotides.')
 
-                optimised_seq = self.get_codon_optimised_seq(protein_seq)
+                optimised_seq = self.get_codon_optim_seq(protein_seq)
 
                 if is_valid(optimised_seq, max_repeat_nuc):
                     optimised_seqs.append(optimised_seq)
@@ -85,11 +85,9 @@ class CodonOptimiser(object):
 
         return optimised_seqs
 
-    def get_codon_optimised_seq(self, protein_seq, invalid_pattern=None,
-                                max_attempts=1000):
-        '''Returns a codon optimised DNA sequence.
-        TODO: *May* get stuck in a loop. Check max iteration. e.g. WG protein
-        seq guarantees 4 consecutive nucleotides.'''
+    def get_codon_optim_seq(self, protein_seq, excl_codons=None,
+                            invalid_pattern=None, max_attempts=1000):
+        '''Returns a codon optimised DNA sequence.'''
         if invalid_pattern is None:
             return ''.join([self.get_random_codon(aa)
                             for aa in protein_seq])
@@ -100,7 +98,7 @@ class CodonOptimiser(object):
 
             while attempts < max_attempts:
                 amino_acid = protein_seq[i]
-                new_seq = seq + self.get_random_codon(amino_acid)
+                new_seq = seq + self.get_random_codon(amino_acid, excl_codons)
 
                 if count_pattern(new_seq, invalid_pattern) > 0:
                     num_problem_codons = len(max(re.findall(invalid_pattern,
@@ -146,18 +144,29 @@ class CodonOptimiser(object):
         '''Returns all codons for a given amino acid.'''
         return [t[0] for t in self.__codon_usage_table[amino_acid]]
 
-    def get_random_codon(self, amino_acid):
+    def get_random_codon(self, amino_acid, excl_codons=None):
         '''Returns a random codon for a given amino acid,
         based on codon probability from the codon usage table.'''
-        codon_usage = self.__codon_usage_table[amino_acid]
-        rand = random.random()
-        cumulative_prob = 0
+        if excl_codons is None:
+            excl_codons = []
 
-        for codon, prob in iter(reversed(codon_usage)):
-            cumulative_prob += prob
+        codon_usage = [codon_usage
+                       for codon_usage in self.__codon_usage_table[amino_acid]
+                       if codon_usage[0] not in excl_codons]
 
-            if cumulative_prob > rand:
-                return codon
+        if len(codon_usage) == 0:
+            raise ValueError('No codons available for ' + amino_acid +
+                             ' after excluding ' + str(excl_codons))
+
+        while True:
+            rand = random.random()
+            cumulative_prob = 0
+
+            for codon, prob in iter(reversed(codon_usage)):
+                cumulative_prob += prob
+
+                if cumulative_prob > rand:
+                    return codon
 
     def __get_codon_usage_table(self):
         '''Gets the codon usage table for a given taxonomy id.'''
