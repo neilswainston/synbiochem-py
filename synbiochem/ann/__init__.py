@@ -35,12 +35,12 @@ class TheanetsBase(object):
 
     def train(self, split=0.75, hidden_layers=None, input_noise=0.0,
               hidden_noise=0.0, optimize='sgd', learning_rate=0.01,
-              momentum=0.5, patience=5, min_improvement=0.005,
-              validate_every=1,  batch_size=5, hidden_dropout=0.0,
+              momentum=0.7, patience=5, min_improvement=0.005,
+              validate_every=1, batch_size=256, hidden_dropout=0.0,
               input_dropout=0.0):
         '''Train the network.'''
         if hidden_layers is None:
-            hidden_layers = [len(self._x_data[0])]
+            hidden_layers = [1024]
 
         layers = [len(self._x_data[0])] + hidden_layers + [self._outputs]
         self._exp = theanets.Experiment(self._network, layers=layers)
