@@ -29,7 +29,7 @@ class MnxRefReader(object):
         '''Gets chemical data.'''
         if len(self.__chem_data) == 0:
             self.__read_chem_prop()
-            self.__read_chem_xref()
+            self.__read_xref('chem_xref.tsv', self.__chem_data)
 
         return self.__chem_data
 
@@ -37,6 +37,7 @@ class MnxRefReader(object):
         '''Gets reaction data.'''
         if len(self.__reac_data) == 0:
             self.__read_reac_prop()
+            self.__read_xref('reac_xref.tsv', self.__reac_data)
 
         return self.__reac_data
 
@@ -54,18 +55,18 @@ class MnxRefReader(object):
                          if value != ''}
                 self.__chem_data[values[0]] = props
 
-    def __read_chem_xref(self):
-        '''Read chemical xrefs and update Nodes.'''
-        chem_xref_keys = ['XREF', 'MNX_ID', 'Evidence', 'Description']
+    def __read_xref(self, filename, data):
+        '''Read xrefs and update Nodes.'''
+        xref_keys = ['XREF', 'MNX_ID', 'Evidence', 'Description']
 
-        for values in self.__read_data('chem_xref.tsv'):
+        for values in self.__read_data(filename):
             if not values[0].startswith('#'):
-                xrefs = dict(zip(chem_xref_keys, values))
+                xrefs = dict(zip(xref_keys[:len(values)], values))
                 xref = xrefs['XREF'].split(':')
 
-                if xrefs['MNX_ID'] in self.__chem_data:
-                    chem = self.__chem_data[xrefs['MNX_ID']]
-                    chem[xref[0]] = xref[1]
+                if xrefs['MNX_ID'] in data:
+                    entry = data[xrefs['MNX_ID']]
+                    entry[xref[0]] = xref[1]
 
     def __read_reac_prop(self):
         '''Read reaction properties and create Nodes.'''
