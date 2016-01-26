@@ -93,7 +93,8 @@ class Classifier(TheanetsBase):
 
         return [inv_y_map[y] for y in y_pred], inv_y_map, \
             classification_report(y_test, y_pred), \
-            confusion_matrix(y_test, y_pred), f1_score(y_test, y_pred)
+            confusion_matrix(y_test, y_pred), f1_score(y_test, y_pred,
+                                                       average='macro')
 
 
 class Regressor(TheanetsBase):
