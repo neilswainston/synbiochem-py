@@ -33,11 +33,23 @@ class TheanetsBase(object):
         # Check lengths of x_data and y_data are equal:
         assert len(self._x_data) == len(self._y_data)
 
-    def train(self, split=0.75, hidden_layers=None, input_noise=0.0,
-              hidden_noise=0.0, optimize='sgd', learning_rate=0.01,
-              momentum=0.7, patience=5, min_improvement=0.005,
-              validate_every=1, batch_size=256, hidden_dropout=0.0,
-              input_dropout=0.0):
+    def train(self, split=0.75,
+              hidden_layers=None,
+              input_noise=0.0,
+              hidden_noise=0.0,
+              optimize='sgd',
+              learning_rate=0.01,
+              momentum=0.7,
+              patience=5,
+              min_improvement=0.005,
+              validate_every=1,
+              batch_size=256,
+              hidden_dropout=0.0,
+              input_dropout=0.0,
+              max_updates=256,
+              weight_l1=0.0,
+              weight_l2=0.0,
+              algo='rmsprop'):
         '''Train the network.'''
         if hidden_layers is None:
             hidden_layers = [1024]
@@ -65,10 +77,12 @@ class TheanetsBase(object):
                         batch_size=batch_size,
                         # Minibatches per epoch:
                         # train_batches=30,
-                        # Dropouts, etc:
                         hidden_dropout=hidden_dropout,
                         input_dropout=input_dropout,
-                        algo='rmsprop')
+                        max_updates=max_updates,
+                        weight_l1=weight_l1,
+                        weight_l2=weight_l2,
+                        algo=algo)
 
 
 class Classifier(TheanetsBase):
