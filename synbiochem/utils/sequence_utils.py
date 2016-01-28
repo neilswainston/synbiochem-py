@@ -297,19 +297,23 @@ def get_sequences(protein_ids):
 
     for idx, protein_id in enumerate(protein_ids):
         if re.match(uniprot_id_pattern, protein_id):
-            sequences.update(get_uniprot_seqs([protein_id]))
+            sequences.update({uniprot_id: values['Sequence']
+                              for uniprot_id, values
+                              in get_uniprot_values([protein_id],
+                                                    ['sequence']).iteritems()})
         else:
             sequences[str(idx)] = protein_id
 
     return sequences
 
 
-def get_uniprot_seqs(uniprot_ids):
-    '''Gets dictionary of ids to sequences from Uniprot.'''
+def get_uniprot_values(uniprot_ids, fields):
+    '''Gets dictionary of ids to values from Uniprot.'''
     query = '+or+'.join(['id:' + uniprot_id for uniprot_id in uniprot_ids])
     url = 'http://www.uniprot.org/uniprot/?query=' + query + \
-        '&format=tab&columns=id,sequence'
-    return dict(list(csv.reader(urllib2.urlopen(url), delimiter='\t'))[1:])
+        '&format=tab&columns=id,' + ','.join(fields)
+    return {d['Entry']: d for d in list(csv.DictReader(urllib2.urlopen(url),
+                                                       delimiter='\t'))}
 
 
 def count_pattern(strings, pattern):

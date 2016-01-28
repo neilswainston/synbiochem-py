@@ -138,6 +138,8 @@ __ELEMENTAL_MASSES = {
 def get_molecular_mass(formula):
     '''Calculate and return molecular mass from chemical formula.'''
     return sum([__ELEMENTAL_MASSES[element] * count
+                if element in __ELEMENTAL_MASSES
+                else float('NaN')
                 for element, count in get_elem_comp(formula).iteritems()])
 
 
