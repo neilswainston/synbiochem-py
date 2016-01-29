@@ -10,6 +10,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 import csv
 import urllib2
 
+import synbiochem.design
 import synbiochem.utils.chem_utils as chem_utils
 
 
@@ -29,7 +30,7 @@ class MnxRefReader(object):
         '''Gets chemical data.'''
         if len(self.__chem_data) == 0:
             self.__read_chem_prop()
-            self.__read_xref('chem_xref.tsv', self.__chem_data)
+            self.__read_xref('chem_xref.tsv', self.__chem_data, True)
 
         return self.__chem_data
 
@@ -37,7 +38,7 @@ class MnxRefReader(object):
         '''Gets reaction data.'''
         if len(self.__reac_data) == 0:
             self.__read_reac_prop()
-            self.__read_xref('reac_xref.tsv', self.__reac_data)
+            self.__read_xref('reac_xref.tsv', self.__reac_data, False)
 
         return self.__reac_data
 
@@ -49,13 +50,14 @@ class MnxRefReader(object):
         for values in self.__read_data('chem_prop.tsv'):
             if not values[0].startswith('#'):
                 props = dict(zip(chem_prop_keys, values))
+                props.pop('source')
                 _convert_to_float(props, 'charge')
                 _convert_to_float(props, 'mass')
                 props = {key: value for key, value in props.iteritems()
                          if value != ''}
                 self.__chem_data[values[0]] = props
 
-    def __read_xref(self, filename, data):
+    def __read_xref(self, filename, data, chemical):
         '''Read xrefs and update Nodes.'''
         xref_keys = ['XREF', 'MNX_ID', 'Evidence', 'Description']
 
@@ -66,7 +68,11 @@ class MnxRefReader(object):
 
                 if xrefs['MNX_ID'] in data:
                     entry = data[xrefs['MNX_ID']]
-                    entry[xref[0]] = xref[1]
+                    namespace = synbiochem.design.resolve_namespace(xref[0],
+                                                                    chemical)
+                    if namespace is not None:
+                        entry[namespace] = xref[1] if namespace is not 'chebi' \
+                            else 'CHEBI:' + xref[1]
 
     def __read_reac_prop(self):
         '''Read reaction properties and create Nodes.'''
