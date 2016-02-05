@@ -16,6 +16,7 @@ import random
 import re
 import subprocess
 import tempfile
+import urllib
 import urllib2
 
 
@@ -315,7 +316,7 @@ def get_uniprot_values(uniprot_ids, fields, batch_size=16):
         batch = uniprot_ids[i:min(i + batch_size, len(uniprot_ids))]
         query = '+or+'.join(['id:' + uniprot_id for uniprot_id in batch])
         url = 'http://www.uniprot.org/uniprot/?query=' + query + \
-            '&format=tab&columns=id,' + ','.join(fields)
+            '&format=tab&columns=id,' + urllib.quote(','.join(fields))
 
         values.update({d['Entry']: d
                        for d in list(csv.DictReader(urllib2.urlopen(url),
