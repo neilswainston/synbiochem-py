@@ -34,10 +34,12 @@ class Test(unittest.TestCase):
 
     def test_get_uniprot_values(self):
         '''Tests get_uniprot_values method.'''
-        self.assertEquals(seq_utils.get_uniprot_values(['P19367'],
-                                                       ['organism-id'])
-                          ['P19367'],
-                          {'Organism ID': '9606', 'Entry': 'P19367'})
+        self.assertEquals(seq_utils.get_uniprot_values(['P19367', 'P46882'],
+                                                       ['organism-id'], 1),
+                          {'P19367':
+                           {'Organism ID': '9606', 'Entry': 'P19367'},
+                           'P46882':
+                           {'Organism ID': '5061', 'Entry': 'P46882'}})
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']

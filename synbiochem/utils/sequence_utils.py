@@ -307,13 +307,21 @@ def get_sequences(protein_ids):
     return sequences
 
 
-def get_uniprot_values(uniprot_ids, fields):
+def get_uniprot_values(uniprot_ids, fields, batch_size=16):
     '''Gets dictionary of ids to values from Uniprot.'''
-    query = '+or+'.join(['id:' + uniprot_id for uniprot_id in uniprot_ids])
-    url = 'http://www.uniprot.org/uniprot/?query=' + query + \
-        '&format=tab&columns=id,' + ','.join(fields)
-    return {d['Entry']: d for d in list(csv.DictReader(urllib2.urlopen(url),
-                                                       delimiter='\t'))}
+    values = {}
+
+    for i in xrange(0, len(uniprot_ids), batch_size):
+        batch = uniprot_ids[i:min(i + batch_size, len(uniprot_ids))]
+        query = '+or+'.join(['id:' + uniprot_id for uniprot_id in batch])
+        url = 'http://www.uniprot.org/uniprot/?query=' + query + \
+            '&format=tab&columns=id,' + ','.join(fields)
+
+        values.update({d['Entry']: d
+                       for d in list(csv.DictReader(urllib2.urlopen(url),
+                                                    delimiter='\t'))})
+
+    return values
 
 
 def count_pattern(strings, pattern):
