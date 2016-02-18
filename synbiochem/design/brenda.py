@@ -25,20 +25,12 @@ class BrendaReader(object):
     def get_km_values(self, ec_number, organism=None):
         '''Returns Km values.'''
         parameters = self.__get_parameters(ec_number, organism)
-        results = _parse_results(self.__client.getKmValue(parameters))
-        ligands = self.__get_ligands(parameters)
-        _map_ligand_ids(results, ligands)
-        return results
+        return _parse_results(self.__client.getKmValue(parameters))
 
-    def get_turnover_number(self, ec_number, organism=None):
+    def get_kcat_values(self, ec_number, organism=None):
         '''Returns kcat values.'''
         parameters = self.__get_parameters(ec_number, organism)
         return _parse_results(self.__client.getTurnoverNumber(parameters))
-
-    def __get_ligands(self, params):
-        '''Returns ligand values.'''
-        return {result['ligandStructureId']: result['ligand']
-                for result in _parse_results(self.__client.getLigands(params))}
 
     def __get_parameters(self, ec_number, organism=None):
         '''Generates query string.'''
@@ -53,15 +45,6 @@ def _parse_results(result_str):
                                         for item in line.split("#")]
              if len(val) == 2}
             for line in result_str.split('!')]
-
-
-def _map_ligand_ids(results, ligands):
-    '''Maps ligand id to ligand name.'''
-    for result in results:
-        ligand_id = result.pop('ligandStructureId')
-
-        if len(ligand_id) > 0 and ligand_id in ligands:
-            result['ligand'] = ligands[ligand_id]
 
 
 def main(argv):
