@@ -322,8 +322,6 @@ def get_uniprot_values(uniprot_ids, fields, batch_size=16):
                        for d in list(csv.DictReader(urllib2.urlopen(url),
                                                     delimiter='\t'))})
 
-        print 'UniProt: ' + str(len(values))
-
     return values
 
 
