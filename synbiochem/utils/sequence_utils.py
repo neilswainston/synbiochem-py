@@ -258,6 +258,8 @@ def get_melting_temp(dna1, dna2=None, reagent_concs=None):
     '''Calculates melting temperarure of DNA sequence against its
     complement, or against second DNA sequence using Nearest-Neighbour
     method.'''
+    assert len(dna1) > 1
+
     if reagent_concs is None:
         reagent_concs = __DEFAULT_REAG_CONC
 
