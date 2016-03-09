@@ -1,7 +1,11 @@
 '''
-Created on 9 Mar 2016
+synbiochem (c) University of Manchester 2015
 
-@author: neilswainston
+synbiochem is licensed under the MIT License.
+
+To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
+
+@author:  neilswainston
 '''
 from xml.etree import ElementTree
 
@@ -22,3 +26,6 @@ class SbolDocument(object):
             '/sbol:nucleotides'
         elements = self.__root.findall(path, self.__ns)
         return elements[0].text.upper()
+
+    def __add__(self, other):
+        return '%s plus %s' % (self, other)

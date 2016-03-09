@@ -1,7 +1,7 @@
 '''
-synbiochemdev (c) University of Manchester 2015
+synbiochem (c) University of Manchester 2015
 
-synbiochemdev is licensed under the MIT License.
+synbiochem is licensed under the MIT License.
 
 To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
@@ -18,6 +18,7 @@ import tempfile
 import urllib
 import urllib2
 
+from Bio.Seq import Seq
 from Bio.SeqUtils.MeltingTemp import Tm_NN
 
 
@@ -254,14 +255,16 @@ def get_random_dna(length, max_repeat_nuc=float('inf')):
     return None
 
 
-def get_melting_temp(dna1, dna2=None, reagent_concs=None):
+def get_melting_temp(dna1, dna2=None, reag_concs=None):
     '''Calculates melting temperarure of DNA sequence against its
     complement, or against second DNA sequence using Nearest-Neighbour
     method.'''
     assert len(dna1) > 1
 
-    if reagent_concs is None:
-        reagent_concs = __DEFAULT_REAG_CONC
+    reagent_concs = __DEFAULT_REAG_CONC
+
+    if reag_concs is not None:
+        reagent_concs.update(reag_concs)
 
     reagent_conc = {k: v * 1000 for k, v in reagent_concs.iteritems()}
     dnac1 = 30
@@ -344,6 +347,29 @@ def get_hamming(str1, str2):
     '''Returns Hamming distance for two sequences, which are assumed to be of
     the same length.'''
     return sum(itertools.imap(operator.ne, str1, str2))
+
+
+def get_reverse_complement(seq):
+    '''Returns reverse complement of sequence.'''
+    seq = Seq(seq)
+    return str(seq.reverse_complement())
+
+
+def apply_restriction(seq, restrict):
+    '''Applies restriction site cleavage to forward and reverse strands.'''
+    seq = _apply_restriction(seq, restrict)
+    seq = _apply_restriction(get_reverse_complement(seq), restrict)
+    return get_reverse_complement(seq)
+
+
+def _apply_restriction(seq, restrict):
+    '''Applies restriction site cleavage to sequence.'''
+    match = re.search(restrict, seq)
+
+    if match:
+        seq = match.group(0)
+
+    return seq
 
 
 def _scale(codon_usage):

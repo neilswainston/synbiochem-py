@@ -20,7 +20,7 @@ from synbiochem.utils import sbol_utils as sbol_utils
 class ICEClient(object):
     '''Class representing an ICE session.'''
 
-    def __init__(self, url, username, password):
+    def __init__(self, url, username, password, id_prefix='SBC'):
         self.__url = url + '/rest'
         self.__headers = {'Accept': 'application/json',
                           'Content-Type': 'application/json'}
@@ -32,6 +32,21 @@ class ICEClient(object):
         self.__sid = resp['sessionId']
         self.__headers[
             'X-ICE-Authentication-SessionId'] = self.__sid
+        self.__id_prefix = id_prefix
+
+    def get_meta_data(self, part_id):
+        '''Returns an ICE entry metadata.'''
+        return _read_resp(net_utils.get(
+            self.__url + '/parts/' + self.__get_part_number(part_id),
+            self.__headers))
+
+    def get_sequence(self, part_id):
+        '''Gets the sequence ICE entry.'''
+        url = self.__url + '/file/' + self.__get_part_number(part_id) + \
+            '/sequence/sbol?sid=' + self.__sid
+        temp_file = tempfile.NamedTemporaryFile(delete=False)
+        urllib.urlretrieve(url, temp_file.name)
+        return sbol_utils.SbolDocument(temp_file.name).get_dna_sequence()
 
     def create_part(self, data):
         '''Creates a new ICE part.'''
@@ -39,41 +54,31 @@ class ICEClient(object):
         return _read_resp(
             net_utils.post(url, json.dumps(data), self.__headers))
 
-    def get_part(self, part_number):
-        '''Returns an ICE part.'''
-        return _read_resp(net_utils.get(
-            self.__url + '/parts/' + str(part_number), self.__headers))
-
-    def update_part(self, part_number, data):
-        '''Updates an ICE part.'''
-        url = self.__url + '/parts/' + str(part_number)
-        return _read_resp(net_utils.put(url, json.dumps(data), self.__headers))
-
-    def get_sequence(self, part_number):
-        '''Gets an ICE part sequence.'''
-        url = self.__url + '/parts/' + str(part_number) + '/sequence'
-        return _read_resp(net_utils.get(url, self.__headers))
-
     def set_sequence(self, part_number, data):
         '''Sets an ICE part sequence.'''
         url = self.__url + '/parts/' + str(part_number) + '/sequence'
         return _read_resp(
             net_utils.post(url, json.dumps(data), self.__headers))
 
-    def get_sbol(self, part_number):
-        '''Gets an SBOL representation of an ICE part.'''
-        url = self.__url + '/file/' + str(part_number) + \
-            '/sequence/sbol?sid=' + self.__sid
-        temp_file = tempfile.NamedTemporaryFile(delete=False)
-        urllib.urlretrieve(url, temp_file.name)
-        doc = sbol_utils.SbolDocument(temp_file.name)
-        return doc.get_dna_sequence()
+    def update_part(self, part_number, data):
+        '''Updates an ICE part.'''
+        url = self.__url + '/parts/' + str(part_number)
+        return _read_resp(net_utils.put(url, json.dumps(data), self.__headers))
+
+    # def get_sequence(self, part_number):
+    #    '''Gets an ICE part sequence.'''
+    #    url = self.__url + '/parts/' + str(part_number) + '/sequence'
+    #    return _read_resp(net_utils.get(url, self.__headers))
 
     def upload_sequence(self, part_number, seqfile):
         '''Uploads an annotated sequence.'''
         url = self.__url + '/uploads/' + str(part_number) + '/sequence'
         files = {'file': open(seqfile, 'rb'), 'entryId': str(part_number)}
         return _read_resp(net_utils.post(url, files, self.__headers))
+
+    def __get_part_number(self, part_id):
+        '''Maps part number to part id, i.e. from SBC000123 to 123.'''
+        return str(int(part_id.replace(self.__id_prefix, '')))
 
 
 def get_template_newplasmid(name, description, creator, owner, investigator,
@@ -173,9 +178,9 @@ def main():
     password = 'synbiochem'
 
     ice = ICEClient(url, username, password)
-    print ice.get_part(8)
-    print ice.get_sequence(8)
-    print ice.get_sbol(8)
+    print ice.get_meta_data('SBC00008')
+    print ice.get_sequence('SBC8')
+
 
 if __name__ == '__main__':
     main()
