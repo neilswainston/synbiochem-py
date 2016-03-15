@@ -28,20 +28,6 @@ def post(url, data, headers, verify=False):
                                         verify=verify))
 
 
-def post_file(url, files, headers, verify=False):
-    '''POSTs a file to url.'''
-    new_headers = {}
-
-    for header in headers:
-        new_headers[header] = headers[header]
-
-    new_headers['Accept'] = 'application/json'
-    new_headers['Content-Type'] = 'multipart/form-data'
-
-    return __process_resp(requests.post(url, files=files, headers=new_headers,
-                                        verify=verify))
-
-
 def __process_resp(response):
     '''Processes a HTTP response.'''
     if response.status_code == 200:

@@ -9,6 +9,8 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 '''
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element, SubElement, tostring
+import uuid
+
 
 _PATH_TO_SEQ = './sbol:DnaComponent/sbol:dnaSequence/sbol:DnaSequence' + \
     '/sbol:nucleotides'
@@ -17,7 +19,8 @@ _PATH_TO_SEQ = './sbol:DnaComponent/sbol:dnaSequence/sbol:DnaSequence' + \
 class SBOLDocument(object):
     '''Class representing an SBOL Document.'''
 
-    def __init__(self, filename=None):
+    def __init__(self, uri_prefix=None, filename=None):
+        self.__uri_prefix = uri_prefix
         self.__ns = {'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
                      'sbol': 'http://sbols.org/v1#'}
 
@@ -26,7 +29,7 @@ class SBOLDocument(object):
 
         if filename is None:
             self.__root = Element(self.__get_ns('rdf') + 'RDF')
-            self.__init_sequence()
+            self.__init_sequence(str(uuid.uuid4()))
         else:
             with open(filename) as fle:
                 self.__root = ElementTree.parse(fle).getroot()
@@ -39,13 +42,21 @@ class SBOLDocument(object):
         '''Sets the DNA sequence.'''
         return self.__get_seq_element().set_text(seq)
 
-    def __init_sequence(self, seq=''):
+    def __init_sequence(self, doc_id, seq=''):
         '''Initialises a SBOLDocument.'''
-        sbolns = self.__get_ns('sbol')
-        child_elem = SubElement(self.__root, sbolns + 'DnaComponent')
-        child_elem = SubElement(child_elem, sbolns + 'dnaSequence')
-        child_elem = SubElement(child_elem, sbolns + 'DnaSequence')
-        child_elem = SubElement(child_elem, sbolns + 'nucleotides')
+        rdf_ns = self.__get_ns('rdf')
+        sbol_ns = self.__get_ns('sbol')
+        dna_elem = SubElement(self.__root,
+                              sbol_ns + 'DnaComponent',
+                              {rdf_ns + 'about': self.__uri_prefix + doc_id})
+        child_elem = SubElement(dna_elem, sbol_ns + 'displayId')
+        child_elem.text = doc_id
+        child_elem = SubElement(dna_elem, sbol_ns + 'dnaSequence')
+        child_elem = SubElement(child_elem,
+                                sbol_ns + 'DnaSequence',
+                                {rdf_ns + 'about': self.__uri_prefix +
+                                 str(uuid.uuid4())})
+        child_elem = SubElement(child_elem, sbol_ns + 'nucleotides')
         child_elem.text = seq
 
     def __get_seq_element(self):
