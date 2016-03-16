@@ -11,6 +11,9 @@ from xml.etree import ElementTree
 from xml.etree.ElementTree import Element, SubElement, tostring
 import uuid
 
+_PATH_TO_DNA_COMP = './sbol:DnaComponent'
+
+_PATH_TO_NAME = './sbol:DnaComponent/sbol:name'
 
 _PATH_TO_SEQ = './sbol:DnaComponent/sbol:dnaSequence/sbol:DnaSequence' + \
     '/sbol:nucleotides'
@@ -20,7 +23,6 @@ class SBOLDocument(object):
     '''Class representing an SBOL Document.'''
 
     def __init__(self, uri_prefix=None, filename=None):
-        self.__uri_prefix = uri_prefix
         self.__ns = {'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
                      'sbol': 'http://sbols.org/v1#'}
 
@@ -29,18 +31,32 @@ class SBOLDocument(object):
 
         if filename is None:
             self.__root = Element(self.__get_ns('rdf') + 'RDF')
+            self.__uri_prefix = uri_prefix
             self.__init_sequence(str(uuid.uuid4()))
         else:
             with open(filename) as fle:
                 self.__root = ElementTree.parse(fle).getroot()
+                self.__uri_prefix = self.__get_uri_prefix()
 
     def get_sequence(self):
         '''Gets the DNA sequence.'''
-        return self.__get_seq_element().text.upper()
+        elem = self.__get_element(_PATH_TO_SEQ)
+        return elem.text.upper()
+
+    def get_name(self):
+        '''Gets the name.'''
+        elem = self.__get_element(_PATH_TO_NAME)
+        return elem.text
 
     def set_sequence(self, seq):
         '''Sets the DNA sequence.'''
-        return self.__get_seq_element().set_text(seq)
+        elem = self.__get_element(_PATH_TO_SEQ)
+        elem.text = seq
+
+    def set_name(self, seq):
+        '''Sets the DNA sequence.'''
+        elem = self.__get_element(_PATH_TO_NAME)
+        return elem.set_text(seq)
 
     def __init_sequence(self, doc_id, seq=''):
         '''Initialises a SBOLDocument.'''
@@ -59,17 +75,37 @@ class SBOLDocument(object):
         child_elem = SubElement(child_elem, sbol_ns + 'nucleotides')
         child_elem.text = seq
 
-    def __get_seq_element(self):
-        '''Gets the DNA sequence element.'''
-        elements = self.__root.findall(_PATH_TO_SEQ, self.__ns)
-        return elements[0]
+    def __get_element(self, path, element=None):
+        '''Gets the element from the path.'''
+        if element is None:
+            element = self.__root
+
+        elements = element.findall(path, self.__ns)
+
+        if len(elements) > 0:
+            return elements[0]
+        else:
+            return self.__create_element(path)
 
     def __get_ns(self, prefix):
         '''Returns namespace string.'''
         return '{' + self.__ns[prefix] + '}'
 
+    def __get_uri_prefix(self):
+        '''Returns uri prefix.'''
+        elem = self.__get_element(_PATH_TO_DNA_COMP)
+        uri = elem.get(self.__get_ns('rdf') + 'about')
+        return uri[:uri.rfind('#')]
+
+    def __create_element(self, path, element=None):
+        tokens = path.split('/')
+        element = self.__get_element(tokens[0], element)
+
     def __repr__(self):
         return tostring(self.__root)
 
     def __add__(self, other):
-        return '%s plus %s' % (self, other)
+        concat = SBOLDocument(self.__uri_prefix)
+        concat.set_sequence(self.get_sequence() + other.get_sequence())
+        concat.set_name(self.get_name() + ' + ' + other.get_name())
+        return concat
