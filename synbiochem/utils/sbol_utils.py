@@ -7,105 +7,87 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  pablocarbonell / neilswainston / alanwilliams
 '''
-from xml.etree import ElementTree
-from xml.etree.ElementTree import Element, SubElement, tostring
-import uuid
-
-_PATH_TO_DNA_COMP = './sbol:DnaComponent'
-
-_PATH_TO_NAME = './sbol:DnaComponent/sbol:name'
-
-_PATH_TO_SEQ = './sbol:DnaComponent/sbol:dnaSequence/sbol:DnaSequence' + \
-    '/sbol:nucleotides'
+from sbol.sbol import Collection, DNAComponent, DNASequence, Document, \
+    SequenceAnnotation
 
 
-class SBOLDocument(object):
-    '''Class representing an SBOL Document.'''
+def concatenate(sbol_docs):
+    '''Concatenates a list of Documents into a single Document.'''
+    concat = clone(sbol_docs[0])
 
-    def __init__(self, uri_prefix=None, filename=None):
-        self.__ns = {'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-                     'sbol': 'http://sbols.org/v1#'}
+    for sbol_doc in sbol_docs[1:]:
+        concat = _add(concat, sbol_doc)
 
-        for prefix, uri in self.__ns.iteritems():
-            ElementTree.register_namespace(prefix, uri)
+    return concat
 
-        if filename is None:
-            self.__root = Element(self.__get_ns('rdf') + 'RDF')
-            self.__uri_prefix = uri_prefix
-            self.__init_sequence(str(uuid.uuid4()))
-        else:
-            with open(filename) as fle:
-                self.__root = ElementTree.parse(fle).getroot()
-                self.__uri_prefix = self.__get_uri_prefix()
 
-    def get_sequence(self):
-        '''Gets the DNA sequence.'''
-        elem = self.__get_element(_PATH_TO_SEQ)
-        return elem.text.upper()
+def clone(orig_doc):
+    '''Clones an sbol Document.'''
+    clone_doc = Document()
 
-    def get_name(self):
-        '''Gets the name.'''
-        elem = self.__get_element(_PATH_TO_NAME)
-        return elem.text
+    for obj in orig_doc.components:
+        _clone_comp(clone_doc, obj)
 
-    def set_sequence(self, seq):
-        '''Sets the DNA sequence.'''
-        elem = self.__get_element(_PATH_TO_SEQ)
-        elem.text = seq
+    for obj in orig_doc.collections:
+        coll = Collection(clone_doc, obj.uri)
+        coll.description = obj.description
+        coll.display_id = obj.display_id
+        coll.name = obj.name
 
-    def set_name(self, seq):
-        '''Sets the DNA sequence.'''
-        elem = self.__get_element(_PATH_TO_NAME)
-        return elem.set_text(seq)
+    return clone_doc
 
-    def __init_sequence(self, doc_id, seq=''):
-        '''Initialises a SBOLDocument.'''
-        rdf_ns = self.__get_ns('rdf')
-        sbol_ns = self.__get_ns('sbol')
-        dna_elem = SubElement(self.__root,
-                              sbol_ns + 'DnaComponent',
-                              {rdf_ns + 'about': self.__uri_prefix + doc_id})
-        child_elem = SubElement(dna_elem, sbol_ns + 'displayId')
-        child_elem.text = doc_id
-        child_elem = SubElement(dna_elem, sbol_ns + 'dnaSequence')
-        child_elem = SubElement(child_elem,
-                                sbol_ns + 'DnaSequence',
-                                {rdf_ns + 'about': self.__uri_prefix +
-                                 str(uuid.uuid4())})
-        child_elem = SubElement(child_elem, sbol_ns + 'nucleotides')
-        child_elem.text = seq
 
-    def __get_element(self, path, element=None):
-        '''Gets the element from the path.'''
-        if element is None:
-            element = self.__root
+def _clone_comp(owner_doc, orig_comp):
+    '''Clones a DNAComponent.'''
+    for comp in owner_doc.components:
+        if comp.uri == orig_comp.uri:
+            return comp
 
-        elements = element.findall(path, self.__ns)
+    comp = DNAComponent(owner_doc, orig_comp.uri)
+    comp.description = orig_comp.description
+    comp.display_id = orig_comp.display_id
+    comp.name = orig_comp.name
+    comp.type = orig_comp.type
 
-        if len(elements) > 0:
-            return elements[0]
-        else:
-            return self.__create_element(path)
+    if orig_comp.sequence is not None:
+        comp.sequence = _clone_seq(owner_doc, orig_comp.sequence)
 
-    def __get_ns(self, prefix):
-        '''Returns namespace string.'''
-        return '{' + self.__ns[prefix] + '}'
+    for obj in orig_comp.annotations:
+        annot = SequenceAnnotation(owner_doc, obj.uri)
+        annot.start = obj.start
+        annot.end = obj.end
+        annot.isDownstream = obj.isDownstream
+        annot.isUpstream = obj.isUpstream
+        annot.strand = obj.strand
 
-    def __get_uri_prefix(self):
-        '''Returns uri prefix.'''
-        elem = self.__get_element(_PATH_TO_DNA_COMP)
-        uri = elem.get(self.__get_ns('rdf') + 'about')
-        return uri[:uri.rfind('#')]
+        if obj.subcomponent is not None:
+            annot.subcomponent = _clone_comp(owner_doc, obj.subcomponent)
 
-    def __create_element(self, path, element=None):
-        tokens = path.split('/')
-        element = self.__get_element(tokens[0], element)
+        comp.annotations += annot
+    return comp
 
-    def __repr__(self):
-        return tostring(self.__root)
 
-    def __add__(self, other):
-        concat = SBOLDocument(self.__uri_prefix)
-        concat.set_sequence(self.get_sequence() + other.get_sequence())
-        concat.set_name(self.get_name() + ' + ' + other.get_name())
-        return concat
+def _clone_seq(owner_doc, orig_seq):
+    '''Clones a DNASequence.'''
+    sequence = DNASequence(owner_doc, orig_seq.uri)
+    sequence.nucleotides = orig_seq.nucleotides
+    return sequence
+
+
+def _add(sbol_doc1, sbol_doc2):
+    '''Adds two sbol Documents together.'''
+    return sbol_doc1
+
+
+def main():
+    '''main method.'''
+    sbol_doc = Document()
+    sbol_doc.read('/Users/neilswainston/Downloads/ahpC L177Q.xml')
+
+    clone_doc = clone(sbol_doc)
+    clone_doc.write('/Users/neilswainston/Downloads/ahpC L177Q clone.xml')
+
+    print concatenate([sbol_doc] * 3)
+
+if __name__ == '__main__':
+    main()
