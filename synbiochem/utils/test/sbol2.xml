@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:RDF xmlns="http://sbols.org/v1#" xmlns:ns2="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <DnaComponent ns2:about="testice.synbiochem.co.uk:8443/entry/dc#TEST_000346">
+        <displayId>TEST_000346</displayId>
+        <dnaSequence>
+            <DnaSequence ns2:about="testice.synbiochem.co.uk:8443/entry/ds#c94cf3c851290d2d6ab16cda3119f07f58932ef4">
+                <nucleotides>gaattcaaaagatctgagtcctgtataagttgccggacttcatcgcgcccagggagatcaccccagaaaggagtacagaatgaccccggaacagtttcgtcagtacggtcaccagctgattgatctgattgcagattatcgtcagaccgttggcgaacgtccggtgatggcacaggtggaaccgggttatttaaaagcagcactgccggcaaccgcaccgcagcagggtgaaccgtttgcagcaattctggatgatgttaataatctggttatgccgggtctgtcacattggcagcatccggatttttatggttattttccgagcaatggtaccctgagcagcgttctgggtgattttctgagcaccggtctgggtgtgctgggtctgagctggcagagcagcccggcactgagcgaactggaagaaaccacactggattggctgcgtcagctgttaggtctgagtggtcagtggagcggtgttattcaggataccgcaagcaccagcaccctggttgcactgattagcgcccgtgaacgtgcaaccgattatgcactggttcgtggtggtctgcaggcagaaccgaaaccgctgattgtttatgttagcgcacatgcacattcaagcgttgataaagccgcactgctggcaggttttggtcgtgataatattcgtctgattccgaccgatgaacgttatgccctgcgtcctgaagcgctgcaggccgcaattgaacaggatctggcagcaggtaatcagccgtgtgcagttgttgcaaccaccggtaccaccaccacaaccgccctggacccgctgcgtccggttggtgaaattgcacaggcaaatggtctgtggctgcatgttgatagcgccatggcaggtagcgcaatgattctgccggaatgtcgctggatgtgggatggtattgaactggccgatagcgttgttgttaatgcccataaatggctgggtgttgcatttgattgtagcatttattatgttcgtgatccgcagcatctgattcgtgttatgagcaccaatccgagctatctgcagagcgcagttgatggtgaagttaaaaatctgcgtgattggggtattccgctgggtcgtcgttttcgtgcactgaaactgtggtttatgctgcgtagcgaaggtgttgatgcactgcaggctcgtctgcgtcgtgatctggataatgcacagtggctggccggtcaggttgaagcagcagcagaatgggaagttctggcaccggttcagctgcagacactgtgtattcgtcatcgtccggcaggtctggaaggtgaagcactggatgcacataccaaaggttgggcagaacgtctgaatgcaagcggtgcagcatatgttaccccggccaccctggatggtcgttggatggttcgcgttagcattggtgccctgccgaccgaacgtggtgatgttcagcgtctgtgggcacgcctgcaggatgttattaaaggttaatagcggactcggatccaaactcgag</nucleotides>
+            </DnaSequence>
+        </dnaSequence>
+        <annotation>
+            <SequenceAnnotation ns2:about="testice.synbiochem.co.uk:8443/entry/sa#2eb52137-e947-4903-8d2d-017a790236d1">
+                <bioStart>1</bioStart>
+                <bioEnd>1517</bioEnd>
+                <strand>+</strand>
+                <subComponent>
+                    <DnaComponent ns2:about="testice.synbiochem.co.uk:8443/entry/dc#d5098287-e093-46a4-814f-e5e60df7cab9">
+                        <ns2:type ns2:resource="http://purl.obolibrary.org/obo/SO_0000149"/>
+                        <displayId>d5098287-e093-46a4-814f-e5e60df7cab9</displayId>
+                        <name>unspecified</name>
+                    </DnaComponent>
+                </subComponent>
+            </SequenceAnnotation>
+        </annotation>
+        <annotation>
+            <SequenceAnnotation ns2:about="testice.synbiochem.co.uk:8443/entry/sa#589067b4-6520-4c80-8d96-5a4fa84fb6e0">
+                <bioStart>80</bioStart>
+                <bioEnd>1492</bioEnd>
+                <strand>+</strand>
+                <subComponent>
+                    <DnaComponent ns2:about="testice.synbiochem.co.uk:8443/entry/dc#8c65e6b5-a94b-4d17-a85c-5f6250216b2d">
+                        <ns2:type ns2:resource="http://purl.obolibrary.org/obo/SO_0000316"/>
+                        <displayId>8c65e6b5-a94b-4d17-a85c-5f6250216b2d</displayId>
+                        <name>PpDODC</name>
+                    </DnaComponent>
+                </subComponent>
+            </SequenceAnnotation>
+        </annotation>
+    </DnaComponent>
+</ns2:RDF>
