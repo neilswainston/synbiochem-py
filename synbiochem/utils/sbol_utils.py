@@ -86,11 +86,11 @@ def _clone_annotation(owner_doc, annot):
 def _add(sbol_doc1, sbol_doc2):
     '''Adds two sbol Documents together.'''
     # Add names, etc.
-    sbol_doc1.components[0].description += ' + ' + \
-        sbol_doc2.components[0].description
-    sbol_doc1.components[0].display_id += ' + ' + \
-        sbol_doc2.components[0].display_id
-    sbol_doc1.components[0].name += ' + ' + sbol_doc2.components[0].name
+    comp1 = sbol_doc1.components[0]
+    comp2 = sbol_doc2.components[0]
+    comp1.description = _concat([comp1.description, comp2.description])
+    comp1.display_id = _concat([comp1.display_id, comp2.display_id])
+    comp1.name = _concat([comp1.name, comp2.name])
 
     # Add sequences:
     orig_seq_len = len(sbol_doc1.sequences[0].nucleotides)
@@ -114,3 +114,8 @@ def _add(sbol_doc1, sbol_doc2):
 def _get_uri(uri_prefix):
     '''Returns a new unique URI.'''
     return uri_prefix + str(uuid.uuid4())
+
+
+def _concat(strs):
+    '''Concatenates non-None strings.'''
+    return ' + '.join([string for string in strs if string is not None])

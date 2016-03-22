@@ -47,7 +47,7 @@ class Test(unittest.TestCase):
         concat_doc.read(out.name)
 
         self.assertEqual(sbol_doc1.num_sbol_objects +
-                         sbol_doc2.num_sbol_objects,
+                         sbol_doc2.num_sbol_objects - 2,
                          concat_doc.num_sbol_objects)
 
 if __name__ == "__main__":
