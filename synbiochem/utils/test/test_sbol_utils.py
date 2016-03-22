@@ -7,11 +7,11 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
+# pylint: disable=too-many-public-methods
+from tempfile import NamedTemporaryFile
 import unittest
 
-from django.core.files.temp import NamedTemporaryFile
 from sbol.sbol import Document
-
 import synbiochem.utils.sbol_utils as sbol_utils
 
 

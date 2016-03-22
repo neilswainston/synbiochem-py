@@ -41,12 +41,12 @@ class TheanetsBase(object):
               learning_rate=0.01,
               momentum=0.7,
               patience=5,
-              min_improvement=0.005,
+              min_improvement=0.01,
               validate_every=1,
-              batch_size=256,
+              batch_size=16,
               hidden_dropout=0.0,
               input_dropout=0.0,
-              max_updates=256,
+              max_updates=2 ^ 16,
               weight_l1=0.0,
               weight_l2=0.0,
               algo='rmsprop'):
@@ -70,15 +70,15 @@ class TheanetsBase(object):
                         # How many 'fails' we allow:
                         patience=patience,
                         # Validations must improve by x%:
-                        min_improvement=min_improvement,
+                        # min_improvement=min_improvement,
                         # Do validation every 'n' steps:
                         validate_every=validate_every,
                         # Batch learning:
                         batch_size=batch_size,
                         # Minibatches per epoch:
                         # train_batches=30,
-                        hidden_dropout=hidden_dropout,
-                        input_dropout=input_dropout,
+                        # hidden_dropout=hidden_dropout,
+                        # input_dropout=input_dropout,
                         max_updates=max_updates,
                         weight_l1=weight_l1,
                         weight_l2=weight_l2,

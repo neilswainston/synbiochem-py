@@ -106,7 +106,9 @@ class GeneticAlgorithm(object):
         for individual in self.__population:
             if self.__mutate > random.random():
                 key = random.choice(individual.keys())
-                individual[key] = self.__get_arg(self.__args[key])
+
+                if key in self.__args:
+                    individual[key] = self.__get_arg(self.__args[key])
 
         # Ensure uniqueness in population:
         self.__population = list(numpy.unique(numpy.array(self.__population)))

@@ -10,12 +10,26 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=no-member
 # pylint: disable=too-many-public-methods
 import numpy
+import random
 import unittest
 
 from sklearn import datasets
 from sklearn.datasets.samples_generator import make_blobs
 
 import synbiochem.ann
+
+
+class Test(unittest.TestCase):
+    '''Tests the ann module.'''
+
+    def test_randomise_order(self):
+        '''Tests the randomise_order method.'''
+        list_a = [int(random.random() * 1000) for _ in range(0, 1024)]
+        list_b = [v for v in list_a]
+        list_a, list_b = synbiochem.ann.randomise_order(list_a, list_b)
+
+        for i, val in enumerate(list_a):
+            self.assertEqual(val, list_b[i])
 
 
 class TestClassifier(unittest.TestCase):
@@ -38,7 +52,7 @@ class TestClassifier(unittest.TestCase):
         classifier.train()
 
         y_test = y_data[ind:]
-        y_pred, _, _, _ = classifier.classify(x_data[ind:], y_test)
+        y_pred, _, _, _, _ = classifier.classify(x_data[ind:], y_test)
         self.assertTrue(sum([i == j for i, j in zip(y_test, y_pred)]) /
                         float(len(y_test)) > 0.9)
 
@@ -46,8 +60,8 @@ class TestClassifier(unittest.TestCase):
 class TestRegressor(unittest.TestCase):
     '''Tests the Regressor class.'''
 
-    def test_regressor(self):
-        '''Tests the regressor method.'''
+    def test_predict(self):
+        '''Tests the predict method.'''
 
         # Load the diabetes dataset:
         dataset = datasets.load_diabetes()

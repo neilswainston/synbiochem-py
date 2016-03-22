@@ -12,9 +12,8 @@ import json
 import tempfile
 import urllib
 
-import sbol
-
 from synbiochem.utils import net_utils as net_utils
+import sbol
 
 
 class ICEEntry(object):
