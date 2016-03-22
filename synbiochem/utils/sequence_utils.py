@@ -349,7 +349,7 @@ def get_hamming(str1, str2):
     return sum(itertools.imap(operator.ne, str1, str2))
 
 
-def get_reverse_complement(seq):
+def get_rev_comp(seq):
     '''Returns reverse complement of sequence.'''
     seq = Seq(seq)
     return str(seq.reverse_complement())
@@ -358,8 +358,8 @@ def get_reverse_complement(seq):
 def apply_restriction(seq, restrict):
     '''Applies restriction site cleavage to forward and reverse strands.'''
     seq = _apply_restriction(seq, restrict)
-    seq = _apply_restriction(get_reverse_complement(seq), restrict)
-    return get_reverse_complement(seq)
+    seq = _apply_restriction(get_rev_comp(seq), restrict)
+    return get_rev_comp(seq)
 
 
 def _apply_restriction(seq, restrict):
