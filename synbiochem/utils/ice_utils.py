@@ -11,9 +11,13 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 import json
 import tempfile
 import urllib
+import requests
+
+import sbol
 
 from synbiochem.utils import net_utils as net_utils
-import sbol
+
+_SESSION_KEY = 'X-ICE-Authentication-SessionId'
 
 
 class ICEEntry(object):
@@ -83,8 +87,7 @@ class ICEClient(object):
                                          self.__headers))
 
         self.__sid = resp['sessionId']
-        self.__headers[
-            'X-ICE-Authentication-SessionId'] = self.__sid
+        self.__headers[_SESSION_KEY] = self.__sid
         self.__id_prefix = id_prefix
 
     def get_ice_entry(self, ice_id):
@@ -104,9 +107,9 @@ class ICEClient(object):
             self.__update_entry(ice_entry.get_ice_number(),
                                 ice_entry.get_metadata())
 
-        self.__upload_sbol(ice_entry.get_record_id(),
-                           ice_entry.get_type(),
-                           ice_entry.get_sbol_doc())
+        return self.__upload_sbol(ice_entry.get_record_id(),
+                                  ice_entry.get_type(),
+                                  ice_entry.get_sbol_doc())
 
     def __get_meta_data(self, ice_id):
         '''Returns an ICE entry metadata.'''
@@ -142,13 +145,18 @@ class ICEClient(object):
 
     def __upload_sbol(self, record_id, typ, sbol_doc):
         '''Uploads an SBOLDocument to ICE database.'''
+        sbol_file = tempfile.NamedTemporaryFile()
+        sbol_doc.write(sbol_file.name)
+
         url = self.__url + '/file/sequence'
-        files = {'entryRecordId': record_id,
-                 'entryType': typ,
-                 'file': str(sbol_doc)}
-        headers = self.__headers
-        headers['Content-Type'] = 'multipart/form-data'
-        return _read_resp(net_utils.post(url, files, headers))
+        response = requests.post(url,
+                                 headers={_SESSION_KEY: self.__sid},
+                                 files={'file': open(sbol_file.name, 'r'),
+                                        'entryType': typ,
+                                        'entryRecordId': record_id},
+                                 verify=False)
+
+        return _read_resp(response)
 
     def __get_ice_number(self, ice_id):
         '''Maps ICE number to ICE id, i.e. from SBC000123 to 123.'''
