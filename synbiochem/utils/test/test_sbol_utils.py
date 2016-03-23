@@ -43,13 +43,18 @@ class Test(unittest.TestCase):
 
     def test_app_restrict_site_match(self):
         '''Tests apply_restriction_site method.'''
-        docs = _get_apply_restrict_site_docs('(?<=GAGTC.{5}).*')
+        _, docs = _get_apply_restrict_site_docs('(?<=GAGTC.{5}).*')
         self.assertEquals(len(docs), 3)
 
     def test_app_restrict_site_nomatch(self):
         '''Tests aplly_restriction_site method.'''
-        docs = _get_apply_restrict_site_docs('(?<=JJJJJ.{5}).*')
+        parent, docs = _get_apply_restrict_site_docs('(?<=JJJJJ.{5}).*')
         self.assertEquals(len(docs), 1)
+
+        for par_annot, doc_annot in zip(parent.components[0].annotations,
+                                        docs[0].components[0].annotations):
+            self.assertEquals(par_annot.start, doc_annot.start)
+            self.assertEquals(par_annot.end, doc_annot.end)
 
 
 def _round_trip(doc):
@@ -63,10 +68,10 @@ def _round_trip(doc):
 
 def _get_apply_restrict_site_docs(restrict):
     '''Tests aplly_restriction_site method.'''
-    parent_doc = Document()
-    parent_doc.read('sbol.xml')
-    return [_round_trip(doc)
-            for doc in sbol_utils.apply_restrict(parent_doc, restrict)]
+    parent = Document()
+    parent.read('sbol.xml')
+    return parent, [_round_trip(doc)
+                    for doc in sbol_utils.apply_restrict(parent, restrict)]
 
 
 if __name__ == "__main__":

@@ -104,7 +104,7 @@ def _apply_restrict(seq, restrict):
     sub_seqs = [(match.group(0), match.start())
                 for match in re.finditer(restrict, seq)]
     end = sub_seqs[0][1] if len(sub_seqs) > 0 else len(seq)
-    return [(seq[:end], 1)] + sub_seqs
+    return [(seq[:end], 0)] + sub_seqs
 
 
 def _add(sbol_doc1, sbol_doc2):
@@ -145,13 +145,14 @@ def _get_sbol(parent_doc, seq, start, uri_prefix):
     comp.sequence = DNASequence(doc, _get_uri(uri_prefix))
     comp.sequence.nucleotides = seq.lower()
 
-    end = start + len(seq) - 1
+    end = start + len(seq)
 
     for annot in parent_doc.annotations:
         if annot.start >= start and annot.end <= end:
             clone_annot = annot
-            clone_annot.start -= (start - 1)
-            clone_annot.end -= (start - 1)
+            clone_annot.start -= start
+            clone_annot.end -= start
+            comp.annotations += clone_annot
 
     return doc
 
