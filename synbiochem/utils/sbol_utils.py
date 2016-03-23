@@ -77,9 +77,9 @@ def _clone_comp(owner_doc, orig_comp, uri_prefix):
                                                 else orig_comp.sequence.uri))
         comp.sequence.nucleotides = orig_comp.sequence.nucleotides
 
-    for obj in orig_comp.annotations:
-        annot = _clone_annotation(owner_doc, obj)
-        comp.annotations += annot
+    for annot in orig_comp.annotations:
+        clone_annot = _clone_annotation(owner_doc, annot)
+        comp.annotations += clone_annot
 
     return comp
 
@@ -121,16 +121,17 @@ def _add(sbol_doc1, sbol_doc2):
     sbol_doc1.sequences[0].nucleotides += sbol_doc2.sequences[0].nucleotides
 
     # Update SequenceAnnotations:
-    for obj in sbol_doc2.annotations:
-        annot = obj  # _clone_annotation(sbol_doc1, obj)
-        annot.start += orig_seq_len
-        annot.end += orig_seq_len
+    for annot in sbol_doc2.annotations:
+        clone_annot = _clone_annotation(sbol_doc1, annot)
+        clone_annot.start += orig_seq_len
+        clone_annot.end += orig_seq_len
 
-        if annot.subcomponent is not None:
-            annot.subcomponent = _clone_comp(sbol_doc1, obj.subcomponent,
-                                             None)
+        if clone_annot.subcomponent is not None:
+            clone_annot.subcomponent = _clone_comp(sbol_doc1,
+                                                   annot.subcomponent,
+                                                   None)
 
-        sbol_doc1.components[0].annotations += annot
+        sbol_doc1.components[0].annotations += clone_annot
 
     return sbol_doc1
 
@@ -149,7 +150,7 @@ def _get_sbol(parent_doc, seq, start, uri_prefix):
 
     for annot in parent_doc.annotations:
         if annot.start >= start and annot.end <= end:
-            clone_annot = annot
+            clone_annot = _clone_annotation(doc, annot)
             clone_annot.start -= start
             clone_annot.end -= start
             comp.annotations += clone_annot
