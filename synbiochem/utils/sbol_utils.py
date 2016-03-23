@@ -48,8 +48,8 @@ def apply_restrict(doc, restrict, uri_prefix='http://synbiochem.co.uk#'):
     sbol_docs = []
     parent_seq = doc.sequences[0].nucleotides.upper()
 
-    for forw in __apply_restrict(parent_seq, restrict):
-        for rev in __apply_restrict(seq_utils.get_rev_comp(forw[0]), restrict):
+    for forw in _apply_restrict(parent_seq, restrict):
+        for rev in _apply_restrict(seq_utils.get_rev_comp(forw[0]), restrict):
             sbol_docs.append(_get_sbol(doc,
                                        seq_utils.get_rev_comp(rev[0]),
                                        forw[1],
@@ -99,7 +99,7 @@ def _clone_annotation(owner_doc, annot):
     return clone_annot
 
 
-def __apply_restrict(seq, restrict):
+def _apply_restrict(seq, restrict):
     '''Applies restriction site cleavage to a sequence.'''
     sub_seqs = [(match.group(0), match.start())
                 for match in re.finditer(restrict, seq)]

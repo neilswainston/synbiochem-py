@@ -23,12 +23,7 @@ class Test(unittest.TestCase):
         sbol_doc = Document()
         sbol_doc.read('sbol.xml')
 
-        out = NamedTemporaryFile()
-        clone_doc = sbol_utils.clone(sbol_doc)
-        clone_doc.write(out.name)
-
-        clone_doc = Document()
-        clone_doc.read(out.name)
+        clone_doc = _round_trip(sbol_utils.clone(sbol_doc))
 
         self.assertEqual(sbol_doc.num_sbol_objects, clone_doc.num_sbol_objects)
 
@@ -39,12 +34,8 @@ class Test(unittest.TestCase):
         sbol_doc2 = Document()
         sbol_doc2.read('sbol2.xml')
 
-        out = NamedTemporaryFile()
-        concat_doc = sbol_utils.concatenate([sbol_doc1, sbol_doc2])
-        concat_doc.write(out.name)
-
-        concat_doc = Document()
-        concat_doc.read(out.name)
+        concat_doc = _round_trip(sbol_utils.concatenate([sbol_doc1,
+                                                         sbol_doc2]))
 
         self.assertEqual(sbol_doc1.num_sbol_objects +
                          sbol_doc2.num_sbol_objects - 2,
@@ -61,20 +52,21 @@ class Test(unittest.TestCase):
         self.assertEquals(len(docs), 1)
 
 
+def _round_trip(doc):
+    '''Saves a sbol Document to a temp file and re-reads it.'''
+    out = NamedTemporaryFile()
+    doc.write(out.name)
+    doc = Document()
+    doc.read(out.name)
+    return doc
+
+
 def _get_apply_restrict_site_docs(restrict):
     '''Tests aplly_restriction_site method.'''
     parent_doc = Document()
     parent_doc.read('sbol.xml')
-    docs = []
-
-    for doc in sbol_utils.apply_restrict(parent_doc, restrict):
-        out = NamedTemporaryFile()
-        doc.write(out.name)
-        read_doc = Document()
-        read_doc.read(out.name)
-        docs.append(read_doc)
-
-    return docs
+    return [_round_trip(doc)
+            for doc in sbol_utils.apply_restrict(parent_doc, restrict)]
 
 
 if __name__ == "__main__":
