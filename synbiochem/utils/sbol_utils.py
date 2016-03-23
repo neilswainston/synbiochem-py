@@ -139,15 +139,17 @@ def _get_sbol(parent_doc, seq, start, uri_prefix):
     '''Returns a sbol Document from the supplied subsequence from a parent sbol
     Document.'''
     doc = Document()
-    comp = DNAComponent(doc, _get_uri(uri_prefix))
+    display_id = str(uuid.uuid4())
+    comp = DNAComponent(doc, uri_prefix + display_id)
+    comp.display_id = display_id
     comp.sequence = DNASequence(doc, _get_uri(uri_prefix))
-    comp.sequence.nucleotides = seq
+    comp.sequence.nucleotides = seq.lower()
 
     end = start + len(seq) - 1
 
     for annot in parent_doc.annotations:
         if annot.start >= start and annot.end <= end:
-            clone_annot = _clone_annotation(doc, annot)
+            clone_annot = annot
             clone_annot.start -= (start - 1)
             clone_annot.end -= (start - 1)
 
