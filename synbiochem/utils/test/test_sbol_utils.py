@@ -27,15 +27,14 @@ class Test(unittest.TestCase):
 
         self.assertEqual(sbol_doc.num_sbol_objects, clone_doc.num_sbol_objects)
 
-    def test_concatenate(self):
-        '''Tests concatenate method.'''
+    def test_concat(self):
+        '''Tests concat method.'''
         sbol_doc1 = Document()
         sbol_doc1.read('sbol.xml')
         sbol_doc2 = Document()
         sbol_doc2.read('sbol2.xml')
 
-        concat_doc = _round_trip(sbol_utils.concatenate([sbol_doc1,
-                                                         sbol_doc2]))
+        concat_doc = _round_trip(sbol_utils.concat([sbol_doc1, sbol_doc2]))
 
         self.assertEqual(sbol_doc1.num_sbol_objects +
                          sbol_doc2.num_sbol_objects - 2,

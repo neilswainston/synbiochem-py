@@ -14,17 +14,25 @@ from sbol.sbol import Collection, DNAComponent, DNASequence, Document, \
     SequenceAnnotation
 import synbiochem.utils.sequence_utils as seq_utils
 
+
+CDS_SO = 'http://purl.obolibrary.org/obo/SO_0000316'
 _DEFAULT_URI_PREFIX = 'http://synbiochem.co.uk#'
 
 
-def concatenate(sbol_docs, uri_prefix=_DEFAULT_URI_PREFIX):
+def get_seq(sbol_doc):
+    '''Returns the sequence from an sbol Document.'''
+    return sbol_doc.sequences[0].nucleotides \
+        if len(sbol_doc.sequences) > 0 else None
+
+
+def concat(sbol_docs, uri_prefix=_DEFAULT_URI_PREFIX):
     '''Concatenates a list of Documents into a single Document.'''
-    concat = clone(sbol_docs[0], uri_prefix)
+    concat_doc = clone(sbol_docs[0], uri_prefix)
 
     for sbol_doc in sbol_docs[1:]:
-        concat = _add(concat, sbol_doc)
+        concat_doc = _add(concat_doc, sbol_doc)
 
-    return concat
+    return concat_doc
 
 
 def clone(orig_doc, uri_prefix=_DEFAULT_URI_PREFIX):
@@ -48,7 +56,7 @@ def clone(orig_doc, uri_prefix=_DEFAULT_URI_PREFIX):
 def apply_restrict(doc, restrict, uri_prefix=_DEFAULT_URI_PREFIX):
     '''Applies restriction site cleavage to forward and reverse strands.'''
     sbol_docs = []
-    parent_seq = doc.sequences[0].nucleotides.upper()
+    parent_seq = doc.sequences[0].nucleotides
 
     for forw in _apply_restrict(parent_seq, restrict):
         for rev in _apply_restrict(seq_utils.get_rev_comp(forw[0]), restrict):
