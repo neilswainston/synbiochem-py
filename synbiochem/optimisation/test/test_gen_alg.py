@@ -16,8 +16,10 @@ import synbiochem.optimisation.gen_alg as gen_alg
 
 
 class TestChromosome(unittest.TestCase):
+    '''Class to test Chromosome class.'''
 
     def test_breed(self):
+        '''Test for breed method.'''
         length = 16
         chrom1 = gen_alg.Chromosome(0, length)
         chrom2 = gen_alg.Chromosome(2 ** length - 1, length)
@@ -30,8 +32,10 @@ class TestChromosome(unittest.TestCase):
 
 
 class TestSumGeneticAlgorithm(unittest.TestCase):
+    '''Class to test SumGeneticAlgorithm class.'''
 
     def test_run(self):
+        '''Test for run method.'''
         args = dict(enumerate([[5, 10]] + [(random.randint(0, 20),
                                             random.randint(80, 100))
                                            for _ in range(10)]))
@@ -40,6 +44,7 @@ class TestSumGeneticAlgorithm(unittest.TestCase):
         self.assertEqual(sum(genetic_algorithm.run(100000).values()), target)
 
     def test_run_error(self):
+        '''Test for run method.'''
         args = dict(enumerate([[5, 10]] + [(random.randint(0, 20),
                                             random.randint(80, 100))
                                            for _ in range(10)]))

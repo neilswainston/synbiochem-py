@@ -70,15 +70,15 @@ class TheanetsBase(object):
                         # How many 'fails' we allow:
                         patience=patience,
                         # Validations must improve by x%:
-                        # min_improvement=min_improvement,
+                        min_improvement=min_improvement,
                         # Do validation every 'n' steps:
                         validate_every=validate_every,
                         # Batch learning:
                         batch_size=batch_size,
                         # Minibatches per epoch:
                         # train_batches=30,
-                        # hidden_dropout=hidden_dropout,
-                        # input_dropout=input_dropout,
+                        hidden_dropout=hidden_dropout,
+                        input_dropout=input_dropout,
                         max_updates=max_updates,
                         weight_l1=weight_l1,
                         weight_l2=weight_l2,

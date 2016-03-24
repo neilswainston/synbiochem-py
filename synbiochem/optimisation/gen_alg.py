@@ -26,6 +26,7 @@ class Chromosome(object):
         return self.__chromosome
 
     def mutate(self):
+        '''Mutates the chromosome.'''
         for i in range(self.__len_chromosome):
             if random.random() < self.__mutation_rate:
                 # Mutate:
@@ -33,10 +34,11 @@ class Chromosome(object):
                 self.__chromosome = self.__chromosome ^ mask
 
     def breed(self, partner):
+        '''Breeds chromosome with a partner Chromosome.'''
         i = int(random.random() * self.__len_chromosome)
         end = 2 ** i - 1
         start = self.__mask - end
-        return (partner.__chromosome & start) + (self.__chromosome & end)
+        return (partner.get_chromosome() & start) + (self.__chromosome & end)
 
     def __repr__(self):
         return format(self.__chromosome, '0' + str(self.__len_chromosome) +
@@ -62,6 +64,7 @@ class GeneticAlgorithm(object):
             self.__population.append(self.__get_individual())
 
     def run(self, max_iter=1024):
+        '''Runs the genetic algorithm.'''
         for _ in range(max_iter):
             result = self.__evolve()
 
@@ -77,14 +80,11 @@ class GeneticAlgorithm(object):
         return
 
     def __get_individual(self):
-        'Create a member of the population.'
-        return {k: self.__get_arg(args) for k, args in self.__args.iteritems()}
-
-    def __get_arg(self, args):
-        return random.randint(args[0], args[1]) if isinstance(args, tuple) \
-            else random.choice(args)
+        '''Create a member of the population.'''
+        return {k: _get_arg(args) for k, args in self.__args.iteritems()}
 
     def __evolve(self):
+        '''Performs one round of evolution.'''
         graded = sorted([(self._fitness(x), x) for x in self.__population])
 
         if graded[0][0] == 0:
@@ -108,7 +108,7 @@ class GeneticAlgorithm(object):
                 key = random.choice(individual.keys())
 
                 if key in self.__args:
-                    individual[key] = self.__get_arg(self.__args[key])
+                    individual[key] = _get_arg(self.__args[key])
 
         # Ensure uniqueness in population:
         self.__population = list(numpy.unique(numpy.array(self.__population)))
@@ -142,3 +142,9 @@ class GeneticAlgorithm(object):
         # print numpy.mean([self._fitness(ind) for ind in self.__population])
 
         return None
+
+
+def _get_arg(args):
+    '''Gets a random argument.'''
+    return random.randint(args[0], args[1]) if isinstance(args, tuple) \
+        else random.choice(args)

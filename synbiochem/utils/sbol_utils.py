@@ -14,8 +14,10 @@ from sbol.sbol import Collection, DNAComponent, DNASequence, Document, \
     SequenceAnnotation
 import synbiochem.utils.sequence_utils as seq_utils
 
+_DEFAULT_URI_PREFIX = 'http://synbiochem.co.uk#'
 
-def concatenate(sbol_docs, uri_prefix='http://synbiochem.co.uk#'):
+
+def concatenate(sbol_docs, uri_prefix=_DEFAULT_URI_PREFIX):
     '''Concatenates a list of Documents into a single Document.'''
     concat = clone(sbol_docs[0], uri_prefix)
 
@@ -25,7 +27,7 @@ def concatenate(sbol_docs, uri_prefix='http://synbiochem.co.uk#'):
     return concat
 
 
-def clone(orig_doc, uri_prefix='http://synbiochem.co.uk#'):
+def clone(orig_doc, uri_prefix=_DEFAULT_URI_PREFIX):
     '''Clones an sbol Document.'''
     clone_doc = Document()
 
@@ -43,7 +45,7 @@ def clone(orig_doc, uri_prefix='http://synbiochem.co.uk#'):
     return clone_doc
 
 
-def apply_restrict(doc, restrict, uri_prefix='http://synbiochem.co.uk#'):
+def apply_restrict(doc, restrict, uri_prefix=_DEFAULT_URI_PREFIX):
     '''Applies restriction site cleavage to forward and reverse strands.'''
     sbol_docs = []
     parent_seq = doc.sequences[0].nucleotides.upper()
