@@ -11,11 +11,10 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 import json
 import tempfile
 import urllib
-import requests
-
-import sbol
 
 from synbiochem.utils import net_utils as net_utils
+import sbol
+
 
 _SESSION_KEY = 'X-ICE-Authentication-SessionId'
 
@@ -27,10 +26,7 @@ class ICEEntry(object):
 
         assert typ is not None or metadata is not None
 
-        if sbol_doc is None:
-            self.__sbol_doc = sbol.Document()
-        else:
-            self.__sbol_doc = sbol_doc
+        self.__sbol_doc = sbol_doc
 
         if metadata is None:
             self.__metadata = {'type': typ}
@@ -71,11 +67,14 @@ class ICEEntry(object):
         self.__metadata[key] = value
 
     def __repr__(self):
-        return str(self.__metadata) + '\n' + str(self.__sbol_doc)
+        return str(self.__metadata) + \
+            ('\n' + str(self.__sbol_doc)
+             if self.__sbol_doc is not None
+             else '')
 
 
 class ICEClient(object):
-    '''Class representing an ICE session.'''
+    '''Class representing an ICE client.'''
 
     def __init__(self, url, username, password, id_prefix='SBC'):
         self.__url = url + '/rest'
@@ -92,8 +91,11 @@ class ICEClient(object):
 
     def get_ice_entry(self, ice_id):
         '''Gets an ICEEntry object from the ICE database.'''
-        return ICEEntry(sbol_doc=self.__get_sbol_doc(ice_id),
-                        metadata=self.__get_meta_data(ice_id))
+        metadata = self.__get_meta_data(ice_id)
+        sbol_doc = self.__get_sbol_doc(ice_id) if metadata['hasSequence'] \
+            else None
+
+        return ICEEntry(sbol_doc, metadata)
 
     def get_sbol_doc(self, ice_id):
         '''Gets SBOLDocument from ICEEntry object from the ICE database.'''
@@ -107,9 +109,20 @@ class ICEClient(object):
             self.__update_entry(ice_entry.get_ice_number(),
                                 ice_entry.get_metadata())
 
-        return self.__upload_sbol(ice_entry.get_record_id(),
-                                  ice_entry.get_type(),
-                                  ice_entry.get_sbol_doc())
+        sbol_doc = ice_entry.get_sbol_doc()
+
+        if sbol_doc is not None:
+            self.__upload_sbol(ice_entry.get_record_id(),
+                               ice_entry.get_type(),
+                               sbol_doc)
+
+    def upload_seq_file(self, record_id, typ, filename):
+        '''Uploads a sequence file (not necessarily SBOL).'''
+        return _read_resp(net_utils.post_file(self.__url + '/file/sequence',
+                                              {'file': open(filename, 'r'),
+                                               'entryType': typ,
+                                               'entryRecordId': record_id},
+                                              {_SESSION_KEY: self.__sid}))
 
     def __get_meta_data(self, ice_id):
         '''Returns an ICE entry metadata.'''
@@ -148,19 +161,19 @@ class ICEClient(object):
         sbol_file = tempfile.NamedTemporaryFile()
         sbol_doc.write(sbol_file.name)
 
-        url = self.__url + '/file/sequence'
-        response = requests.post(url,
-                                 headers={_SESSION_KEY: self.__sid},
-                                 files={'file': open(sbol_file.name, 'r'),
-                                        'entryType': typ,
-                                        'entryRecordId': record_id},
-                                 verify=False)
+        return self.upload_seq_file(record_id, typ, sbol_file.name)
 
-        return _read_resp(response)
+    def __get_ice_number(self, ice_identifier):
+        '''Maps ICE number to ICE id, i.e. from SBC000123 to 123,
+        or if a number is supplied, returns the number.'''
+        try:
+            ice_number = int(ice_identifier.replace(self.__id_prefix, ''))
+        except AttributeError:
+            # "Ask forgiveness, not permission" and assume ice_identifier is
+            # the ice_number:
+            ice_number = ice_identifier
 
-    def __get_ice_number(self, ice_id):
-        '''Maps ICE number to ICE id, i.e. from SBC000123 to 123.'''
-        return str(int(ice_id.replace(self.__id_prefix, '')))
+        return str(ice_number)
 
     def __get_ice_id(self, ice_number):
         '''Maps ICE id to ICE number, i.e. from 123 to SBC000123.'''
@@ -186,7 +199,6 @@ def main():
     ice.set_ice_entry(ice_entry)
 
     ice_entry = ICEEntry(typ='PART')
-    print ice_entry.get_sbol_doc().sequences
     print ice_entry.get_sbol_doc()
     ice.set_ice_entry(ice_entry)
     print ice.get_ice_entry(ice_entry.get_ice_number())

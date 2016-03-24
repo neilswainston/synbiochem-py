@@ -28,6 +28,12 @@ def post(url, data, headers, verify=True):
                                         verify=verify))
 
 
+def post_file(url, data, headers, verify=True):
+    '''POSTs files to url.'''
+    return __process_resp(requests.post(url, files=data, headers=headers,
+                                        verify=verify))
+
+
 def __process_resp(response):
     '''Processes a HTTP response.'''
     if response.status_code == 200:
