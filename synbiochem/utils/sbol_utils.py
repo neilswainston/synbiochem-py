@@ -30,11 +30,8 @@ def concat(sbol_docs):
     '''Concatenates a list of Documents into a single Document.'''
     concat_doc = clone(sbol_docs[0])
 
-    for count, sbol_doc in enumerate(sbol_docs[1:]):
+    for sbol_doc in sbol_docs[1:]:
         concat_doc = _add(concat_doc, sbol_doc)
-        concat_doc.write('/Users/neilswainston/Downloads/' +
-                         concat_doc.components[0].display_id + '_' +
-                         str(count) + '.xml')
 
     return concat_doc
 
@@ -60,10 +57,6 @@ def apply_restrict(doc, restrict, uri_prefix=_DEFAULT_URI_PREFIX):
                                        seq_utils.get_rev_comp(rev[0]),
                                        forw[1],
                                        uri_prefix))
-
-    for count, doc in enumerate(sbol_docs):
-        doc.write('/Users/neilswainston/Downloads/' +
-                  doc.components[0].display_id + '_' + str(count) + '.xml')
 
     return sbol_docs
 
