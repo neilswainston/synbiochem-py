@@ -4,7 +4,6 @@
         <displayId>SBC000123</displayId>
         <name>ahpC L177Q</name>
         <description>ORF</description>
-	
         <dnaSequence>
             <DnaSequence ns2:about="https://ice.synbiochem.co.uk:443/entry/ds#0205ec7403cafbbe288df3800ff993f21644031b">
                 <nucleotides>ctcgagaattcaaaagatctgagtcataggtagaagctagaggcgagaaaccttcccaatcttatcattacgaaaggacgtccctatgagcctgattaacaccaaaattaagccgttcaagaaccaggcgtttaaaaatggcgagttcattgaaatcactgaaaaagataccgaaggtcgctggagcgtgtttttcttttacccagcggatttcactttcgtctgcccgacagaactgggcgatgttgcggatcactatgaggagctgcaaaaactgggggtggacgtgtatgccgtgtctacggatacccattttacgcacaaagcgtggcatagcagtagcgaaactatcgcaaagatcaaatatgctatgattggcgacccgacgggtgctttgacgcgaaattttgataatatgcgcgaagatgaaggactggcggatcgggccacatttgtcgtagatccgcagggcatcatccaggcgattgaagtaactgccgaaggtatcgggcgagatgcatcagatttgttgcgcaaaatcaaagccgcccagtacgtggcatcacaccctggtgaagtgtgccccgccaaatggaaagagggtgaagccacccaagcacctagcctggatctggtgggtaagatctaattgtagactcggatccaaactcgag</nucleotides>

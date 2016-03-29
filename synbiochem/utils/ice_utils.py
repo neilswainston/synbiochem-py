@@ -12,10 +12,11 @@ import json
 import tempfile
 import urllib
 
-from synbiochem.utils import net_utils as net_utils
 import sbol
 
+from synbiochem.utils import net_utils as net_utils
 
+_DEFAULT_ID_PREFIX = 'SBC'
 _SESSION_KEY = 'X-ICE-Authentication-SessionId'
 
 
@@ -76,7 +77,7 @@ class ICEEntry(object):
 class ICEClient(object):
     '''Class representing an ICE client.'''
 
-    def __init__(self, url, username, password, id_prefix='SBC'):
+    def __init__(self, url, username, password, id_prefix=_DEFAULT_ID_PREFIX):
         self.__url = url + '/rest'
         self.__headers = {'Accept': 'application/json',
                           'Content-Type': 'application/json'}
@@ -166,45 +167,26 @@ class ICEClient(object):
     def __get_ice_number(self, ice_identifier):
         '''Maps ICE number to ICE id, i.e. from SBC000123 to 123,
         or if a number is supplied, returns the number.'''
-        try:
-            ice_number = int(ice_identifier.replace(self.__id_prefix, ''))
-        except AttributeError:
-            # "Ask forgiveness, not permission" and assume ice_identifier is
-            # the ice_number:
-            ice_number = ice_identifier
-
-        return str(ice_number)
+        return get_ice_number(ice_identifier, self.__id_prefix)
 
     def __get_ice_id(self, ice_number):
         '''Maps ICE id to ICE number, i.e. from 123 to SBC000123.'''
         return self.__id_prefix + format(ice_number, '06')
 
 
+def get_ice_number(ice_identifier, id_prefix=_DEFAULT_ID_PREFIX):
+    '''Maps ICE number to ICE id, i.e. from SBC000123 to 123,
+    or if a number is supplied, returns the number.'''
+    try:
+        ice_number = int(ice_identifier.replace(id_prefix, ''))
+    except AttributeError:
+        # "Ask forgiveness, not permission" and assume ice_identifier is
+        # the ice_number:
+        ice_number = ice_identifier
+
+    return str(ice_number)
+
+
 def _read_resp(response):
     '''Parses a string response into json.'''
     return json.loads(str(response))
-
-
-def main():
-    '''main method.'''
-    url = 'https://testice.synbiochem.co.uk:8443'
-    username = 'Administrator'
-    password = 'synbiochem'
-
-    ice = ICEClient(url, username, password, id_prefix='TEST_')
-    sbol_doc = ice.get_ice_entry('TEST_000008').get_sbol_doc()
-    print sbol_doc
-
-    ice_entry = ICEEntry(sbol_doc=sbol_doc, typ='PART')
-    ice.set_ice_entry(ice_entry)
-
-    ice_entry = ICEEntry(typ='PART')
-    print ice_entry.get_sbol_doc()
-    ice.set_ice_entry(ice_entry)
-    print ice.get_ice_entry(ice_entry.get_ice_number())
-    ice_entry.set_value('owner', 'Fabrizio Ravanelli')
-    ice.set_ice_entry(ice_entry)
-    print ice.get_ice_entry(ice_entry.get_ice_number())
-
-if __name__ == '__main__':
-    main()

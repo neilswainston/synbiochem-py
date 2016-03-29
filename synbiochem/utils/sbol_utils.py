@@ -10,12 +10,13 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 import re
 import uuid
 
-from sbol.sbol import Collection, DNAComponent, DNASequence, Document, \
+from sbol.sbol import DNAComponent, DNASequence, Document, \
     SequenceAnnotation
 import synbiochem.utils.sequence_utils as seq_utils
 
 
-CDS_SO = 'http://purl.obolibrary.org/obo/SO_0000316'
+SO_CDS = 'http://purl.obolibrary.org/obo/SO_0000316'
+SO_PROM = 'http://purl.obolibrary.org/obo/SO_0000167'
 _DEFAULT_URI_PREFIX = 'http://synbiochem.co.uk#'
 
 
@@ -25,30 +26,25 @@ def get_seq(sbol_doc):
         if len(sbol_doc.sequences) > 0 else None
 
 
-def concat(sbol_docs, uri_prefix=_DEFAULT_URI_PREFIX):
+def concat(sbol_docs):
     '''Concatenates a list of Documents into a single Document.'''
-    concat_doc = clone(sbol_docs[0], uri_prefix)
+    concat_doc = clone(sbol_docs[0])
 
-    for sbol_doc in sbol_docs[1:]:
+    for count, sbol_doc in enumerate(sbol_docs[1:]):
         concat_doc = _add(concat_doc, sbol_doc)
+        concat_doc.write('/Users/neilswainston/Downloads/' +
+                         concat_doc.components[0].display_id + '_' +
+                         str(count) + '.xml')
 
     return concat_doc
 
 
-def clone(orig_doc, uri_prefix=_DEFAULT_URI_PREFIX):
+def clone(orig_doc):
     '''Clones an sbol Document.'''
     clone_doc = Document()
 
-    for obj in orig_doc.components:
-        _clone_comp(clone_doc, obj, uri_prefix)
-
-    for obj in orig_doc.collections:
-        coll = Collection(clone_doc, (_get_uri(uri_prefix)
-                                      if uri_prefix is not None
-                                      else obj.uri))
-        coll.description = obj.description
-        coll.display_id = obj.display_id
-        coll.name = obj.name
+    for comp in orig_doc.components:
+        _clone_comp(clone_doc, comp)
 
     return clone_doc
 
@@ -64,31 +60,49 @@ def apply_restrict(doc, restrict, uri_prefix=_DEFAULT_URI_PREFIX):
                                        seq_utils.get_rev_comp(rev[0]),
                                        forw[1],
                                        uri_prefix))
+
+    for count, doc in enumerate(sbol_docs):
+        doc.write('/Users/neilswainston/Downloads/' +
+                  doc.components[0].display_id + '_' + str(count) + '.xml')
+
     return sbol_docs
 
 
-def _clone_comp(owner_doc, orig_comp, uri_prefix):
+def _clone_comp(doc, orig_comp):
     '''Clones a DNAComponent.'''
-    for comp in owner_doc.components:
+    for comp in doc.components:
         if comp.uri == orig_comp.uri:
             return comp
 
-    comp = DNAComponent(owner_doc, (_get_uri(uri_prefix)
-                                    if uri_prefix is not None
-                                    else orig_comp.uri))
+    return _build_comp(doc, orig_comp.uri, orig_comp)
+
+
+def _clone_sub_comp(doc, orig_comp, uri_prefix=_DEFAULT_URI_PREFIX):
+    '''Clones a DNAComponent.'''
+    uri = orig_comp.uri
+
+    for comp in doc.components:
+        if comp.uri == orig_comp.uri:
+            uri = _get_uri(uri_prefix)
+            break
+
+    return _build_comp(doc, uri, orig_comp)
+
+
+def _build_comp(doc, uri, orig_comp):
+    '''Builds (essentially copies) a DNAComponent.'''
+    comp = DNAComponent(doc, uri)
     comp.description = orig_comp.description
     comp.display_id = orig_comp.display_id
     comp.name = orig_comp.name
     comp.type = orig_comp.type
 
     if orig_comp.sequence is not None:
-        comp.sequence = DNASequence(owner_doc, (_get_uri(uri_prefix)
-                                                if uri_prefix is not None
-                                                else orig_comp.sequence.uri))
+        comp.sequence = DNASequence(doc, orig_comp.sequence.uri)
         comp.sequence.nucleotides = orig_comp.sequence.nucleotides
 
     for annot in orig_comp.annotations:
-        clone_annot = _clone_annotation(owner_doc, annot)
+        clone_annot = _clone_annotation(doc, annot)
         comp.annotations += clone_annot
 
     return comp
@@ -104,8 +118,9 @@ def _clone_annotation(owner_doc, annot):
     clone_annot.strand = annot.strand
 
     if annot.subcomponent is not None:
-        clone_annot.subcomponent = _clone_comp(owner_doc, annot.subcomponent,
-                                               None)
+        clone_annot.subcomponent = _clone_sub_comp(owner_doc,
+                                                   annot.subcomponent)
+
     return clone_annot
 
 
@@ -135,12 +150,6 @@ def _add(sbol_doc1, sbol_doc2):
         clone_annot = _clone_annotation(sbol_doc1, annot)
         clone_annot.start += orig_seq_len
         clone_annot.end += orig_seq_len
-
-        if clone_annot.subcomponent is not None:
-            clone_annot.subcomponent = _clone_comp(sbol_doc1,
-                                                   annot.subcomponent,
-                                                   None)
-
         sbol_doc1.components[0].annotations += clone_annot
 
     return sbol_doc1
@@ -149,14 +158,18 @@ def _add(sbol_doc1, sbol_doc2):
 def _get_sbol(parent_doc, seq, start, uri_prefix):
     '''Returns a sbol Document from the supplied subsequence from a parent sbol
     Document.'''
-    doc = Document()
-    display_id = str(uuid.uuid4())
-    comp = DNAComponent(doc, uri_prefix + display_id)
-    comp.display_id = display_id
-    comp.sequence = DNASequence(doc, _get_uri(uri_prefix))
-    comp.sequence.nucleotides = seq.lower()
+    parent_comp = parent_doc.components[0]
 
     end = start + len(seq)
+    frag_str = ' [' + str(start) + ':' + str(end) + ']'
+
+    doc = Document()
+    comp = DNAComponent(doc, uri_prefix + str(uuid.uuid4()))
+    comp.display_id = parent_comp.display_id + frag_str
+    comp.name = parent_comp.name + frag_str
+    comp.description = parent_comp.description + frag_str
+    comp.sequence = DNASequence(doc, _get_uri(uri_prefix))
+    comp.sequence.nucleotides = seq.lower()
 
     for annot in parent_doc.annotations:
         if annot.start >= start and annot.end <= end:

@@ -29,20 +29,23 @@ class Test(unittest.TestCase):
 
     def test_concat(self):
         '''Tests concat method.'''
-        sbol_doc1 = Document()
-        sbol_doc1.read('sbol.xml')
         sbol_doc2 = Document()
         sbol_doc2.read('sbol2.xml')
+        sbol_doc3 = Document()
+        sbol_doc3.read('sbol3.xml')
 
-        concat_doc = _round_trip(sbol_utils.concat([sbol_doc1, sbol_doc2]))
+        concat_doc = _round_trip(sbol_utils.concat([sbol_doc2,
+                                                    sbol_doc3]))
 
-        self.assertEqual(sbol_doc1.num_sbol_objects +
-                         sbol_doc2.num_sbol_objects - 2,
+        concat_doc.write('/Users/neilswainston/Downloads/concat.xml')
+
+        self.assertEqual(sbol_doc2.num_sbol_objects +
+                         sbol_doc3.num_sbol_objects - 2,
                          concat_doc.num_sbol_objects)
 
     def test_app_restrict_site_match(self):
         '''Tests apply_restriction_site method.'''
-        _, docs = _get_apply_restrict_site_docs('(?<=GAGTC.{5}).*')
+        _, docs = _get_apply_restrict_site_docs('(?<=gagtc.{5}).*')
         self.assertEquals(len(docs), 3)
 
     def test_app_restrict_site_nomatch(self):
