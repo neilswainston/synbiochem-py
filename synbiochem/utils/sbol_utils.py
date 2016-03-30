@@ -17,7 +17,7 @@ import synbiochem.utils.sequence_utils as seq_utils
 
 SO_CDS = 'http://purl.obolibrary.org/obo/SO_0000316'
 SO_PROM = 'http://purl.obolibrary.org/obo/SO_0000167'
-_DEFAULT_URI_PREFIX = 'http://synbiochem.co.uk#'
+_DEFAULT_URI_PREFIX = 'http://synbiochem.co.uk/'
 
 
 def get_seq(sbol_doc):
