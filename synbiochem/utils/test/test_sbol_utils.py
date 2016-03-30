@@ -37,6 +37,8 @@ class Test(unittest.TestCase):
         concat_doc = _round_trip(sbol_utils.concat([sbol_doc2,
                                                     sbol_doc3]))
 
+        self.assertEqual(concat_doc.annotations[0].strand, '-')
+
         self.assertEqual(sbol_doc2.num_sbol_objects +
                          sbol_doc3.num_sbol_objects - 2,
                          concat_doc.num_sbol_objects)

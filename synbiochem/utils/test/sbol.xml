@@ -27,7 +27,7 @@
             <SequenceAnnotation ns2:about="https://ice.synbiochem.co.uk:443/entry/sa#25ae0d3a-c26e-4077-8c3f-65a8ca2e86ca">
                 <bioStart>86</bioStart>
                 <bioEnd>649</bioEnd>
-                <strand>+</strand>
+                <strand>-</strand>
                 <subComponent>
                     <DnaComponent ns2:about="https://ice.synbiochem.co.uk:443/entry/dc#1a4523a7-f8b2-4fe5-8907-f8356b7168fe">
                         <ns2:type ns2:resource="http://purl.obolibrary.org/obo/SO_0000316"/>
