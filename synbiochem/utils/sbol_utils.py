@@ -73,20 +73,22 @@ def _clone_comp(doc, orig_comp):
 def _clone_sub_comp(doc, orig_comp, uri_prefix=_DEFAULT_URI_PREFIX):
     '''Clones a DNAComponent.'''
     uri = orig_comp.uri
+    display_id = None
 
     for comp in doc.components:
         if comp.uri == orig_comp.uri:
-            uri = _get_uri(uri_prefix)
+            display_id = str(uuid.uuid4())
+            uri = uri_prefix + display_id
             break
 
-    return _build_comp(doc, uri, orig_comp)
+    return _build_comp(doc, uri, orig_comp, display_id)
 
 
-def _build_comp(doc, uri, orig_comp):
+def _build_comp(doc, uri, orig_comp, disp_id=None):
     '''Builds (essentially copies) a DNAComponent.'''
     comp = DNAComponent(doc, uri)
     comp.description = orig_comp.description
-    comp.display_id = orig_comp.display_id
+    comp.display_id = orig_comp.display_id if disp_id is None else disp_id
     comp.name = orig_comp.name
     comp.type = orig_comp.type
 
