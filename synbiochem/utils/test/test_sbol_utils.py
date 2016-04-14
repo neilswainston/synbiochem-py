@@ -12,6 +12,7 @@ from tempfile import NamedTemporaryFile
 import unittest
 
 from sbol.sbol import Document
+
 import synbiochem.utils.sbol_utils as sbol_utils
 
 

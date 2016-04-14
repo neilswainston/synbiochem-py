@@ -12,6 +12,7 @@ import uuid
 
 from sbol.sbol import DNAComponent, DNASequence, Document, \
     SequenceAnnotation
+
 import synbiochem.utils.sequence_utils as seq_utils
 
 
