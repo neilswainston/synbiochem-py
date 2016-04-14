@@ -29,6 +29,7 @@ class ICEEntry(object):
         assert typ is not None or metadata is not None
 
         self.__sbol_doc = sbol_doc
+        self.__sbol_doc_updated = sbol_doc is not None
 
         if metadata is None:
             self.__metadata = {'type': typ}
@@ -57,8 +58,12 @@ class ICEEntry(object):
         return self.__metadata
 
     def get_sbol_doc(self):
-        '''Gets the SBOLDocument.'''
+        '''Gets the SBOL Document.'''
         return self.__sbol_doc
+
+    def get_sbol_doc_updated(self):
+        '''Gets the SBOL Document updated flag.'''
+        return self.__sbol_doc_updated
 
     def set_values(self, new_metadata):
         '''Sets multiple metadata values.'''
@@ -67,6 +72,16 @@ class ICEEntry(object):
     def set_value(self, key, value):
         '''Sets a metadata value.'''
         self.__metadata[key] = value
+
+    def set_sbol_doc(self, sbol_doc):
+        '''Sets the SBOL Document.'''
+        self.__sbol_doc_updated = self.__sbol_doc is not None \
+            or sbol_doc is not None
+        self.__sbol_doc = sbol_doc
+
+    def unset_sbol_doc_updated(self):
+        '''Sets the SBOL Document updated flag.'''
+        self.__sbol_doc_updated = False
 
     def __repr__(self):
         return str(self.__metadata) + \
@@ -99,24 +114,29 @@ class ICEClient(object):
 
         return ICEEntry(sbol_doc, metadata)
 
-    def get_sbol_doc(self, ice_id):
-        '''Gets SBOLDocument from ICEEntry object from the ICE database.'''
-        return self.get_ice_entry(ice_id).get_sbol_doc()
-
     def set_ice_entry(self, ice_entry):
         '''Saves an ICEEntry object in the ICE database.'''
         if ice_entry.get_ice_number() is None:
-            self.__create_entry(ice_entry)
+            response = self.__create_entry(ice_entry)
         else:
-            self.__update_entry(ice_entry.get_ice_number(),
-                                ice_entry.get_metadata())
+            response = self.__update_entry(ice_entry.get_ice_number(),
+                                           ice_entry.get_metadata())
 
-        sbol_doc = ice_entry.get_sbol_doc()
+        metadata = self.__get_meta_data(self.__get_ice_id(response['id']))
+        ice_entry.set_values(metadata)
 
-        if sbol_doc is not None:
-            self.__upload_sbol(ice_entry.get_record_id(),
-                               ice_entry.get_type(),
-                               sbol_doc)
+        if ice_entry.get_sbol_doc_updated():
+            sbol_doc = ice_entry.get_sbol_doc()
+
+            if sbol_doc is not None:
+                self.__upload_sbol(ice_entry.get_record_id(),
+                                   ice_entry.get_type(),
+                                   sbol_doc)
+
+                ice_entry.unset_sbol_doc_updated()
+
+        metadata = self.__get_meta_data(self.__get_ice_id(response['id']))
+        ice_entry.set_values(metadata)
 
     def upload_seq_file(self, record_id, typ, filename):
         '''Uploads a sequence file (not necessarily SBOL).'''
@@ -145,18 +165,16 @@ class ICEClient(object):
     def __create_entry(self, ice_entry):
         '''Creates a new ICE entry in the database.'''
         url = self.__url + '/parts'
-        response = _read_resp(
+        return _read_resp(
             net_utils.post(url, json.dumps(ice_entry.get_metadata()),
                            self.__headers))
-
-        metadata = self.__get_meta_data(self.__get_ice_id(response['id']))
-        ice_entry.set_values(metadata)
 
     def __update_entry(self, ice_id, metadata):
         '''Updates an ICE entry in the database.'''
         ice_number = self.__get_ice_number(ice_id)
         url = self.__url + '/parts/' + str(ice_number)
-        _read_resp(net_utils.put(url, json.dumps(metadata), self.__headers))
+        return _read_resp(net_utils.put(url, json.dumps(metadata),
+                                        self.__headers))
 
     def __upload_sbol(self, record_id, typ, sbol_doc):
         '''Uploads an SBOLDocument to ICE database.'''

@@ -105,6 +105,58 @@ class TestICEEntry(unittest.TestCase):
         self.assertEqual(ice_entry2.get_metadata()['creator'], 'God')
         self.assertEqual(ice_entry2.get_metadata()['name'], 'Test')
 
+    def test_set_sbol_doc(self):
+        '''Tests set_sbol_doc method.'''
+        sbol_doc1 = Document()
+        sbol_doc1.read('sbol.xml')
+        sbol_doc2 = Document()
+        sbol_doc2.read('sbol2.xml')
+
+        ice_entry = ICEEntry(typ='PLASMID', sbol_doc=sbol_doc1)
+        self.__ice_client.set_ice_entry(ice_entry)
+        self.__ice_client.set_ice_entry(ice_entry)
+
+        ice_entry.set_sbol_doc(sbol_doc2)
+        self.__ice_client.set_ice_entry(ice_entry)
+
+        self.assertEqual(ice_entry.get_sbol_doc(), sbol_doc2)
+
+
+class TestICEClient(unittest.TestCase):
+    '''Test class for ICEClient.'''
+    @classmethod
+    def setUpClass(cls):
+        ice_url = raw_input('ICE url: ')
+        username = raw_input('ICE username: ')
+        password = getpass.getpass(prompt='ICE password: ')
+        cls.__ice_client = ICEClient(ice_url, username, password)
+
+    def test_get_ice_entry(self):
+        '''Tests get_ice_entry method.'''
+        sbol_doc = Document()
+        sbol_doc.read('sbol.xml')
+
+        ice_entry_in = ICEEntry(typ='PLASMID', sbol_doc=sbol_doc)
+        self.__ice_client.set_ice_entry(ice_entry_in)
+
+        ice_entry_out = self.__ice_client.get_ice_entry(
+            ice_entry_in.get_ice_number())
+        self.assertEqual(ice_entry_out.get_sbol_doc().components[0].uri,
+                         sbol_doc.components[0].uri)
+
+    def test_set_ice_entry(self):
+        '''Tests set_ice_entry method.'''
+        sbol_doc_in = Document()
+        sbol_doc_in.read('sbol.xml')
+
+        ice_entry_in = ICEEntry(typ='PLASMID', sbol_doc=sbol_doc_in)
+        self.__ice_client.set_ice_entry(ice_entry_in)
+
+        ice_entry_out = self.__ice_client.get_ice_entry(
+            ice_entry_in.get_ice_number())
+
+        self.assertNotEqual(ice_entry_out, None)
+
 
 class Test(unittest.TestCase):
     '''Test class for ice_utils.'''

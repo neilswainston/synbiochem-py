@@ -28,6 +28,12 @@ def post(url, data, headers, verify=True):
                                         verify=verify))
 
 
+def delete(url, data=None, headers=None, verify=True):
+    '''DELETEs data from url.'''
+    return __process_resp(requests.delete(url, data=data, headers=headers,
+                                          verify=verify))
+
+
 def post_file(url, data, headers, verify=True):
     '''POSTs files to url.'''
     return __process_resp(requests.post(url, files=data, headers=headers,
