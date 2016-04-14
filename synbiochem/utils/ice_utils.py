@@ -16,6 +16,7 @@ import sbol
 
 from synbiochem.utils import net_utils as net_utils
 
+
 _DEFAULT_ID_PREFIX = 'SBC'
 _SESSION_KEY = 'X-ICE-Authentication-SessionId'
 
