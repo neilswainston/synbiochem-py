@@ -10,31 +10,31 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 import requests
 
 
-def get(url, headers, verify=True):
+def get(url, headers=None, verify=False):
     '''GETs url.'''
     return __process_resp(requests.get(url, headers=headers,
                                        verify=verify))
 
 
-def put(url, data, headers, verify=True):
+def put(url, data, headers, verify=False):
     '''POSTs data to url.'''
     return __process_resp(requests.put(url, data=data,
                                        headers=headers, verify=verify))
 
 
-def post(url, data, headers, verify=True):
+def post(url, data, headers, verify=False):
     '''POSTs data to url.'''
     return __process_resp(requests.post(url, data=data, headers=headers,
                                         verify=verify))
 
 
-def delete(url, data=None, headers=None, verify=True):
+def delete(url, data=None, headers=None, verify=False):
     '''DELETEs data from url.'''
     return __process_resp(requests.delete(url, data=data, headers=headers,
                                           verify=verify))
 
 
-def post_file(url, data, headers, verify=True):
+def post_file(url, data, headers, verify=False):
     '''POSTs files to url.'''
     return __process_resp(requests.post(url, files=data, headers=headers,
                                         verify=verify))

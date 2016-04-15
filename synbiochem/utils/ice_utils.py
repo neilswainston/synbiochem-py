@@ -10,8 +10,6 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=too-many-arguments
 import json
 import tempfile
-import urllib
-
 import sbol
 
 from synbiochem.utils import net_utils as net_utils
@@ -93,14 +91,17 @@ class ICEEntry(object):
 class ICEClient(object):
     '''Class representing an ICE client.'''
 
-    def __init__(self, url, username, password, id_prefix=_DEFAULT_ID_PREFIX):
-        self.__url = url + '/rest'
+    def __init__(self, url, username, psswrd, id_prefix=_DEFAULT_ID_PREFIX):
+        self.__url = url + ('' if url[-1] == '/' else '/') + 'rest'
         self.__headers = {'Accept': 'application/json',
                           'Content-Type': 'application/json'}
-        resp = _read_resp(net_utils.post(self.__url + '/accesstoken',
-                                         json.dumps({'email': username,
-                                                      'password': password}),
-                                         self.__headers))
+
+        try:
+            resp = self.__get_access_token(
+                '/accesstoken', username, psswrd)
+        except net_utils.NetworkError:
+            resp = self.__get_access_token(
+                '/accesstokens', username, psswrd)
 
         self.__sid = resp['sessionId']
         self.__headers[_SESSION_KEY] = self.__sid
@@ -126,6 +127,10 @@ class ICEClient(object):
         ice_entry.set_values(metadata)
 
         if ice_entry.get_sbol_doc_updated():
+
+            if 'hasSequence' in metadata and metadata['hasSequence']:
+                self.__delete_seq(ice_entry.get_ice_number())
+
             sbol_doc = ice_entry.get_sbol_doc()
 
             if sbol_doc is not None:
@@ -138,13 +143,27 @@ class ICEClient(object):
         metadata = self.__get_meta_data(self.__get_ice_id(response['id']))
         ice_entry.set_values(metadata)
 
-    def upload_seq_file(self, record_id, typ, filename):
+    def __get_access_token(self, service, username, psswrd):
+        '''Gets access token response.'''
+        return _read_resp(net_utils.post(self.__url + service,
+                                         json.dumps({'email': username,
+                                                     'password': psswrd}),
+                                         self.__headers))
+
+    def __upload_seq_file(self, record_id, typ, filename):
         '''Uploads a sequence file (not necessarily SBOL).'''
-        return _read_resp(net_utils.post_file(self.__url + '/file/sequence',
+        return _read_resp(net_utils.post_file(self.__url +
+                                              '/file/sequence',
                                               {'file': open(filename, 'r'),
                                                'entryType': typ,
                                                'entryRecordId': record_id},
                                               {_SESSION_KEY: self.__sid}))
+
+    def __delete_seq(self, ice_number):
+        '''Deletes the sequence associated with supplied record id.'''
+        net_utils.delete(self.__url + '/parts/' + str(ice_number) +
+                         '/sequence',
+                         headers={_SESSION_KEY: self.__sid})
 
     def __get_meta_data(self, ice_id):
         '''Returns an ICE entry metadata.'''
@@ -157,7 +176,10 @@ class ICEClient(object):
         url = self.__url + '/file/' + self.__get_ice_number(ice_id) + \
             '/sequence/sbol?sid=' + self.__sid
         temp_file = tempfile.NamedTemporaryFile(delete=False)
-        urllib.urlretrieve(url, temp_file.name)
+
+        with open(temp_file.name, 'w') as text_file:
+            text_file.write(net_utils.get(url))
+
         document = sbol.Document()
         document.read(temp_file.name)
         return document
@@ -181,7 +203,7 @@ class ICEClient(object):
         sbol_file = tempfile.NamedTemporaryFile()
         sbol_doc.write(sbol_file.name)
 
-        return self.upload_seq_file(record_id, typ, sbol_file.name)
+        return self.__upload_seq_file(record_id, typ, sbol_file.name)
 
     def __get_ice_number(self, ice_identifier):
         '''Maps ICE number to ICE id, i.e. from SBC000123 to 123,
