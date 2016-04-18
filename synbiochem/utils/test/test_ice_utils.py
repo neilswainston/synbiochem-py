@@ -13,6 +13,7 @@ import unittest
 
 from sbol.sbol import Document
 
+from synbiochem.utils import sbol_utils
 from synbiochem.utils.ice_utils import ICEClient, ICEEntry
 import synbiochem.utils.ice_utils as ice_utils
 
@@ -163,6 +164,20 @@ class TestICEClient(unittest.TestCase):
                                             'agctagacgagaaaccttcccaatcttatca' +
                                             'ttacgaaaggacgtccctatgagcctgatta')
         self.assertTrue(result['resultCount'] > 0)
+
+    def test_get_ice_entries_by_seq(self):
+        '''Tests get_ice_entries_by_seq method.'''
+        sbol_doc = Document()
+        sbol_doc.read('sbol.xml')
+
+        ice_entry = ICEEntry(typ='PLASMID', sbol_doc=sbol_doc)
+        self.__ice_client.set_ice_entry(ice_entry)
+
+        seq = sbol_utils.get_seq(sbol_doc)
+
+        result = self.__ice_client.get_ice_entries_by_seq(seq)
+        self.assertTrue(ice_entry.get_ice_number() in [res.get_ice_number()
+                                                       for res in result])
 
 
 class Test(unittest.TestCase):

@@ -12,7 +12,7 @@ import json
 import tempfile
 import sbol
 
-from synbiochem.utils import net_utils as net_utils
+from synbiochem.utils import net_utils as net_utils, sbol_utils
 
 
 _DEFAULT_ID_PREFIX = 'SBC'
@@ -113,7 +113,7 @@ class ICEClient(object):
         sbol_doc = self.__get_sbol_doc(ice_id) if metadata['hasSequence'] \
             else None
 
-        return ICEEntry(sbol_doc, metadata)
+        return ICEEntry(sbol_doc, metadata=metadata)
 
     def set_ice_entry(self, ice_entry):
         '''Saves an ICEEntry object in the ICE database.'''
@@ -149,6 +149,21 @@ class ICEClient(object):
                                'sequence': seq.lower()}}
         return _read_resp(net_utils.post(self.__url + '/search',
                                          json.dumps(data), self.__headers))
+
+    def get_ice_entries_by_seq(self, seq):
+        '''Returns entries matching supplied sequence.'''
+        entries = []
+        response = self.do_blast(seq)
+
+        if 'results' in response:
+            for result in response['results']:
+                if '100%' in result['alignment']:
+                    entry = self.get_ice_entry(result['entryInfo']['id'])
+
+                    if sbol_utils.get_seq(entry.get_sbol_doc()) == seq:
+                        entries.append(entry)
+
+        return entries
 
     def __get_access_token(self, service, username, psswrd):
         '''Gets access token response.'''
