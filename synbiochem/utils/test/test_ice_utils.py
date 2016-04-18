@@ -157,6 +157,13 @@ class TestICEClient(unittest.TestCase):
 
         self.assertNotEqual(ice_entry_out, None)
 
+    def test_do_blast(self):
+        '''Tests do_blast method.'''
+        result = self.__ice_client.do_blast('tcgagaattcaaaagatctgagataggtaga' +
+                                            'agctagacgagaaaccttcccaatcttatca' +
+                                            'ttacgaaaggacgtccctatgagcctgatta')
+        self.assertTrue(result['resultCount'] > 0)
+
 
 class Test(unittest.TestCase):
     '''Test class for ice_utils.'''

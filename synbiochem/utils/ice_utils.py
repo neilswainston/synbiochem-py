@@ -143,6 +143,13 @@ class ICEClient(object):
         metadata = self.__get_meta_data(self.__get_ice_id(response['id']))
         ice_entry.set_values(metadata)
 
+    def do_blast(self, seq):
+        '''Performs BLAST search against database.'''
+        data = {'blastQuery': {'blastProgram': 'BLAST_N',
+                               'sequence': seq.lower()}}
+        return _read_resp(net_utils.post(self.__url + '/search',
+                                         json.dumps(data), self.__headers))
+
     def __get_access_token(self, service, username, psswrd):
         '''Gets access token response.'''
         return _read_resp(net_utils.post(self.__url + service,
