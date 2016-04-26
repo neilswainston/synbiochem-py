@@ -1,13 +1,14 @@
 '''
-SYNBIOCHEM-DB (c) University of Manchester 2015
+synbiochem (c) University of Manchester 2015
 
-SYNBIOCHEM-DB is licensed under the MIT License.
+synbiochem is licensed under the MIT License.
 
 To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
 import hashlib
+import json
 import sys
 
 from SOAPpy import WSDL
@@ -42,16 +43,18 @@ class BrendaReader(object):
 
 def _parse_results(result_str):
     '''Parses BRENDA-formatted results string into something sensible.'''
-    return [{val[0]: val[1] for val in [item.split("*")
-                                        for item in line.split("#")]
-             if len(val) == 2}
-            for line in result_str.split('!')]
+    return json.dumps([{val[0]: val[1] for val in [item.split("*")
+                                                   for item in line.split("#")]
+                        if len(val) == 2}
+                       for line in result_str.split('!')])
 
 
 def main(argv):
     '''main method'''
     brenda_reader = BrendaReader(argv[0], argv[1])
-    km_values = brenda_reader.get_km_values(argv[2], argv[3])
+    km_values = brenda_reader.get_km_values(argv[2], (argv[3]
+                                                      if len(argv) > 3
+                                                      else None))
     print km_values
 
 
