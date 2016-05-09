@@ -47,7 +47,8 @@ class Test(unittest.TestCase):
     def test_app_restrict_site_match(self):
         '''Tests apply_restriction_site method.'''
         _, docs = _get_apply_restrict_site_docs('(?<=gagtc.{5}).*')
-        self.assertEquals(len(docs), 3)
+        self.assertEquals([len(sbol_utils.get_seq(doc)) for doc in docs],
+                          [30, 25, 619])
 
     def test_app_restrict_site_nomatch(self):
         '''Tests aplly_restriction_site method.'''
@@ -74,7 +75,7 @@ def _get_apply_restrict_site_docs(restrict):
     parent = Document()
     parent.read('sbol.xml')
     return parent, [_round_trip(doc)
-                    for doc in sbol_utils.apply_restrict(parent, restrict)]
+                    for doc in sbol_utils.apply_restricts(parent, [restrict])]
 
 
 if __name__ == "__main__":

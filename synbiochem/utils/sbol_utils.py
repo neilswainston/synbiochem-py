@@ -47,19 +47,18 @@ def clone(orig_doc):
     return clone_doc
 
 
-def apply_restrict(doc, restrict, uri_prefix=_DEFAULT_URI_PREFIX):
+def apply_restricts(doc, restricts, circular=False,
+                    uri_prefix=_DEFAULT_URI_PREFIX):
     '''Applies restriction site cleavage to forward and reverse strands.'''
-    sbol_docs = []
-    parent_seq = doc.sequences[0].nucleotides
+    out_docs = [doc]
 
-    for forw in _apply_restrict(parent_seq, restrict):
-        for rev in _apply_restrict(seq_utils.get_rev_comp(forw[0]), restrict):
-            sbol_docs.append(_get_sbol(doc,
-                                       seq_utils.get_rev_comp(rev[0]),
-                                       forw[1],
-                                       uri_prefix))
+    for restrict in restricts:
+        out_docs = _apply_restrict_to_docs(out_docs, restrict, uri_prefix)
 
-    return sbol_docs
+    if circular and len(out_docs) > 1:
+        return [concat([out_docs[-1], out_docs[0]])] + out_docs[1:-1]
+    else:
+        return out_docs
 
 
 def _clone_comp(doc, orig_comp):
@@ -120,7 +119,25 @@ def _clone_annotation(owner_doc, annot):
     return clone_annot
 
 
-def _apply_restrict(seq, restrict):
+def _apply_restrict_to_docs(docs, restrict, uri_prefix=_DEFAULT_URI_PREFIX):
+    '''Applies restriction site cleavage to forward and reverse strands.'''
+    out_docs = []
+
+    for doc in docs:
+        parent_seq = doc.sequences[0].nucleotides
+
+        for forw in _apply_restrict_to_seq(parent_seq, restrict):
+            for rev in _apply_restrict_to_seq(seq_utils.get_rev_comp(forw[0]),
+                                              restrict):
+                out_docs.append(_get_sbol(doc,
+                                          seq_utils.get_rev_comp(rev[0]),
+                                          forw[1],
+                                          uri_prefix))
+
+    return out_docs
+
+
+def _apply_restrict_to_seq(seq, restrict):
     '''Applies restriction site cleavage to a sequence.'''
     sub_seqs = [(match.group(0), match.start())
                 for match in re.finditer(restrict, seq)]
