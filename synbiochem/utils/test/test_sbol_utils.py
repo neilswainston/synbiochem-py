@@ -44,21 +44,45 @@ class Test(unittest.TestCase):
                          sbol_doc3.num_sbol_objects - 2,
                          concat_doc.num_sbol_objects)
 
-    def test_app_restrict_site_match(self):
+    def test_app_restrict_site_linear(self):
         '''Tests apply_restriction_site method.'''
-        _, docs = _get_apply_restrict_site_docs('(?<=gagtc.{5}).*')
+        _, docs = _get_apply_restrict_site_docs('(?<=gagtc.{5}).*', False)
         self.assertEquals([len(sbol_utils.get_seq(doc)) for doc in docs],
                           [30, 25, 619])
 
+    def test_app_restrict_site_circular(self):
+        '''Tests apply_restriction_site method.'''
+        _, docs = _get_apply_restrict_site_docs('(?<=gagtc.{5}).*', True)
+        self.assertEquals([len(sbol_utils.get_seq(doc)) for doc in docs],
+                          [649, 25])
+
     def test_app_restrict_site_nomatch(self):
         '''Tests aplly_restriction_site method.'''
-        parent, docs = _get_apply_restrict_site_docs('(?<=JJJJJ.{5}).*')
+        parent, docs = _get_apply_restrict_site_docs('(?<=JJJJJ.{5}).*', False)
         self.assertEquals(len(docs), 1)
 
         for par_annot, doc_annot in zip(parent.components[0].annotations,
                                         docs[0].components[0].annotations):
             self.assertEquals(par_annot.start, doc_annot.start)
             self.assertEquals(par_annot.end, doc_annot.end)
+
+    def test_app_pcr_linear(self):
+        '''Tests apply_restriction_site method.'''
+        _, docs = _get_apply_pcr_site_docs('cttt', 'ttag', False)
+        self.assertEquals([len(sbol_utils.get_seq(doc)) for doc in docs],
+                          [17, 181, 292, 332, 161, 272, 312, 95, 135])
+
+    def test_app_pcr_circular(self):
+        '''Tests apply_restriction_site method.'''
+        _, docs = _get_apply_pcr_site_docs('cttt', 'ttag', True)
+        self.assertEquals([len(sbol_utils.get_seq(doc)) for doc in docs],
+                          [576, 17, 181, 292, 332, 556, 671, 161, 272, 312,
+                           379, 494, 658, 95, 135])
+
+    def test_app_pcr_no_match(self):
+        '''Tests apply_restriction_site method.'''
+        _, docs = _get_apply_pcr_site_docs('xxxx', 'xxxx', False)
+        self.assertEquals([sbol_utils.get_seq(doc) for doc in docs], [])
 
 
 def _round_trip(doc):
@@ -70,12 +94,22 @@ def _round_trip(doc):
     return doc
 
 
-def _get_apply_restrict_site_docs(restrict):
-    '''Tests aplly_restriction_site method.'''
+def _get_apply_restrict_site_docs(restrict, circular):
+    '''Tests apply_restriction_site method.'''
     parent = Document()
     parent.read('sbol.xml')
     return parent, [_round_trip(doc)
-                    for doc in sbol_utils.apply_restricts(parent, [restrict])]
+                    for doc in sbol_utils.apply_restricts(parent, [restrict],
+                                                          circular)]
+
+
+def _get_apply_pcr_site_docs(for_primer, rev_primer, circular):
+    '''Tests apply_pcr method.'''
+    parent = Document()
+    parent.read('sbol.xml')
+    return parent, [_round_trip(doc)
+                    for doc in sbol_utils.apply_pcr(parent, for_primer,
+                                                    rev_primer, circular)]
 
 
 if __name__ == "__main__":

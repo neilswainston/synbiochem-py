@@ -61,6 +61,28 @@ def apply_restricts(doc, restricts, circular=False,
         return out_docs
 
 
+def apply_pcr(doc, for_primer, rev_primer, circular=False,
+              uri_prefix=_DEFAULT_URI_PREFIX):
+    '''Applies restriction site cleavage to forward and reverse strands.'''
+    sbol_docs = []
+    seq = doc.sequences[0].nucleotides
+    starts = [m.start() for m in re.finditer(for_primer, seq)]
+    ends = sorted([len(seq) - m.start()
+                   for m in re.finditer(rev_primer,
+                                        seq_utils.get_rev_comp(seq))])
+
+    for start in starts:
+        for end in ends:
+            if start < end:
+                sbol_docs.append(_get_sbol(doc, seq[start:end], start, end,
+                                           uri_prefix))
+            elif circular:
+                sbol_docs.append(_get_sbol(doc, seq[start:] + seq[:end], end,
+                                           start, uri_prefix))
+
+    return sbol_docs
+
+
 def _clone_comp(doc, orig_comp):
     '''Clones a DNAComponent.'''
     for comp in doc.components:
@@ -129,9 +151,11 @@ def _apply_restrict_to_docs(docs, restrict, uri_prefix=_DEFAULT_URI_PREFIX):
         for forw in _apply_restrict_to_seq(parent_seq, restrict):
             for rev in _apply_restrict_to_seq(seq_utils.get_rev_comp(forw[0]),
                                               restrict):
+                rev_comp = seq_utils.get_rev_comp(rev[0])
                 out_docs.append(_get_sbol(doc,
-                                          seq_utils.get_rev_comp(rev[0]),
+                                          rev_comp,
                                           forw[1],
+                                          len(rev_comp),
                                           uri_prefix))
 
     return out_docs
@@ -168,12 +192,11 @@ def _add(sbol_doc1, sbol_doc2):
     return sbol_doc1
 
 
-def _get_sbol(parent_doc, seq, start, uri_prefix):
+def _get_sbol(parent_doc, seq, start, end, uri_prefix):
     '''Returns a sbol Document from the supplied subsequence from a parent sbol
     Document.'''
     parent_comp = parent_doc.components[0]
 
-    end = start + len(seq)
     frag_str = ' [' + str(start) + ':' + str(end) + ']'
 
     doc = Document()
@@ -184,6 +207,7 @@ def _get_sbol(parent_doc, seq, start, uri_prefix):
     comp.sequence = DNASequence(doc, _get_uri(uri_prefix))
     comp.sequence.nucleotides = seq.lower()
 
+    # TODO: This may not work for sub-sequences arriving from circular DNA:
     for annot in parent_doc.annotations:
         if annot.start >= start and annot.end <= end:
             clone_annot = _clone_annotation(doc, annot)
