@@ -10,6 +10,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=too-many-arguments
 import json
 import tempfile
+
 import sbol
 
 from synbiochem.utils import net_utils as net_utils, sbol_utils
