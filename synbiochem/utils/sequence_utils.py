@@ -7,6 +7,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
+from subprocess import call
 import collections
 import csv
 import itertools
@@ -20,6 +21,7 @@ import tempfile
 import urllib
 import urllib2
 
+from Bio.Blast import NCBIXML
 from Bio.Seq import Seq
 from Bio.SeqUtils.MeltingTemp import Tm_NN
 
@@ -413,6 +415,45 @@ def get_rev_comp(seq):
     '''Returns reverse complement of sequence.'''
     seq = Seq(seq)
     return str(seq.reverse_complement())
+
+
+def do_blast(id_seqs_subjects, id_seqs_queries, program='blastn',
+             dbtype='nucl', evalue=1.0):
+    '''Performs BLAST of query sequences against subject sequences.'''
+
+    db_filename = write_fasta(id_seqs_subjects)
+    query_filename = write_fasta(id_seqs_queries)
+    result_file = tempfile.NamedTemporaryFile(prefix='blast_result_',
+                                              suffix='.xml',
+                                              delete=False)
+    call(['makeblastdb',
+          '-in', db_filename,
+          '-out', db_filename,
+          '-dbtype', dbtype])
+
+    call([program,
+          '-query', query_filename,
+          '-db', db_filename,
+          '-out', result_file.name,
+          '-evalue', str(evalue),
+          '-outfmt', '5'])
+
+    return NCBIXML.parse(open(result_file.name))
+
+
+def write_fasta(id_seqs, filename=None):
+    '''Writes a fasta file.'''
+    if filename is None:
+        temp_file = tempfile.NamedTemporaryFile(prefix='fasta_', suffix='.txt',
+                                                delete=False)
+        filename = temp_file.name
+
+    with open(filename, 'w') as fle:
+        for id_seq in id_seqs:
+            fle.write('>' + id_seq[0] + '\n')
+            fle.write(id_seq[1] + '\n')
+
+    return filename
 
 
 def apply_restriction(seq, restrict):
