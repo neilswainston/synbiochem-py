@@ -42,6 +42,12 @@ class Test(unittest.TestCase):
                            'P46882':
                            {'Organism ID': '5061', 'Entry': 'P46882'}})
 
+    def test_find_orfs(self):
+        '''Tests find_orfs method.'''
+        results = seq_utils.find_orfs(
+            'agcgtgcgat', min_prot_len=1)
+        self.assertIn('ACD', [tokens[3] for tokens in results])
+
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

@@ -22,6 +22,7 @@ import urllib
 import urllib2
 
 from Bio.Blast import NCBIXML
+from Bio.Data import CodonTable
 from Bio.Seq import Seq
 from Bio.SeqUtils.MeltingTemp import Tm_NN
 
@@ -454,6 +455,38 @@ def write_fasta(id_seqs, filename=None):
             fle.write(id_seq[1] + '\n')
 
     return filename
+
+
+def find_orfs(seq, trans_table=CodonTable.unambiguous_dna_by_name["Standard"],
+              min_prot_len=128):
+    '''Finds ORFs in supplied nucleotide sequence.'''
+    result = []
+
+    seq = Seq(seq)
+    seq_len = len(seq)
+
+    for strand, nuc in [(+1, seq), (-1, seq.reverse_complement())]:
+        for frame in range(3):
+            trans = str(nuc[frame:].translate(trans_table))
+            trans_len = len(trans)
+            aa_start = 0
+            aa_end = 0
+
+            while aa_start < trans_len:
+                aa_end = trans.find("*", aa_start)
+                if aa_end == -1:
+                    aa_end = trans_len
+                if aa_end - aa_start >= min_prot_len:
+                    if strand == 1:
+                        start = frame + aa_start * 3
+                        end = min(seq_len, frame + aa_end * 3 + 3)
+                    else:
+                        start = seq_len - frame - aa_end * 3 - 3
+                        end = seq_len - frame - aa_start * 3
+                    result.append((start, end, strand, trans[aa_start:aa_end]))
+                aa_start = aa_end + 1
+    result.sort()
+    return result
 
 
 def apply_restriction(seq, restrict):
