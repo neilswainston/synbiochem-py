@@ -7,6 +7,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
+from operator import itemgetter
 from subprocess import call
 import collections
 import csv
@@ -465,7 +466,7 @@ def find_orfs(seq, trans_table=CodonTable.unambiguous_dna_by_name["Standard"],
     seq = Seq(seq)
     seq_len = len(seq)
 
-    for strand, nuc in [(+1, seq), (-1, seq.reverse_complement())]:
+    for strand, nuc in [('+', seq), ('-', seq.reverse_complement())]:
         for frame in range(3):
             trans = str(nuc[frame:].translate(trans_table))
             trans_len = len(trans)
@@ -477,16 +478,17 @@ def find_orfs(seq, trans_table=CodonTable.unambiguous_dna_by_name["Standard"],
                 if aa_end == -1:
                     aa_end = trans_len
                 if aa_end - aa_start >= min_prot_len:
-                    if strand == 1:
-                        start = frame + aa_start * 3
-                        end = min(seq_len, frame + aa_end * 3 + 3)
-                    else:
-                        start = seq_len - frame - aa_end * 3 - 3
-                        end = seq_len - frame - aa_start * 3
-                    result.append((start, end, strand, trans[aa_start:aa_end]))
+                    start = frame + aa_start * 3
+                    end = frame + aa_end * 3
+
+                    if strand == '-':
+                        start = seq_len - start
+                        end = seq_len - end
+
+                    result.append((start, end, strand, trans_len,
+                                   trans[aa_start:aa_end]))
                 aa_start = aa_end + 1
-    result.sort()
-    return result
+    return list(reversed(sorted(result, key=itemgetter(3, 2, 0))))
 
 
 def apply_restriction(seq, restrict):

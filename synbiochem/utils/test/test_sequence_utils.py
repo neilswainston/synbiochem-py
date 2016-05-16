@@ -46,7 +46,7 @@ class Test(unittest.TestCase):
         '''Tests find_orfs method.'''
         results = seq_utils.find_orfs(
             'agcgtgcgat', min_prot_len=1)
-        self.assertIn('ACD', [tokens[3] for tokens in results])
+        self.assertIn('ACD', [tokens[4] for tokens in results])
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']
