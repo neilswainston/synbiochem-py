@@ -225,6 +225,7 @@ class ICEClient(object):
         '''Updates an ICE entry in the database.'''
         ice_number = self.__get_ice_number(ice_id)
         url = self.__url + '/parts/' + str(ice_number)
+
         return _read_resp(net_utils.put(url, json.dumps(metadata),
                                         self.__headers))
 

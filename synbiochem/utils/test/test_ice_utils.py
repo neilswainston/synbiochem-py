@@ -88,10 +88,21 @@ class TestICEEntry(unittest.TestCase):
         ice_entry1.set_value('creator', 'God')
         self.assertEqual(ice_entry1.get_metadata()['type'], 'PLASMID')
         self.assertEqual(ice_entry1.get_metadata()['creator'], 'God')
-        ice_entry2 = ICEEntry(metadata={'type': 'PLASMID'})
-        ice_entry2.set_value('creator', 'God')
-        self.assertEqual(ice_entry2.get_metadata()['type'], 'PLASMID')
-        self.assertEqual(ice_entry2.get_metadata()['creator'], 'God')
+        self.__ice_client.set_ice_entry(ice_entry1)
+
+        ice_entry2 = self.__ice_client.get_ice_entry(
+            ice_entry1.get_ice_number())
+        ice_entry2.set_value('creator', 'Aitor Karanka')
+        self.__ice_client.set_ice_entry(ice_entry2)
+
+        ice_entry3 = self.__ice_client.get_ice_entry(
+            ice_entry1.get_ice_number())
+        self.assertEqual(ice_entry3.get_metadata()['creator'], 'Aitor Karanka')
+
+        ice_entry4 = ICEEntry(metadata={'type': 'PLASMID'})
+        ice_entry4.set_value('creator', 'God')
+        self.assertEqual(ice_entry4.get_metadata()['type'], 'PLASMID')
+        self.assertEqual(ice_entry4.get_metadata()['creator'], 'God')
 
     def test_set_values(self):
         '''Tests set_values method.'''
