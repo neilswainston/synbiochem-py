@@ -484,7 +484,7 @@ def translate(seq, trans_table=CodonTable.unambiguous_dna_by_name["Standard"],
                         start = seq_len - start
                         end = seq_len - end
 
-                    result.append((start, end, strand,
+                    result.append((start, end, strand, frame,
                                    len(trans[aa_start:aa_end]),
                                    trans[aa_start:aa_end]))
                 aa_start = aa_end + 1

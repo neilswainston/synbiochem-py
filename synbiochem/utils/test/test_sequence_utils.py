@@ -45,7 +45,7 @@ class Test(unittest.TestCase):
     def test_translate(self):
         '''Tests translate method.'''
         results = seq_utils.translate('agcgtgcgat', min_prot_len=1)
-        self.assertIn('ACD', [tokens[4] for tokens in results])
+        self.assertIn('ACD', [tokens[5] for tokens in results])
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']
