@@ -7,7 +7,6 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
-from operator import itemgetter
 from subprocess import call
 import collections
 import csv
@@ -458,9 +457,9 @@ def write_fasta(id_seqs, filename=None):
     return filename
 
 
-def find_orfs(seq, trans_table=CodonTable.unambiguous_dna_by_name["Standard"],
+def translate(seq, trans_table=CodonTable.unambiguous_dna_by_name["Standard"],
               min_prot_len=128):
-    '''Finds ORFs in supplied nucleotide sequence.'''
+    '''Translates supplied nucleotide sequence in all 6 reading frames.'''
     result = []
 
     seq = Seq(seq)
@@ -485,10 +484,11 @@ def find_orfs(seq, trans_table=CodonTable.unambiguous_dna_by_name["Standard"],
                         start = seq_len - start
                         end = seq_len - end
 
-                    result.append((start, end, strand, trans_len,
+                    result.append((start, end, strand,
+                                   len(trans[aa_start:aa_end]),
                                    trans[aa_start:aa_end]))
                 aa_start = aa_end + 1
-    return list(reversed(sorted(result, key=itemgetter(3, 2, 0))))
+    return result
 
 
 def apply_restriction(seq, restrict):

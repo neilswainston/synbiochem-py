@@ -42,10 +42,9 @@ class Test(unittest.TestCase):
                            'P46882':
                            {'Organism ID': '5061', 'Entry': 'P46882'}})
 
-    def test_find_orfs(self):
-        '''Tests find_orfs method.'''
-        results = seq_utils.find_orfs(
-            'agcgtgcgat', min_prot_len=1)
+    def test_translate(self):
+        '''Tests translate method.'''
+        results = seq_utils.translate('agcgtgcgat', min_prot_len=1)
         self.assertIn('ACD', [tokens[4] for tokens in results])
 
 if __name__ == "__main__":
