@@ -94,19 +94,26 @@ class ICEClient(object):
 
     def __init__(self, url, username, psswrd, id_prefix=_DEFAULT_ID_PREFIX):
         self.__url = url + ('' if url[-1] == '/' else '/') + 'rest'
+        self.__username = username
+        self.__psswrd = psswrd
+        self.__id_prefix = id_prefix
+
         self.__headers = {'Accept': 'application/json',
                           'Content-Type': 'application/json'}
 
+        self.__sid = self.reconnect()
+        self.__headers[_SESSION_KEY] = self.__sid
+
+    def reconnect(self):
+        '''Reconnects to ICE server.'''
         try:
             resp = self.__get_access_token(
-                '/accesstoken', username, psswrd)
+                '/accesstoken', self.__username, self.__psswrd)
         except net_utils.NetworkError:
             resp = self.__get_access_token(
-                '/accesstokens', username, psswrd)
+                '/accesstokens', self.__username, self.__psswrd)
 
-        self.__sid = resp['sessionId']
-        self.__headers[_SESSION_KEY] = self.__sid
-        self.__id_prefix = id_prefix
+        return resp['sessionId']
 
     def get_ice_entry(self, ice_id):
         '''Gets an ICEEntry object from the ICE database.'''
