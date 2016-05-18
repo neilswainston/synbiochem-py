@@ -340,6 +340,18 @@ def get_melting_temp(dna1, dna2=None, reag_concs=None):
                  saltcorr=7)
 
 
+def get_seq_by_melt_temp(seq, target_melt_temp, reagent_concs=None):
+    '''Returns a subsequence close to desired melting temperature.'''
+    for i in range(1, len(seq)):
+        subseq = seq[:(i + 1)]
+        melt_temp = get_melting_temp(subseq, None, reagent_concs)
+
+        if melt_temp > target_melt_temp:
+            return subseq, melt_temp
+
+    raise ValueError('Unable to get sequence of required melting temperature')
+
+
 def is_valid(dna_seq, max_repeat_nuc):
     '''Checks whether a DNA sequence is valid, in terms of a supplied maximum
     number of repeating nucleotides.'''
