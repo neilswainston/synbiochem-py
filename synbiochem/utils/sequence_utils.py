@@ -475,7 +475,6 @@ def translate(seq, trans_table=CodonTable.unambiguous_dna_by_name["Standard"],
     result = []
 
     seq = Seq(seq)
-    seq_len = len(seq)
 
     for strand, nuc in [('+', seq), ('-', seq.reverse_complement())]:
         for frame in range(3):
@@ -491,10 +490,6 @@ def translate(seq, trans_table=CodonTable.unambiguous_dna_by_name["Standard"],
                 if aa_end - aa_start >= min_prot_len:
                     start = frame + aa_start * 3
                     end = frame + aa_end * 3
-
-                    if strand == '-':
-                        start = seq_len - start
-                        end = seq_len - end
 
                     result.append((start, end, strand, frame,
                                    len(trans[aa_start:aa_end]),
