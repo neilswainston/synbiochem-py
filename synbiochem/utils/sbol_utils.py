@@ -153,12 +153,8 @@ def _apply_restrict_to_docs(docs, restrict, uri_prefix=_DEFAULT_URI_PREFIX):
                                               restrict):
                 rev_comp = seq_utils.get_rev_comp(rev[0])
 
-                if rev_comp == forw[0]:
-                    start = forw[1]
-                    end = start + len(rev_comp)
-                else:
-                    end = forw[1] + len(forw[0])
-                    start = end - len(rev_comp)
+                start = forw[1] + len(forw[0]) - rev[1] - len(rev[0])
+                end = start + len(rev_comp)
 
                 out_docs.append(_get_sbol(doc,
                                           rev_comp,

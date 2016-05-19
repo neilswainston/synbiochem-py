@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:RDF xmlns="http://sbols.org/v1#" xmlns:ns2="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <DnaComponent ns2:about="https://ice.synbiochem.co.uk:443/entry/dc#SBC000105">
+        <displayId>SBC000105</displayId>
+        <name>CHI</name>
+        <description>ORF</description>
+        <dnaSequence>
+            <DnaSequence ns2:about="https://ice.synbiochem.co.uk:443/entry/ds#c5f15c9ab44195ba62192a7d6106218af426e3dc">
+                <nucleotides>gaattcaaaagatctgagtcttgtaagtaccgccactactcactacgaggccccttactcgggatttcataaggagattaatattatgtcgtcatcaaacgcgtgcgcgagcccttcaccgtttccggccgttaccaaattgcacgtagattcagtgacgttcgttccgtctgtaaaatcccctgcgagcagcaacccgttatttctgggcggcgctggcgttcgcggtctggatattcagggtaaattcgtaatctttaccgttattggggtatatctggagggtaacgccgtccccagtttaagtgttaagtggaaaggcaaaaccaccgaagaactgaccgaaagcattccgttctttcgtgagatcgttacaggcgccttcgagaaattcattaaggttaccatgaagttgcctctgaccggccaacagtatagcgaaaaagtgactgaaaactgcgttgccatttggaaacagctgggattatatactgattgtgaggcgaaagcggtagagaaatttctggaaatcttcaaagaggaaaccttcccgccgggcagcagtattctgttcgccctcagcccgaccggatcgctgacggttgccttttctaaagatgatagtatccccgaaacgggcattgctgttatcgagaataaactcctggcggaagcagttctagaaagcattattggtaaaaatggtgtttctcctggaacccgtctgagtgttgctgaacggctgtcgcagctgatgatgaagaataaagacgaaaaagaagtgagcgatcacagcgtggaagaaaaattagcgaaagaaaattaacaaacaagaagtaacttatcggcagtcggattgtagactcggatccaaactcgag</nucleotides>
+            </DnaSequence>
+        </dnaSequence>
+        <annotation>
+            <SequenceAnnotation ns2:about="https://ice.synbiochem.co.uk:443/entry/sa#b507e5a3-5b35-4119-b748-74fc0b5eb4c7">
+                <bioStart>1</bioStart>
+                <bioEnd>881</bioEnd>
+                <strand>+</strand>
+                <subComponent>
+                    <DnaComponent ns2:about="https://ice.synbiochem.co.uk:443/entry/dc#9769e44a-35c5-4e29-9a7b-89ca741069c5">
+                        <ns2:type ns2:resource="http://purl.obolibrary.org/obo/SO_0000149"/>
+                        <displayId>9769e44a-35c5-4e29-9a7b-89ca741069c5</displayId>
+                        <name>unspecified</name>
+                    </DnaComponent>
+                </subComponent>
+            </SequenceAnnotation>
+        </annotation>
+        <annotation>
+            <SequenceAnnotation ns2:about="https://ice.synbiochem.co.uk:443/entry/sa#e4ac7579-2606-4382-91e2-cf2199363297">
+                <bioStart>86</bioStart>
+                <bioEnd>823</bioEnd>
+                <strand>+</strand>
+                <subComponent>
+                    <DnaComponent ns2:about="https://ice.synbiochem.co.uk:443/entry/dc#af56412a-4226-42ef-9f7a-998ea66a3322">
+                        <ns2:type ns2:resource="http://purl.obolibrary.org/obo/SO_0000316"/>
+                        <displayId>dc#af56412a-4226-42ef-9f7a-998ea66a3322</displayId>
+                        <name>AtCHI(co)</name>
+                    </DnaComponent>
+                </subComponent>
+            </SequenceAnnotation>
+        </annotation>
+    </DnaComponent>
+</ns2:RDF>
