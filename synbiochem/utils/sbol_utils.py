@@ -7,6 +7,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  pablocarbonell / neilswainston / alanwilliams
 '''
+# pylint: disable=too-many-arguments
 import re
 import uuid
 
@@ -19,6 +20,47 @@ import synbiochem.utils.sequence_utils as seq_utils
 SO_CDS = 'http://purl.obolibrary.org/obo/SO_0000316'
 SO_PROM = 'http://purl.obolibrary.org/obo/SO_0000167'
 _DEFAULT_URI_PREFIX = 'http://synbiochem.co.uk/'
+
+
+def create_doc(display_id, name=None, description=None, typ=None,
+               uri_prefix=_DEFAULT_URI_PREFIX):
+    '''Creates a new Document.'''
+    document = Document()
+    _add_component(document, display_id, name, description, typ, uri_prefix)
+    return document
+
+
+def set_sequence(document, seq, component=None,
+                 uri_prefix=_DEFAULT_URI_PREFIX):
+    '''Sets the DNASequence of a Document.'''
+    dna_seq = DNASequence(document, _get_uri(uri_prefix))
+    dna_seq.nucleotides = seq.lower()
+
+    if component is None:
+        component = document.components[0]
+
+    component.sequence = dna_seq
+
+
+def add_subcomponent(document, start, end, strand, display_id,
+                     name=None, typ=None, description=None,
+                     uri_prefix=_DEFAULT_URI_PREFIX):
+    '''Adds a subcomponent and annotation.'''
+    comp = _add_component(document, display_id, name, description, typ,
+                          uri_prefix)
+    # set_sequence(document, subseq, comp)
+
+    annot = SequenceAnnotation(document, _get_uri(uri_prefix))
+    annot.start = start
+    annot.end = end
+    annot.strand = strand
+    annot.subcomponent = comp
+    document.components[0].annotations += annot
+
+
+def get_name(sbol_doc):
+    '''Returns the name of an sbol Document.'''
+    return sbol_doc.components[0].name
 
 
 def get_seq(sbol_doc):
@@ -203,13 +245,11 @@ def _get_sbol(parent_doc, seq, start, end, uri_prefix):
 
     frag_str = ' [' + str(start) + ':' + str(end) + ']'
 
-    doc = Document()
-    comp = DNAComponent(doc, uri_prefix + str(uuid.uuid4()))
-    comp.display_id = parent_comp.display_id + frag_str
-    comp.name = parent_comp.name + frag_str
-    comp.description = parent_comp.description + frag_str
-    comp.sequence = DNASequence(doc, _get_uri(uri_prefix))
-    comp.sequence.nucleotides = seq.lower()
+    doc = create_doc(parent_comp.display_id + frag_str,
+                     parent_comp.name + frag_str,
+                     parent_comp.description + frag_str, uri_prefix)
+
+    set_sequence(doc, seq)
 
     # TODO: This may not work for sub-sequences arriving from circular DNA:
     for annot in parent_doc.annotations:
@@ -217,9 +257,27 @@ def _get_sbol(parent_doc, seq, start, end, uri_prefix):
             clone_annot = _clone_annotation(doc, annot)
             clone_annot.start -= start
             clone_annot.end -= start
-            comp.annotations += clone_annot
+            doc.components[0].annotations += clone_annot
 
     return doc
+
+
+def _add_component(document, display_id, name=None, description=None,
+                   typ=None, uri_prefix=_DEFAULT_URI_PREFIX):
+    '''Adds a DNAComponent to a Document.'''
+    comp = DNAComponent(document, _get_uri(uri_prefix))
+    comp.display_id = display_id
+
+    if name is not None:
+        comp.name = name
+
+    if description is not None:
+        comp.description = description
+
+    if typ is not None:
+        comp.type = typ
+
+    return comp
 
 
 def _get_uri(uri_prefix):
