@@ -11,9 +11,8 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 import json
 import tempfile
 
-import sbol
-
 from synbiochem.utils import net_utils as net_utils, sbol_utils
+import sbol
 
 
 _DEFAULT_ID_PREFIX = 'SBC'
@@ -172,6 +171,17 @@ class ICEClient(object):
                         entries.append(entry)
 
         return entries
+
+    def add_permission(self, ice_id, group_number, read=True):
+        '''Adds user permissions to a given ICE entry.'''
+        url = self.__url + '/parts/' + self.__get_ice_number(ice_id) + \
+            '/permissions'
+        data = {'type': 'READ_ENTRY' if read else 'WRITE_ENTRY',
+                'article': 'GROUP',
+                'articleId': group_number}
+
+        return _read_resp(net_utils.post(url, json.dumps(data),
+                                         self.__headers))
 
     def __get_access_token(self, service, username, psswrd):
         '''Gets access token response.'''
