@@ -38,6 +38,11 @@ class ICEEntry(object):
         '''Gets the ICE number.'''
         return self.__metadata['id'] if 'id' in self.__metadata else None
 
+    def get_ice_id(self):
+        '''Gets the ICE id.'''
+        ice_number = self.get_ice_number()
+        return get_ice_id(ice_number) if ice_number is not None else None
+
     def get_record_id(self):
         '''Gets the ICE record id.'''
         return self.__metadata['recordId'] if 'recordId' in self.__metadata \
@@ -92,7 +97,7 @@ class ICEClient(object):
     '''Class representing an ICE client.'''
 
     def __init__(self, url, username, psswrd, id_prefix=_DEFAULT_ID_PREFIX):
-        self.__url = url + ('' if url[-1] == '/' else '/') + 'rest'
+        self.__url = url + ('' if url[-1] == '/' else '/')
         self.__username = username
         self.__psswrd = psswrd
         self.__id_prefix = id_prefix
@@ -122,6 +127,11 @@ class ICEClient(object):
 
         return ICEEntry(sbol_doc, metadata=metadata)
 
+    def get_sbol_doc(self, ice_id):
+        '''Gets an SBOL document from the ICE database.'''
+        ice_entry = self.get_ice_entry(ice_id)
+        return ice_entry.get_sbol_doc()
+
     def set_ice_entry(self, ice_entry):
         '''Saves an ICEEntry object in the ICE database.'''
         if ice_entry.get_ice_number() is None:
@@ -150,13 +160,20 @@ class ICEClient(object):
         metadata = self.__get_meta_data(self.__get_ice_id(response['id']))
         ice_entry.set_values(metadata)
 
+    # TODO: ensure rebuild_blast works.
+    def rebuild_blast(self):
+        '''Rebuilds the BLAST database.'''
+        return _read_resp(net_utils.put(self.__url + '/indexes/blast',
+                                        None, self.__headers))
+
     def do_blast(self, seq):
         '''Performs BLAST search against database.'''
         data = {'blastQuery': {'blastProgram': 'BLAST_N',
                                'sequence': seq.lower()}}
-        return _read_resp(net_utils.post(self.__url + '/search',
+        return _read_resp(net_utils.post(self.__url + '/rest/search',
                                          json.dumps(data), self.__headers))
 
+    # TODO: ensure get_ice_entries_by_seq works.
     def get_ice_entries_by_seq(self, seq):
         '''Returns entries matching supplied sequence.'''
         entries = []
@@ -185,7 +202,7 @@ class ICEClient(object):
 
     def __get_access_token(self, service, username, psswrd):
         '''Gets access token response.'''
-        return _read_resp(net_utils.post(self.__url + service,
+        return _read_resp(net_utils.post(self.__url + '/rest' + service,
                                          json.dumps({'email': username,
                                                      'password': psswrd}),
                                          self.__headers))
@@ -193,7 +210,7 @@ class ICEClient(object):
     def __upload_seq_file(self, record_id, typ, filename):
         '''Uploads a sequence file (not necessarily SBOL).'''
         return _read_resp(net_utils.post_file(self.__url +
-                                              '/file/sequence',
+                                              '/rest/file/sequence',
                                               {'file': open(filename, 'r'),
                                                'entryType': typ,
                                                'entryRecordId': record_id},
@@ -201,19 +218,19 @@ class ICEClient(object):
 
     def __delete_seq(self, ice_number):
         '''Deletes the sequence associated with supplied record id.'''
-        net_utils.delete(self.__url + '/parts/' + str(ice_number) +
+        net_utils.delete(self.__url + '/rest/parts/' + str(ice_number) +
                          '/sequence',
                          headers={_SESSION_KEY: self.__sid})
 
     def __get_meta_data(self, ice_id):
         '''Returns an ICE entry metadata.'''
         return _read_resp(net_utils.get(
-            self.__url + '/parts/' + self.__get_ice_number(ice_id),
+            self.__url + '/rest/parts/' + self.__get_ice_number(ice_id),
             self.__headers))
 
     def __get_sbol_doc(self, ice_id):
         '''Gets the sequence ICE entry.'''
-        url = self.__url + '/file/' + self.__get_ice_number(ice_id) + \
+        url = self.__url + '/rest/file/' + self.__get_ice_number(ice_id) + \
             '/sequence/sbol?sid=' + self.__sid
         temp_file = tempfile.NamedTemporaryFile(delete=False)
 
@@ -226,7 +243,7 @@ class ICEClient(object):
 
     def __create_entry(self, ice_entry):
         '''Creates a new ICE entry in the database.'''
-        url = self.__url + '/parts'
+        url = self.__url + '/rest/parts'
         return _read_resp(
             net_utils.post(url, json.dumps(ice_entry.get_metadata()),
                            self.__headers))
@@ -234,7 +251,7 @@ class ICEClient(object):
     def __update_entry(self, ice_id, metadata):
         '''Updates an ICE entry in the database.'''
         ice_number = self.__get_ice_number(ice_id)
-        url = self.__url + '/parts/' + str(ice_number)
+        url = self.__url + '/rest/parts/' + str(ice_number)
 
         return _read_resp(net_utils.put(url, json.dumps(metadata),
                                         self.__headers))
@@ -253,7 +270,7 @@ class ICEClient(object):
 
     def __get_ice_id(self, ice_number):
         '''Maps ICE id to ICE number, i.e. from 123 to SBC000123.'''
-        return self.__id_prefix + format(ice_number, '06')
+        return get_ice_id(ice_number, self.__id_prefix)
 
 
 def get_ice_number(ice_identifier, id_prefix=_DEFAULT_ID_PREFIX):
@@ -267,6 +284,11 @@ def get_ice_number(ice_identifier, id_prefix=_DEFAULT_ID_PREFIX):
         ice_number = ice_identifier
 
     return str(ice_number)
+
+
+def get_ice_id(ice_number, id_prefix=_DEFAULT_ID_PREFIX):
+    '''Maps ICE id to ICE number, i.e. from 123 to SBC000123.'''
+    return id_prefix + format(ice_number, '06')
 
 
 def _read_resp(response):
