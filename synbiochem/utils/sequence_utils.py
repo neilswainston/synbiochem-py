@@ -81,6 +81,8 @@ TRIS = 'TRIS'
 MG = 'MG'
 DNTP = 'DNTP'
 
+START_CODON_PATT = '[ACGT]TG'
+
 
 def get_aa_props(all_sequences, scale=(0.1, 0.9)):
     '''Returns input data for machine-learning problems.'''
