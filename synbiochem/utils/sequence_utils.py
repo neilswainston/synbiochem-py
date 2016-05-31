@@ -27,6 +27,8 @@ from Bio.Seq import Seq
 from Bio.SeqUtils.MeltingTemp import Tm_NN
 
 
+NUCLEOTIDES = ['A', 'C', 'G', 'T']
+
 AA_CODES = {'Ala': 'A',
             'Cys': 'C',
             'Asp': 'D',

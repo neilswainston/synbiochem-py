@@ -11,8 +11,9 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 import json
 import tempfile
 
-from synbiochem.utils import net_utils as net_utils, sbol_utils
 import sbol
+
+from synbiochem.utils import net_utils as net_utils, sbol_utils
 
 
 _DEFAULT_ID_PREFIX = 'SBC'
