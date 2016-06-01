@@ -30,7 +30,8 @@ _K = 2500.0
 class RbsCalculator(object):
     '''Class for calculating RBS.'''
 
-    def __init__(self, temp=37.0):
+    def __init__(self, r_rna, temp=37.0):
+        self.__r_rna = r_rna.upper()
         self.__runner = NuPackRunner(temp)
         self.__optimal_spacing = 5
         self.__cutoff = 35
@@ -39,10 +40,9 @@ class RbsCalculator(object):
                                        'TTG': -0.0435,
                                        'CTG': -0.03406}
 
-    def calc_dgs(self, r_rna, m_rna, limit=float('inf')):
-        ''''Calculates each dg term in the free energy model and sums them
-        to create dg_total.'''
-        r_rna = r_rna.upper()
+    def calc_dgs(self, m_rna, limit=float('inf')):
+        ''''Calculates each dg term in the free energy model and sums them to
+        create dg_total.'''
         m_rna = m_rna.upper()
 
         start_positions = []
@@ -53,35 +53,7 @@ class RbsCalculator(object):
                                  overlapped=True):
 
             start_pos = match.start()
-            codon = match.group()
-
-            # Set dangles based on length between 5' end of m_rna and start
-            # codon:
-            if start_pos > MAX_RBS_LENGTH:
-                dangles = 'none'
-            else:
-                dangles = 'all'
-
-            # Start codon energy:
-            dg_start = self.__start_codon_energies[codon]
-
-            # Energy of m_rna folding:
-            [dg_m_rna, m_rna_subseq, bp_x, bp_y] = \
-                self.__calc_dg_m_rna(m_rna, start_pos, dangles)
-
-            # Energy of m_rna:r_rna hybridization and folding:
-            [dg_m_rna_r_rna, m_rna_subseq, bp_x, bp_y, energy_before] = \
-                self.__calc_dg_m_rna_r_rna(m_rna, r_rna, start_pos, dangles)
-
-            # Standby site correction:
-            dg_standby = self.__calc_dg_standby_site(m_rna_subseq, r_rna, bp_x,
-                                                     bp_y, energy_before,
-                                                     dangles)
-
-            # Total energy is m_rna:r_rna + start - r_rna - m_rna -
-            # standby_site:
-            d_g = dg_m_rna_r_rna + dg_start - dg_m_rna - dg_standby
-
+            d_g = self.__get_dg(m_rna, start_pos)
             start_positions.append(start_pos)
             dgs.append(d_g)
 
@@ -110,10 +82,9 @@ class RbsCalculator(object):
 
         return float(largest_range_helix) / float(len(sub_m_rna))
 
-    def get_initial_rbs(self, r_rna, cds, dg_target_rel, dangles='all'):
+    def get_initial_rbs(self, cds, dg_target_rel, dangles='all'):
         '''Generates random initial condition for designing a synthetic rbs
         sequence.'''
-        r_rna = r_rna.upper()
         cds = cds.upper()
 
         dg_range_high = 25.0
@@ -159,7 +130,7 @@ class RbsCalculator(object):
 
         d_g = dg_range_high + 1
 
-        shine_delgano = Seq(r_rna).reverse_complement()
+        shine_delgano = Seq(self.__r_rna).reverse_complement()
 
         while d_g > dg_range_high:
             while True:
@@ -176,7 +147,7 @@ class RbsCalculator(object):
 
                 rbs = self.__lower_kinetic_score(rbs, rbs + cds, dangles)
 
-                _, d_gs = self.calc_dgs(r_rna, rbs + cds, 1)
+                _, d_gs = self.calc_dgs(rbs + cds, 1)
 
                 d_g = d_gs[0]
 
@@ -185,6 +156,37 @@ class RbsCalculator(object):
                     break
 
         return rbs
+
+    def __get_dg(self, m_rna, start_pos):
+        '''Gets the dG, either from cache or through calculation.'''
+        return self.__calc_dg(m_rna, start_pos)
+
+    def __calc_dg(self, m_rna, start_pos):
+        '''Calculates dG.'''
+        # Set dangles based on length between 5' end of m_rna and start codon:
+        if start_pos > MAX_RBS_LENGTH:
+            dangles = 'none'
+        else:
+            dangles = 'all'
+
+        # Start codon energy:
+        dg_start = self.__start_codon_energies[m_rna[start_pos:start_pos + 3]]
+
+        # Energy of m_rna folding:
+        [dg_m_rna, _, _] = \
+            self.__calc_dg_m_rna(m_rna, start_pos, dangles)
+
+        # Energy of m_rna:r_rna hybridization and folding:
+        [dg_m_rna_r_rna, m_rna_subseq, bp_x, bp_y, energy_before] = \
+            self.__calc_dg_m_rna_r_rna(m_rna, start_pos, dangles)
+
+        # Standby site correction:
+        dg_standby = self.__calc_dg_standby_site(m_rna_subseq, bp_x,
+                                                 bp_y, energy_before,
+                                                 dangles)
+
+        # Total energy is m_rna:r_rna + start - r_rna - m_rna - standby_site:
+        return dg_m_rna_r_rna + dg_start - dg_m_rna - dg_standby
 
     def __calc_dg_m_rna(self, m_rna, start_pos, dangles='all'):
         '''Calculates the dg_m_rna given the m_rna sequence.'''
@@ -196,9 +198,9 @@ class RbsCalculator(object):
 
         energies, bp_xs, bp_ys = self.__runner.mfe([m_rna_subseq],
                                                    dangles=dangles)
-        return energies[0], m_rna_subseq, bp_xs[0], bp_ys[0]
+        return energies[0], bp_xs[0], bp_ys[0]
 
-    def __calc_dg_m_rna_r_rna(self, m_rna, r_rna, start_pos, dangles):
+    def __calc_dg_m_rna_r_rna(self, m_rna, start_pos, dangles):
         '''Calculates the dg_m_rna_r_rna from the m_rna and r_rna sequence.
         Considers all feasible 16S r_rna binding sites and includes the effects
         of non-optimal spacing.'''
@@ -231,7 +233,8 @@ class RbsCalculator(object):
 
         # print 'After exception'
 
-        energies, bp_xs, bp_ys = self.__runner.subopt([m_rna_subseq, r_rna],
+        energies, bp_xs, bp_ys = self.__runner.subopt([m_rna_subseq,
+                                                       self.__r_rna],
                                                       energy_cutoff,
                                                       dangles=dangles)
 
@@ -247,9 +250,9 @@ class RbsCalculator(object):
         for (bp_x, bp_y) in zip(bp_xs,
                                 bp_ys):
             aligned_spacing.append(
-                _calc_aligned_spacing(m_rna_subseq, r_rna,
-                                      start_pos_in_subsequence,
-                                      bp_x, bp_y))
+                self.__calc_aligned_spacing(m_rna_subseq,
+                                            start_pos_in_subsequence,
+                                            bp_x, bp_y))
 
         dg_spacing_list = []
         dg_m_rna_r_rna = []
@@ -363,8 +366,9 @@ class RbsCalculator(object):
 
         m_rna_subseq = m_rna[begin:m_rna_len]
 
-        total_energy = self.__runner.energy([m_rna_subseq, r_rna], total_bp_x,
-                                            total_bp_y, dangles=dangles)
+        total_energy = self.__runner.energy([m_rna_subseq, self.__r_rna],
+                                            total_bp_x, total_bp_y,
+                                            dangles=dangles)
 
         total_energy_withspacing = total_energy + dg_spacing_final
 
@@ -384,7 +388,7 @@ class RbsCalculator(object):
 
         return dg_spacing_penalty
 
-    def __calc_dg_standby_site(self, m_rna, r_rna, bp_x, bp_y, energy_before,
+    def __calc_dg_standby_site(self, m_rna, bp_x, bp_y, energy_before,
                                dangles):
         '''Calculates the dg of standby given the structure of the m_rna:r_rna
         complex.'''
@@ -439,7 +443,7 @@ class RbsCalculator(object):
             bp_y_after.append(nt_y)
 
         # Calculate its energy
-        energy_after = self.__runner.energy([m_rna, r_rna],
+        energy_after = self.__runner.energy([m_rna, self.__r_rna],
                                             bp_x_after, bp_y_after,
                                             dangles=dangles)
 
@@ -497,7 +501,7 @@ class RbsCalculator(object):
         min_helical_loop = 4
         max_helical_loop = 12
 
-        [_, _, bp_x, bp_y] = self.__calc_dg_m_rna(m_rna, len(rbs), dangles)
+        [_, bp_x, bp_y] = self.__calc_dg_m_rna(m_rna, len(rbs), dangles)
 
         (helical_loop_list, _, helical_start_ends, _) = \
             _calc_longest_loop_bulge(m_rna, bp_x, bp_y, rbs)
@@ -548,7 +552,7 @@ class RbsCalculator(object):
             # Alter RBS to reduce kinetic score
             # Create a sorted list of bp'd nucleotides with the ones with the
             # highest kinetic score at the top
-            [_, _, bp_x, bp_y] = \
+            [_, bp_x, bp_y] = \
                 self.__calc_dg_m_rna(m_rna, len(rbs), dangles)
 
             ks_list = []
@@ -593,6 +597,30 @@ class RbsCalculator(object):
 
         return rbs
 
+    def __calc_aligned_spacing(self, m_rna, start_pos, bp_x, bp_y):
+        '''Calculates the aligned spacing between the 16S r_rna binding site and
+        the start codon.'''
+
+        # r_rna is the concatenated at the end of the sequence in 5' to 3'
+        # direction first: identify the farthest 3' nt in the r_rna that binds
+        # to the mRNA and return its mRNA base pairer
+        seq_len = len(m_rna) + len(self.__r_rna)
+
+        for r_rna_nt in range(seq_len, seq_len - len(self.__r_rna), -1):
+            if r_rna_nt in bp_y:
+                r_rna_pos = bp_y.index(r_rna_nt)
+                if bp_x[r_rna_pos] < start_pos:
+                    farthest_3_prime_r_rna = r_rna_nt - len(m_rna)
+                    m_rna_nt = bp_x[r_rna_pos]
+
+                    # start_pos is counting starting from 0 (python)
+                    distance_to_start = start_pos - m_rna_nt + 1
+                    return distance_to_start - farthest_3_prime_r_rna
+                else:
+                    break
+
+        return float('inf')
+
 
 def get_dg(tir):
     '''Gets dg from translation initiation rate.'''
@@ -602,31 +630,6 @@ def get_dg(tir):
 def get_tir(d_g):
     '''Gets translation initiation rate from dg.'''
     return _K * math.exp(-d_g / _RT_EFF)
-
-
-def _calc_aligned_spacing(m_rna, r_rna, start_pos, bp_x, bp_y):
-    '''Calculates the aligned spacing between the 16S r_rna binding site and
-    the start codon.'''
-
-    # r_rna is the concatenated at the end of the sequence in 5' to 3'
-    # direction first: identify the farthest 3' nt in the r_rna that binds
-    # to the mRNA and return its mRNA base pairer
-    seq_len = len(m_rna) + len(r_rna)
-
-    for r_rna_nt in range(seq_len, seq_len - len(r_rna), -1):
-        if r_rna_nt in bp_y:
-            r_rna_pos = bp_y.index(r_rna_nt)
-            if bp_x[r_rna_pos] < start_pos:
-                farthest_3_prime_r_rna = r_rna_nt - len(m_rna)
-                m_rna_nt = bp_x[r_rna_pos]
-
-                # start_pos is counting starting from 0 (python)
-                distance_to_start = start_pos - m_rna_nt + 1
-                return distance_to_start - farthest_3_prime_r_rna
-            else:
-                break
-
-    return float('inf')
 
 
 def _calc_longest_loop_bulge(m_rna, bp_x, bp_y, rbs=None):

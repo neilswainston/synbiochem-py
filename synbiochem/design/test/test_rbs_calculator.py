@@ -18,20 +18,25 @@ class TestRbsCalculator(unittest.TestCase):
 
     def test_calc_kinetic_score(self):
         '''Tests calc_kinetic_score method.'''
-        calc = RbsCalculator()
+        r_rna = 'acctcctta'
+        calc = RbsCalculator(r_rna)
+
         m_rna = 'TTCTAGAGGGGGGATCTCCCCCCAAAAAATAAGAGGTACACATGACTAAAACTTTCA' + \
             'AAGGCTCAGTATTCCCACTGAG'
+
         start_pos = 41
         self.assertAlmostEqual(calc.calc_kinetic_score(m_rna, start_pos),
                                0.628571428571)
 
     def test_get_calc_dgs(self):
         '''Tests calc_dgs method.'''
-        calc = RbsCalculator()
+        r_rna = 'acctcctta'
+        calc = RbsCalculator(r_rna)
+
         m_rna = 'TTCTAGAGGGGGGATCTCCCCCCAAAAAATAAGAGGTACACATGACTAAAACTTTCA' + \
             'AAGGCTCAGTATTCCCACTGAG'
-        r_rna = 'acctcctta'
-        dgs = calc.calc_dgs(r_rna, m_rna)
+
+        dgs = calc.calc_dgs(m_rna)
         self.assertEqual(dgs[0], [41, 74])
         self.assertAlmostEqual(dgs[1][0], -8.070025836938619)
         self.assertAlmostEqual(dgs[1][1], 3.312588580920539)
