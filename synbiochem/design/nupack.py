@@ -8,9 +8,8 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 @author:  neilswainston
 '''
 # pylint: disable=too-many-arguments
-import popen2
+import subprocess
 import tempfile
-import time
 
 
 class NuPackRunner(object):
@@ -52,25 +51,21 @@ class NuPackRunner(object):
         filename = _write_input(sequences, energy_gap=energy_gap, bp_x=bp_x,
                                 bp_y=bp_y)
 
-        args = ' -T ' + str(self.__temp) + \
-            ' -multi -material rna1999 -dangles ' + dangles + ' '
-
-        output = popen2.Popen3(cmd + args + filename)
-
-        while output.poll() < 0:
-            output.wait()
-            time.sleep(0.001)
+        output = subprocess.check_output([cmd,
+                                          '-T', str(self.__temp),
+                                          '-multi',
+                                          '-material', 'rna1999',
+                                          '-dangles', dangles,
+                                          filename])
 
         try:
             with open(filename + '.' + cmd) as out_file:
                 return _read_output(out_file)
         except IOError:
             # Skip the comments of the text file
-            line = output.fromchild.readline()
-            while line[0] == '%':
-                line = output.fromchild.readline()
-
-            return float(line)
+            for line in output.splitlines():
+                if line[0] != '%':
+                    return float(line)
 
 
 def _write_input(sequences, energy_gap=None, bp_x=None, bp_y=None):
