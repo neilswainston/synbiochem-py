@@ -35,10 +35,7 @@ class RbsCalculator(object):
         self.__runner = NuPackRunner(temp)
         self.__optimal_spacing = 5
         self.__cutoff = 35
-        self.__start_codon_energies = {'ATG': -1.194,
-                                       'GTG': -0.0748,
-                                       'TTG': -0.0435,
-                                       'CTG': -0.03406}
+        self.__dg_cache = {}
 
     def calc_dgs(self, m_rna, limit=float('inf')):
         ''''Calculates each dg term in the free energy model and sums them to
@@ -145,7 +142,7 @@ class RbsCalculator(object):
 
                 rbs = self.__constrain_helical_loop(rbs, rbs + cds, dangles)
 
-                rbs = self.__lower_kinetic_score(rbs, rbs + cds, dangles)
+                rbs = self.__lower_kinetic_score(rbs, cds, dangles)
 
                 _, d_gs = self.calc_dgs(rbs + cds, 1)
 
@@ -159,7 +156,11 @@ class RbsCalculator(object):
 
     def __get_dg(self, m_rna, start_pos):
         '''Gets the dG, either from cache or through calculation.'''
-        return self.__calc_dg(m_rna, start_pos)
+        if (m_rna, start_pos) not in self.__dg_cache:
+            self.__dg_cache[(m_rna, start_pos)] = \
+                self.__calc_dg(m_rna, start_pos)
+
+        return self.__dg_cache[(m_rna, start_pos)]
 
     def __calc_dg(self, m_rna, start_pos):
         '''Calculates dG.'''
@@ -170,7 +171,9 @@ class RbsCalculator(object):
             dangles = 'all'
 
         # Start codon energy:
-        dg_start = self.__start_codon_energies[m_rna[start_pos:start_pos + 3]]
+        start_codon_energies = {'ATG': -1.194, 'GTG': -0.0748, 'TTG': -0.0435,
+                                'CTG': -0.03406}
+        dg_start = start_codon_energies[m_rna[start_pos:start_pos + 3]]
 
         # Energy of m_rna folding:
         [dg_m_rna, _, _] = \
@@ -537,13 +540,14 @@ class RbsCalculator(object):
 
         return rbs
 
-    def __lower_kinetic_score(self, rbs, m_rna, dangles):
+    def __lower_kinetic_score(self, rbs, cds, dangles):
         ''''Removes long-range base paired nucleotides from an m_rna sequence
         (pre-seq,CDS,RBS group). Used when generating initial conditions for
         synthetic RBS sequences.'''
         max_kinetic_score = 0.5
 
         while True:
+            m_rna = rbs + cds
             kinetic_score = self.calc_kinetic_score(m_rna, len(rbs), dangles)
 
             if kinetic_score < max_kinetic_score:
