@@ -41,6 +41,11 @@ class TestRbsCalculator(unittest.TestCase):
         self.assertAlmostEqual(dgs[1][0], -8.070025836938619)
         self.assertAlmostEqual(dgs[1][1], 3.312588580920539)
 
+        dgs = calc.calc_dgs(m_rna)
+        self.assertEqual(dgs[0], [41, 74])
+        self.assertAlmostEqual(dgs[1][0], -8.070025836938619)
+        self.assertAlmostEqual(dgs[1][1], 3.312588580920539)
+
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']

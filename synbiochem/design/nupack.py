@@ -22,17 +22,29 @@ class NuPackRunner(object):
 
     def mfe(self, sequences, dangles='some'):
         '''Runs mfe.'''
-        return self.__run('mfe', sequences, dangles)
+        return self.__get('mfe', sequences, dangles)
 
     def subopt(self, sequences, energy_gap, dangles='some'):
         '''Runs subopt.'''
-        return self.__run(
+        return self.__get(
             'subopt', sequences, dangles, energy_gap=energy_gap)
 
     def energy(self, sequences, bp_x, bp_y, dangles='some'):
         '''Runs energy.'''
-        return self.__run('energy', sequences, dangles, bp_x=bp_x,
+        return self.__get('energy', sequences, dangles, bp_x=bp_x,
                           bp_y=bp_y)
+
+    def __get(self, cmd, sequences, dangles, energy_gap=None, bp_x=None,
+              bp_y=None):
+        '''Gets the NuPACK result (which may be cached).'''
+        key = ';'.join([cmd, str(sequences), dangles, str(energy_gap),
+                        str(bp_x), str(bp_y)])
+
+        if key not in self.__cache:
+            self.__cache[key] = self.__run(cmd, sequences, dangles, energy_gap,
+                                           bp_x, bp_y)
+
+        return self.__cache[key]
 
     def __run(self, cmd, sequences, dangles, energy_gap=None, bp_x=None,
               bp_y=None):
