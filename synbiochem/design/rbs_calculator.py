@@ -35,7 +35,6 @@ class RbsCalculator(object):
         self.__runner = NuPackRunner(temp)
         self.__optimal_spacing = 5
         self.__cutoff = 35
-        self.__dg_cache = {}
 
     def calc_dgs(self, m_rna, limit=float('inf')):
         ''''Calculates each dg term in the free energy model and sums them to
@@ -50,7 +49,7 @@ class RbsCalculator(object):
                                  overlapped=True):
 
             start_pos = match.start()
-            d_g = self.__get_dg(m_rna, start_pos)
+            d_g = self.__calc_dg(m_rna, start_pos)
             start_positions.append(start_pos)
             dgs.append(d_g)
 
@@ -153,14 +152,6 @@ class RbsCalculator(object):
                     break
 
         return rbs
-
-    def __get_dg(self, m_rna, start_pos):
-        '''Gets the dG, either from cache or through calculation.'''
-        if (m_rna, start_pos) not in self.__dg_cache:
-            self.__dg_cache[(m_rna, start_pos)] = \
-                self.__calc_dg(m_rna, start_pos)
-
-        return self.__dg_cache[(m_rna, start_pos)]
 
     def __calc_dg(self, m_rna, start_pos):
         '''Calculates dG.'''
