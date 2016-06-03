@@ -11,7 +11,6 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=too-many-branches
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-statements
-from operator import itemgetter
 import math
 import random
 
@@ -78,7 +77,7 @@ class RbsCalculator(object):
 
         return float(largest_range_helix) / float(len(sub_m_rna))
 
-    def get_initial_rbs(self, cds, dg_target_rel, dangles='all'):
+    def get_initial_rbs(self, cds, dg_target_rel):
         '''Generates random initial condition for designing a synthetic rbs
         sequence.'''
         cds = cds.upper()
@@ -124,34 +123,12 @@ class RbsCalculator(object):
             core_length = 9
             max_nonoptimal_spacing = 2
 
-        d_g = dg_range_high + 1
-
         shine_delgano = Seq(self.__r_rna).reverse_complement()
 
-        while d_g > dg_range_high:
-            while True:
-                rbs = self.__get_random_rbs(shine_delgano,
-                                            prob_shine_delgano,
-                                            core_length,
-                                            max_nonoptimal_spacing)
-
-                if seq_utils.count_pattern(rbs,
-                                           seq_utils.START_CODON_PATT) > 0:
-                    continue
-
-                rbs = self.__constrain_helical_loop(rbs, rbs + cds, dangles)
-
-                rbs = self.__lower_kinetic_score(rbs, cds, dangles)
-
-                _, d_gs = self.calc_dgs(rbs + cds, 1)
-
-                d_g = d_gs[0]
-
-                if seq_utils.count_pattern(rbs,
-                                           seq_utils.START_CODON_PATT) == 0:
-                    break
-
-        return rbs
+        return self.__get_random_rbs(shine_delgano,
+                                     prob_shine_delgano,
+                                     core_length,
+                                     max_nonoptimal_spacing)
 
     def __calc_dg(self, m_rna, start_pos):
         '''Calculates dG.'''
@@ -269,9 +246,9 @@ class RbsCalculator(object):
         # Check: Is the dg spacing large compared to the energy gap? If so,
         # this means the list of suboptimal 16S r_rna binding sites generated
         # by subopt is too short.
-        if dg_spacing_final > energy_cutoff:
-            print 'Warning: The spacing penalty is greater than the ' + \
-                'energy gap. dg (spacing) = ', dg_spacing_final
+        # if dg_spacing_final > energy_cutoff:
+        # print 'Warning: The spacing penalty is greater than the ' + \
+        #    'energy gap. dg (spacing) = ', dg_spacing_final
 
         # 4. Identify the 5' and 3' ends of the identified 16S r_rna binding
         # site. Create a base pair list.
@@ -488,109 +465,6 @@ class RbsCalculator(object):
             rbs = rbs[len(rbs) - MAX_RBS_LENGTH:len(rbs) + 1]
 
         return ''.join(rbs)
-
-    def __constrain_helical_loop(self, rbs, m_rna, dangles):
-        '''Alters RBS seq so that max/min helical loop constraints are
-        valid.'''
-        min_helical_loop = 4
-        max_helical_loop = 12
-
-        [_, bp_x, bp_y] = self.__calc_dg_m_rna(m_rna, len(rbs), dangles)
-
-        (helical_loop_list, _, helical_start_ends, _) = \
-            _calc_longest_loop_bulge(m_rna, bp_x, bp_y, rbs)
-
-        # Insert or delete nucleotides to increase/decrease loop length
-        for (loop_length, start_end) in zip(helical_loop_list,
-                                            helical_start_ends):
-
-            if loop_length > max_helical_loop:
-                # Delete random nucleotide in loop.
-
-                # Identify what part of the loop is in the RBS
-                rbs_range = set(range(1, len(rbs) + 1))
-                loop_range = set(range(start_end[0] + 1, start_end[1]))
-                change_range = list(rbs_range & loop_range)  # Intersection
-
-                if len(change_range) > 0:
-                    pos = random.choice(change_range)
-                    # Delete nucleotide at position pos
-                    rbs = rbs[0:pos] + rbs[pos + 1:len(rbs) + 1]
-
-            elif loop_length < min_helical_loop:
-                # Choose random position in loop and insert a nucleotide before
-                # it. Identify what part of the loop is in the RBS.
-                rbs_range = set(range(1, len(rbs) + 1))
-                loop_range = set(range(start_end[0] + 1, start_end[1]))
-                change_range = list(rbs_range & loop_range)  # Intersection
-
-                if len(change_range) > 0:
-                    pos = random.choice(change_range)
-                    letter = random.choice(['A', 'T', 'C', 'G'])
-                    rbs = rbs[0:pos] + letter + rbs[pos + 1:len(rbs) + 1]
-
-        return rbs
-
-    def __lower_kinetic_score(self, rbs, cds, dangles):
-        ''''Removes long-range base paired nucleotides from an m_rna sequence
-        (pre-seq,CDS,RBS group). Used when generating initial conditions for
-        synthetic RBS sequences.'''
-        max_kinetic_score = 0.5
-
-        while True:
-            m_rna = rbs + cds
-            kinetic_score = self.calc_kinetic_score(m_rna, len(rbs), dangles)
-
-            if kinetic_score < max_kinetic_score:
-                break
-
-            # Alter RBS to reduce kinetic score
-            # Create a sorted list of bp'd nucleotides with the ones with the
-            # highest kinetic score at the top
-            [_, bp_x, bp_y] = \
-                self.__calc_dg_m_rna(m_rna, len(rbs), dangles)
-
-            ks_list = []
-
-            for (nt_x, nt_y) in zip(bp_x, bp_y):
-                ks_list.append((nt_y - nt_x, nt_x, nt_y))
-
-            # Sort max-top according to 1st column: kinetic_score
-            ks_list = sorted(ks_list, key=itemgetter(0))
-            ks_list.reverse()
-
-            # Determine the bp'd nucleotides with the highest kinetic score.
-            # Are either located in the RBS?
-            # If so, replace them with another random nucleotide
-            nucleotides = set(seq_utils.NUCLEOTIDES)
-
-            rbs_begin = m_rna.find(rbs)
-            rbs_end = rbs_begin + len(rbs)
-
-            num_mutations = min(len(ks_list), 10)
-
-            for i in range(num_mutations):
-                nt_x = ks_list[i][1] - 1  # python index
-                nt_y = ks_list[i][2] - 1  # python index
-
-                # nt_x is in the RBS
-                if nt_x >= rbs_begin and nt_x < rbs_end:
-                    pos = nt_x - rbs_begin
-                    letter = random.choice(list(nucleotides ^ set(rbs[pos])))
-                    rbs = rbs[0:pos] + letter + rbs[pos + 1:len(rbs) + 1]
-
-                # nt_y is in the RBS
-                elif nt_y >= rbs_begin and nt_y < rbs_end:
-                    pos = nt_y - rbs_begin
-                    letter = random.choice(list(nucleotides ^ set(rbs[pos])))
-                    rbs = rbs[0:pos] + letter + rbs[pos + 1:len(rbs) + 1]
-
-                elif len(rbs) < self.__cutoff:
-                    # Insert a nucleotide at the 5' end of the RBS
-                    letter = random.choice(list(nucleotides))
-                    rbs = letter + rbs
-
-        return rbs
 
     def __calc_aligned_spacing(self, m_rna, start_pos, bp_x, bp_y):
         '''Calculates the aligned spacing between the 16S r_rna binding site and

@@ -153,7 +153,8 @@ class CodonOptimiser(object):
         return optimised_seqs
 
     def get_codon_optim_seq(self, protein_seq, excl_codons=None,
-                            invalid_pattern=None, max_attempts=1000):
+                            invalid_pattern=None, max_attempts=100,
+                            tolerant=False):
         '''Returns a codon optimised DNA sequence.'''
         if invalid_pattern is None:
             return ''.join([self.get_random_codon(aa)
@@ -162,26 +163,36 @@ class CodonOptimiser(object):
             attempts = 0
             seq = ''
             i = 0
+            blockage_i = -1
+            inv_patterns = 0
 
             while attempts < max_attempts:
                 amino_acid = protein_seq[i]
                 new_seq = seq + self.get_random_codon(amino_acid, excl_codons)
 
-                if count_pattern(new_seq, invalid_pattern) > 0:
-                    num_problem_codons = len(max(re.findall(invalid_pattern,
-                                                            new_seq),
-                                                 key=len)) / 3
-                    i -= num_problem_codons
-                    seq = seq[:-num_problem_codons * 3]
-                    attempts += 1
-                else:
-                    attempts = 0
+                if count_pattern(new_seq, invalid_pattern) == inv_patterns or \
+                        (attempts == max_attempts - 1 and tolerant):
+
+                    if i == blockage_i:
+                        if attempts == max_attempts - 1:
+                            inv_patterns = inv_patterns + 1
+
+                        attempts = 0
+
                     seq = new_seq
 
                     if i == len(protein_seq) - 1:
                         return seq
 
                     i += 1
+                else:
+                    num_problem_codons = len(max(re.findall(invalid_pattern,
+                                                            new_seq),
+                                                 key=len)) / 3
+                    blockage_i = max(i, blockage_i)
+                    i -= num_problem_codons
+                    seq = seq[:-num_problem_codons * 3]
+                    attempts += 1
 
             raise ValueError('Unable to generate codon-optimised sequence.')
 

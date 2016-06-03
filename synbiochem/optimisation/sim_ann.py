@@ -7,6 +7,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
+# pylint: disable=too-many-arguments
 import math
 import random
 
@@ -16,7 +17,7 @@ from synbiochem.utils.job import EventHandler
 class SimulatedAnnealer(object):
     '''Class to perform simulated annealing method.'''
 
-    def __init__(self, solution, acceptance=0.25, max_iter=10000,
+    def __init__(self, solution, acceptance=0.1, max_iter=10000,
                  verbose=False):
         self.__solution = solution
         self.__acceptance = acceptance
@@ -44,14 +45,10 @@ class SimulatedAnnealer(object):
         iteration = 0
         accepts = 0
         rejects = 0
-        r_temp = 0.6
-        cooling_rate = 1e-3
+        r_temp = 0.0025
+        cooling_rate = 1e-6
 
         energy = self.__solution.get_energy()
-
-        if self.__verbose:
-            print str(iteration) + '\t' + str(energy) + '\t' + \
-                str(self.__solution)
 
         while not self.__cancelled \
                 and energy > self.__acceptance \
@@ -68,6 +65,9 @@ class SimulatedAnnealer(object):
                 continue
             elif math.exp((energy - energy_new) / r_temp) > random.random():
                 # Accept move based on conditional probability:
+                print '\t'.join([str(energy - energy_new),
+                                 str(math.exp((energy - energy_new) / r_temp)),
+                                 str(r_temp)])
                 energy = energy_new
                 self.__accept(iteration, energy)
                 accepts += 1
