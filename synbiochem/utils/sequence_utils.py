@@ -15,7 +15,6 @@ import numpy
 import operator
 import os
 import random
-import re
 import subprocess
 import tempfile
 import urllib
@@ -25,6 +24,8 @@ from Bio.Blast import NCBIXML
 from Bio.Data import CodonTable
 from Bio.Seq import Seq
 from Bio.SeqUtils.MeltingTemp import Tm_NN
+
+import regex as re
 
 
 NUCLEOTIDES = ['A', 'C', 'G', 'T']
@@ -170,7 +171,11 @@ class CodonOptimiser(object):
                 amino_acid = protein_seq[i]
                 new_seq = seq + self.get_random_codon(amino_acid, excl_codons)
 
-                if count_pattern(new_seq, invalid_pattern) == inv_patterns or \
+                invalids = [invalid.start()
+                            for invalid in re.finditer(invalid_pattern,
+                                                       new_seq,
+                                                       overlapped=True)]
+                if len(invalids) == inv_patterns or \
                         (attempts == max_attempts - 1 and tolerant):
 
                     if i == blockage_i:
@@ -186,12 +191,9 @@ class CodonOptimiser(object):
 
                     i += 1
                 else:
-                    num_problem_codons = len(max(re.findall(invalid_pattern,
-                                                            new_seq),
-                                                 key=len)) / 3
                     blockage_i = max(i, blockage_i)
-                    i -= num_problem_codons
-                    seq = seq[:-num_problem_codons * 3]
+                    i = max(0, (invalids[-1] / 3) - 1)
+                    seq = seq[:i * 3]
                     attempts += 1
 
             raise ValueError('Unable to generate codon-optimised sequence.')
