@@ -60,9 +60,6 @@ class SimulatedAnnealer(object):
                 # Accept move immediately:
                 energy = energy_new
                 self.__accept(iteration, energy)
-            elif energy == energy_new:
-                # Take no action:
-                continue
             elif math.exp((energy - energy_new) / r_temp) > random.random():
                 # Accept move based on conditional probability:
                 print '\t'.join([str(energy - energy_new),
@@ -74,6 +71,14 @@ class SimulatedAnnealer(object):
             else:
                 # Reject move:
                 rejects += 1
+                if self.__verbose:
+                    print '\t'.join(['F', str(iteration), str(energy_new)])
+
+                # Heartbeat:
+                if float(iteration) % 10 == 0:
+                    self.__fire_event('running',
+                                      float(iteration) / self.__max_iter * 100,
+                                      iteration)
 
             # Simulated annealing control:
             if accepts + rejects > 50:
@@ -101,14 +106,12 @@ class SimulatedAnnealer(object):
             self.__fire_event('finished', 100, iteration,
                               message='Job completed', result=True)
 
-    def __accept(self, iteration, energy):
+    def __accept(self, iteration, ener):
         '''Accept the current solution.'''
         self.__solution.accept()
-        self.__fire_event('running', float(iteration) / self.__max_iter * 100,
-                          iteration)
         if self.__verbose:
-            print str(iteration) + '\t' + str(energy) + '\t' + \
-                str(self.__solution)
+            print '\t'.join(['T', str(iteration), str(ener),
+                             str(self.__solution)])
 
     def __fire_event(self, status, progress, iteration, message='',
                      result=False):
