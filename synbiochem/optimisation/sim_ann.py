@@ -62,9 +62,6 @@ class SimulatedAnnealer(object):
                 self.__accept(iteration, energy)
             elif math.exp((energy - energy_new) / r_temp) > random.random():
                 # Accept move based on conditional probability:
-                print '\t'.join([str(energy - energy_new),
-                                 str(math.exp((energy - energy_new) / r_temp)),
-                                 str(r_temp)])
                 energy = energy_new
                 self.__accept(iteration, energy)
                 accepts += 1
