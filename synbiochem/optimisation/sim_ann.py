@@ -71,8 +71,6 @@ class SimulatedAnnealer(object):
             else:
                 # Reject move:
                 rejects += 1
-                if self.__verbose:
-                    print '\t'.join(['F', str(iteration), str(energy_new)])
 
                 # Heartbeat:
                 if float(iteration) % 10 == 0:
@@ -109,6 +107,10 @@ class SimulatedAnnealer(object):
     def __accept(self, iteration, ener):
         '''Accept the current solution.'''
         self.__solution.accept()
+
+        self.__fire_event('running', float(iteration) / self.__max_iter * 100,
+                          iteration)
+
         if self.__verbose:
             print '\t'.join(['T', str(iteration), str(ener),
                              str(self.__solution)])
