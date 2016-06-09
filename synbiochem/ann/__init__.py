@@ -9,6 +9,8 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 '''
 # pylint: disable=no-member
 # pylint: disable=too-few-public-methods
+# pylint: disable=too-many-locals
+# pylint: disable=too-many-arguments
 
 from collections import defaultdict
 from functools import partial
@@ -38,11 +40,11 @@ class TheanetsBase(object):
               input_noise=0.0,
               hidden_noise=0.0,
               optimize='sgd',
-              learning_rate=0.01,
-              momentum=0.7,
+              learning_rate=1e-4,
+              momentum=0.9,
               patience=5,
-              min_improvement=0.01,
-              validate_every=1,
+              min_improvement=0,
+              validate_every=10,
               batch_size=16,
               hidden_dropout=0.0,
               input_dropout=0.0,
@@ -76,13 +78,14 @@ class TheanetsBase(object):
                         # Batch learning:
                         batch_size=batch_size,
                         # Minibatches per epoch:
-                        # train_batches=30,
+                        train_batches=30,
                         hidden_dropout=hidden_dropout,
                         input_dropout=input_dropout,
                         max_updates=max_updates,
                         weight_l1=weight_l1,
                         weight_l2=weight_l2,
-                        algo=algo)
+                        algo=algo
+                        )
 
 
 class Classifier(TheanetsBase):
