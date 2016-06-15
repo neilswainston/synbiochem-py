@@ -28,7 +28,11 @@ class FlaskManager(object):
 
         # Do job in new thread, return result when completed:
         job_id = str(uuid.uuid4())
-        self.__status[job_id] = {'job_id': job_id, 'progress': 0}
+        # self.__status[job_id] = {'update': {'status': 'initialising',
+        #                                    'message': 'Initialising...',
+        #                                    'progress': 0,
+        #                                    'iteration': 0,
+        #                                    'max_iter': self.__max_iter}}
         thread = self.get_thread(job_id, query)
         thread.add_listener(self)
         self.__threads[job_id] = thread
@@ -40,17 +44,17 @@ class FlaskManager(object):
         '''Returns progress of job.'''
         def _check_progress(job_id):
             '''Checks job progress.'''
-            while self.__status[job_id]['progress'] < 100:
+            while job_id not in self.__status or \
+                    self.__status[job_id]['update']['progress'] < 100:
                 time.sleep(1)
-                yield 'data:' + self.__get_response(job_id) + '\n\n'
+
+                if job_id in self.__status:
+                    yield 'data:' + self.__get_response(job_id) + '\n\n'
 
             yield 'data:' + self.__get_response(job_id) + '\n\n'
 
-        if job_id in self.__status:
-            return Response(_check_progress(job_id),
-                            mimetype='text/event-stream')
-        else:
-            return 'Job ' + job_id + ' unknown or finished.'
+        return Response(_check_progress(job_id),
+                        mimetype='text/event-stream')
 
     def cancel(self, job_id):
         '''Cancels job.'''

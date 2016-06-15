@@ -73,7 +73,8 @@ class SimulatedAnnealer(object):
                 if float(iteration) % 10 == 0:
                     self.__fire_event('running',
                                       float(iteration) / self.__max_iter * 100,
-                                      iteration)
+                                      iteration,
+                                      'Running...')
 
             # Simulated annealing control:
             if accepts + rejects > 50:
@@ -99,29 +100,29 @@ class SimulatedAnnealer(object):
                               message='Job cancelled')
         else:
             self.__fire_event('finished', 100, iteration,
-                              message='Job completed', result=True)
+                              message='Job completed')
 
     def __accept(self, iteration, ener):
         '''Accept the current solution.'''
         self.__solution.accept()
 
         self.__fire_event('running', float(iteration) / self.__max_iter * 100,
-                          iteration)
+                          iteration, 'Running...')
 
         if self.__verbose:
             print '\t'.join(['T', str(iteration), str(ener),
                              str(self.__solution)])
 
-    def __fire_event(self, status, progress, iteration, message='',
-                     result=False):
+    def __fire_event(self, status, progress, iteration, message=''):
         '''Fires an event.'''
-        event = dict({'status': status,
-                      'message': message,
-                      'progress': progress,
-                      'iteration': iteration,
-                      'max_iter': self.__max_iter}.items() +
-                     self.__solution.get_query().items() +
-                     self.__solution.get_update().items() +
-                     (self.__solution.get_result() if result else {}).items())
+        event = {'update': {'status': status,
+                            'message': message,
+                            'progress': progress,
+                            'iteration': iteration,
+                            'max_iter': self.__max_iter,
+                            'values': self.__solution.get_values()},
+                 'query': self.__solution.get_query(),
+                 'result': self.__solution.get_result()
+                 }
 
         self.__ev_hand.fire_event(event)
