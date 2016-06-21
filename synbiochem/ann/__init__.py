@@ -15,10 +15,10 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 from collections import defaultdict
 from functools import partial
 from itertools import count
-import numpy
 import random
 
 from sklearn.metrics import classification_report, confusion_matrix, f1_score
+import numpy
 import theanets
 
 
@@ -35,26 +35,13 @@ class TheanetsBase(object):
         # Check lengths of x_data and y_data are equal:
         assert len(self._x_data) == len(self._y_data)
 
-    def train(self, split=0.75,
-              hidden_layers=None,
-              input_noise=0.0,
-              hidden_noise=0.0,
-              optimize='sgd',
-              learning_rate=1e-4,
-              momentum=0.9,
-              patience=5,
-              min_improvement=0,
-              validate_every=10,
-              batch_size=16,
-              hidden_dropout=0.0,
-              input_dropout=0.0,
-              max_updates=2 ^ 16,
-              weight_l1=0.0,
-              weight_l2=0.0,
-              algo='rmsprop'):
+    def train(self, split=0.75, hidden_layers=None, hyperparams=None):
         '''Train the network.'''
         if hidden_layers is None:
             hidden_layers = [1024]
+
+        if hyperparams is None:
+            hyperparams = {}
 
         layers = [len(self._x_data[0])] + hidden_layers + [self._outputs]
         self._exp = theanets.Experiment(self._network, layers=layers)
@@ -63,29 +50,7 @@ class TheanetsBase(object):
         ind = int(split * len(self._x_data))
         self._exp.train((self._x_data[:ind], self._y_data[:ind]),
                         (self._x_data[ind:], self._y_data[ind:]),
-                        input_noise=input_noise,
-                        hidden_noise=hidden_noise,
-                        optimize=optimize,
-                        learning_rate=learning_rate,
-                        momentum=momentum,
-                        # Stopping criteria:
-                        # How many 'fails' we allow:
-                        patience=patience,
-                        # Validations must improve by x%:
-                        min_improvement=min_improvement,
-                        # Do validation every 'n' steps:
-                        validate_every=validate_every,
-                        # Batch learning:
-                        batch_size=batch_size,
-                        # Minibatches per epoch:
-                        train_batches=30,
-                        hidden_dropout=hidden_dropout,
-                        input_dropout=input_dropout,
-                        max_updates=max_updates,
-                        weight_l1=weight_l1,
-                        weight_l2=weight_l2,
-                        algo=algo
-                        )
+                        **hyperparams)
 
 
 class Classifier(TheanetsBase):

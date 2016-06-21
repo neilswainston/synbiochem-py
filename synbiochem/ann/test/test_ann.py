@@ -9,12 +9,12 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 '''
 # pylint: disable=no-member
 # pylint: disable=too-many-public-methods
-import numpy
 import random
 import unittest
 
 from sklearn import datasets
 from sklearn.datasets.samples_generator import make_blobs
+import numpy
 
 import synbiochem.ann
 
@@ -49,7 +49,8 @@ class TestClassifier(unittest.TestCase):
         ind = int(0.8 * len(x_data))
 
         classifier = synbiochem.ann.Classifier(x_data[:ind], y_data[:ind])
-        classifier.train()
+        classifier.train(hyperparams={'optimize': 'sgd',
+                                      'learning_rate': 5e-4})
 
         y_test = y_data[ind:]
         y_pred, _, _, _, _ = classifier.classify(x_data[ind:], y_test)
