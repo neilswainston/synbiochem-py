@@ -27,7 +27,6 @@ setup(name='synbiochem-py',
       ],
       keywords='synbio',
       packages=find_packages(),
-      install_requires=['regex', 'numpy', 'scipy', 'matplotlib', 'sklearn',
-                        'theanets', 'biopython'],
+      install_requires=['regex', 'numpy', 'scipy', 'matplotlib', 'biopython'],
       test_suite='nose.collector',
       tests_require=['nose'])
