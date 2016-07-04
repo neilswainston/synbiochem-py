@@ -18,9 +18,9 @@ class Test(unittest.TestCase):
 
     def test_get_seq_struct(self):
         '''Tests isclose method.'''
-        seq_struct = struct_utils.get_seq_struct(['1DWI'])
+        seq_structs = struct_utils.get_seq_structs(['1DWI'])
         self.assertTrue(all([len(v[0]) == len(v[1])
-                             for v in seq_struct.values()]))
+                             for v in seq_structs.values()]))
 
 
 if __name__ == "__main__":

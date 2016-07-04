@@ -24,7 +24,7 @@ class TestMnxRefReader(unittest.TestCase):
 
     def test_get_chem_data(self):
         '''Tests get_chem_data method.'''
-        self.assertEquals(self.__chem_data['MNXM1354']['chebi'], '58282')
+        self.assertEquals(self.__chem_data['MNXM1354']['chebi'], 'CHEBI:58282')
 
     def test_get_reac_data(self):
         '''Tests get_chem_data method.'''

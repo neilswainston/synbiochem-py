@@ -11,6 +11,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 from matplotlib.colors import LinearSegmentedColormap
 import numpy
 import os
+import pylab
 import random
 import re
 import scipy.spatial
@@ -18,7 +19,6 @@ import scipy.spatial
 from Bio import SeqUtils
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.Polypeptide import PPBuilder
-import pylab
 
 import synbiochem.utils.io_utils as io_utils
 

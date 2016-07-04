@@ -32,8 +32,7 @@ class TestBrendaReader(unittest.TestCase):
     def test_get_kcat_values(self):
         '''Tests get_kcat_values method.'''
         self.assertTrue(
-            len(self.__reader.get_kcat_values('1.1.1.1', 'Homo sapiens')) >
-            0)
+            len(self.__reader.get_kcat_values('1.1.1.1', 'Homo sapiens')) > 0)
 
 
 if __name__ == "__main__":

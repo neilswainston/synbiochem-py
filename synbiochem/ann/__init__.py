@@ -15,10 +15,10 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 from collections import defaultdict
 from functools import partial
 from itertools import count
+import numpy
 import random
 
 from sklearn.metrics import classification_report, confusion_matrix, f1_score
-import numpy
 import theanets
 
 
