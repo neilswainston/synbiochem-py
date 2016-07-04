@@ -7,9 +7,12 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
+# pylint: disable=too-few-public-methods
+# pylint: disable=too-many-arguments
 import abc
-import numpy
 import random
+
+import numpy
 
 
 class Chromosome(object):
@@ -63,10 +66,10 @@ class GeneticAlgorithm(object):
                 pop_size:
             self.__population.append(self.__get_individual())
 
-    def run(self, max_iter=1024):
+    def run(self, max_iter=1024, max_tries=1024):
         '''Runs the genetic algorithm.'''
         for _ in range(max_iter):
-            result = self.__evolve()
+            result = self.__evolve(max_tries)
 
             if result is not None:
                 return result
@@ -83,7 +86,7 @@ class GeneticAlgorithm(object):
         '''Create a member of the population.'''
         return {k: _get_arg(args) for k, args in self.__args.iteritems()}
 
-    def __evolve(self):
+    def __evolve(self, max_tries):
         '''Performs one round of evolution.'''
         graded = sorted([(self._fitness(x), x) for x in self.__population])
 
@@ -113,8 +116,12 @@ class GeneticAlgorithm(object):
         # Ensure uniqueness in population:
         self.__population = list(numpy.unique(numpy.array(self.__population)))
 
-        # Breed parents to create children:
+        self.__breed(max_tries)
+
+    def __breed(self, max_tries):
+        '''Breeds parents to create children.'''
         new_population = []
+        tries = 0
 
         while len(new_population) < self.__pop_size:
             male = random.choice(self.__population)
@@ -134,14 +141,15 @@ class GeneticAlgorithm(object):
                              female_parts.items())
 
                 new_population.append(child)
-                new_population = list(
-                    numpy.unique(numpy.array(new_population)))
+                new_population = \
+                    list(numpy.unique(numpy.array(new_population)))
+
+            tries += 1
+
+            if tries == max_tries:
+                raise ValueError('Unable to generate unique population.')
 
         self.__population = new_population
-
-        # print numpy.mean([self._fitness(ind) for ind in self.__population])
-
-        return None
 
 
 def _get_arg(args):
