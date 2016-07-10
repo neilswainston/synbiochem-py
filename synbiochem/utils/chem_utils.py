@@ -169,7 +169,7 @@ def parse_equation(equation, separator='='):
 def balance(reaction_def, optional_comp=None, max_stoich=8.0):
     '''Applies linear programming to balance reaction.'''
     if optional_comp is None:
-        optional_comp = [('H', 1), ('H2O', 0)]
+        optional_comp = [('H', 1, 'CHEBI:24636'), ('H2O', 0, 'CHEBI:15377')]
 
     all_formulae = [[x[0] for x in reaction_def if x[2] <= 0],
                     [x[0] for x in reaction_def if x[2] > 0]]
@@ -178,6 +178,10 @@ def balance(reaction_def, optional_comp=None, max_stoich=8.0):
     all_charges = [[x[1] for x in reaction_def if x[2] <= 0],
                    [x[1] for x in reaction_def if x[2] > 0]]
     all_charges.extend([[x[1] for x in optional_comp] for _ in range(2)])
+
+    all_ids = [[x[3] for x in reaction_def if x[2] <= 0],
+               [x[3] for x in reaction_def if x[2] > 0]]
+    all_ids.extend([[x[2] for x in optional_comp] for _ in range(2)])
 
     all_elem_comp = [[_get_elem_comp(formula, idx)
                       for formula in formulae]
@@ -188,8 +192,8 @@ def balance(reaction_def, optional_comp=None, max_stoich=8.0):
                                     max_stoich, len(optional_comp))
 
     balanced_def = sorted(_get_reaction_def(stoichs, all_formulae,
-                                            all_charges)) \
-        if balanced else None
+                                            all_charges, all_ids)) \
+        if balanced else reaction_def
 
     return balanced, _compare_reaction_defs(reaction_def, balanced_def), \
         balanced_def
@@ -249,14 +253,16 @@ def _optimise(a_matrix, max_stoich, num_opt_formulae):
                               bounds)
 
 
-def _get_reaction_def(stoichs, all_formulae, all_charges):
+def _get_reaction_def(stoichs, all_formulae, all_charges, all_ids):
     '''Formats the input into (formula, charge, stoichiometry) tuples.'''
-    return [(a[0], b, a[1] * c)
-            for a, b, c in zip([(x, -1 if idx % 2 == 0 else 1)
-                                for idx, formulae in enumerate(all_formulae)
-                                for x in formulae],
-                               [y for charges in all_charges for y in charges],
-                               _simplify_stoichs(stoichs))
+    return [(a[0], b, a[1] * c, d)
+            for a, b, c, d in zip([(x, -1 if idx % 2 == 0 else 1)
+                                   for idx, formulae in enumerate(all_formulae)
+                                   for x in formulae],
+                                  [y for charges in all_charges
+                                   for y in charges],
+                                  _simplify_stoichs(stoichs),
+                                  [z for ids in all_ids for z in ids])
             if c > 1e-8]
 
 
