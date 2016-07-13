@@ -45,8 +45,8 @@ class SimulatedAnnealer(object):
         iteration = 0
         accepts = 0
         rejects = 0
-        r_temp = 0.0025
-        cooling_rate = 1e-6
+        r_temp = 0.0075
+        cooling_rate = 1e-3
 
         energy = self.__solution.get_energy()
 
@@ -59,14 +59,25 @@ class SimulatedAnnealer(object):
             if energy_new < energy:
                 # Accept move immediately:
                 energy = energy_new
-                self.__accept(iteration, energy_new)
+                self.__accept(iteration)
+                print '\t'.join(['T', str(iteration), str(energy_new),
+                                 str(self.__solution)])
+            elif energy_new == energy:
+                # Reject move:
+                self.__solution.reject()
+                rejects += 1
+                print '\t'.join([' ', str(iteration), str(energy_new),
+                                 str(self.__solution)])
             elif math.exp((energy - energy_new) / r_temp) > random.random():
                 # Accept move based on conditional probability:
                 energy = energy_new
-                self.__accept(iteration, energy_new)
+                self.__accept(iteration)
                 accepts += 1
+                print '\t'.join(['*', str(iteration), str(energy_new),
+                                 str(self.__solution)])
             else:
                 # Reject move:
+                self.__solution.reject()
                 rejects += 1
                 print '\t'.join([' ', str(iteration), str(energy_new),
                                  str(self.__solution)])
@@ -104,16 +115,12 @@ class SimulatedAnnealer(object):
             self.__fire_event('finished', 100, iteration,
                               message='Job completed')
 
-    def __accept(self, iteration, ener):
+    def __accept(self, iteration):
         '''Accept the current solution.'''
         self.__solution.accept()
 
         self.__fire_event('running', float(iteration) / self.__max_iter * 100,
                           iteration, 'Running...')
-
-        if self.__verbose:
-            print '\t'.join(['T', str(iteration), str(ener),
-                             str(self.__solution)])
 
     def __fire_event(self, status, progress, iteration, message=''):
         '''Fires an event.'''
