@@ -59,22 +59,24 @@ class SimulatedAnnealer(object):
             if energy_new < energy:
                 # Accept move immediately:
                 energy = energy_new
-                self.__accept(iteration, energy)
+                self.__accept(iteration, energy_new)
             elif math.exp((energy - energy_new) / r_temp) > random.random():
                 # Accept move based on conditional probability:
                 energy = energy_new
-                self.__accept(iteration, energy)
+                self.__accept(iteration, energy_new)
                 accepts += 1
             else:
                 # Reject move:
                 rejects += 1
+                print '\t'.join([' ', str(iteration), str(energy_new),
+                                 str(self.__solution)])
 
-                # Heartbeat:
-                if float(iteration) % 10 == 0:
-                    self.__fire_event('running',
-                                      float(iteration) / self.__max_iter * 100,
-                                      iteration,
-                                      'Running...')
+            # Heartbeat:
+            if float(iteration) % 10 == 0:
+                self.__fire_event('running',
+                                  float(iteration) / self.__max_iter * 100,
+                                  iteration,
+                                  'Running...')
 
             # Simulated annealing control:
             if accepts + rejects > 50:
