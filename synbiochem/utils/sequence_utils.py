@@ -7,11 +7,12 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
+# pylint: disable=no-member
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-locals
 from subprocess import call
 import collections
-import csv
 import itertools
-import numpy
 import operator
 import os
 import random
@@ -24,6 +25,7 @@ from Bio.Blast import NCBIXML
 from Bio.Data import CodonTable
 from Bio.Seq import Seq
 from Bio.SeqUtils.MeltingTemp import Tm_NN
+import numpy
 
 import regex as re
 
@@ -416,11 +418,23 @@ def get_uniprot_values(uniprot_ids, fields, batch_size=16):
         batch = uniprot_ids[i:min(i + batch_size, len(uniprot_ids))]
         query = '+or+'.join(['id:' + uniprot_id for uniprot_id in batch])
         url = 'http://www.uniprot.org/uniprot/?query=' + query + \
-            '&format=tab&columns=id,' + urllib.quote(','.join(fields))
+            '&format=tab&columns=id,' + ','.join([urllib.quote(field)
+                                                  for field in fields])
 
-        values.update({d['Entry']: d
-                       for d in list(csv.DictReader(urllib2.urlopen(url),
-                                                    delimiter='\t'))})
+        headers = None
+
+        for line in urllib2.urlopen(url):
+            tokens = line.strip().split('\t')
+
+            if headers is None:
+                headers = tokens
+            else:
+                resp = dict(zip(headers, tokens))
+                entry = resp.pop('Entry')
+                regexp = re.compile(r'(?<=\()[^)]*(?=\))|^[^\(]*(?= \()')
+                resp['Protein names'] = regexp.findall(
+                    resp.pop('Protein names'))
+                values.update({entry: resp})
 
     return values
 
