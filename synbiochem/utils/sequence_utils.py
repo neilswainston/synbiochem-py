@@ -431,9 +431,12 @@ def get_uniprot_values(uniprot_ids, fields, batch_size=16):
             else:
                 resp = dict(zip(headers, tokens))
                 entry = resp.pop('Entry')
-                regexp = re.compile(r'(?<=\()[^)]*(?=\))|^[^\(]*(?= \()')
-                resp['Protein names'] = regexp.findall(
-                    resp.pop('Protein names'))
+
+                if 'Protein names' in resp:
+                    regexp = re.compile(r'(?<=\()[^)]*(?=\))|^[^\(]*(?= \()')
+                    resp['Protein names'] = regexp.findall(
+                        resp.pop('Protein names'))
+
                 values.update({entry: resp})
 
     return values
