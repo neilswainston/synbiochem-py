@@ -130,8 +130,10 @@ class SimulatedAnnealer(object):
                             'iteration': iteration,
                             'max_iter': self.__max_iter,
                             'values': self.__solution.get_values()},
-                 'query': self.__solution.get_query(),
-                 'result': self.__solution.get_result()
+                 'query': self.__solution.get_query()
                  }
+
+        if status == 'finished':
+            event['result'] = self.__solution.get_result()
 
         self.__ev_hand.fire_event(event)
