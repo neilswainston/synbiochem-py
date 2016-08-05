@@ -8,17 +8,17 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 @author:  neilswainston
 '''
 # pylint: disable=too-many-arguments
-from matplotlib.colors import LinearSegmentedColormap
-import numpy
 import os
 import pylab
 import random
 import re
-import scipy.spatial
 
 from Bio import SeqUtils
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.Polypeptide import PPBuilder
+from matplotlib.colors import LinearSegmentedColormap
+import numpy
+import scipy.spatial
 
 import synbiochem.utils.io_utils as io_utils
 
