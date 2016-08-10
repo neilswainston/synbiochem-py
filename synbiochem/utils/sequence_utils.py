@@ -309,11 +309,14 @@ def get_minimum_free_energy(sequences):
         return mfes
 
 
-def get_random_dna(length, max_repeat_nuc=float('inf')):
+def get_random_dna(length, max_repeat_nuc=float('inf'), invalid_patterns=None):
     '''Returns a random sequence of DNA of the supplied length,
     while adhering to a maximum number of repeating nucleotides.'''
     max_attempts = 1000
     attempts = 0
+
+    if invalid_patterns is None:
+        invalid_patterns = []
 
     while True:
         attempts += 1
@@ -325,7 +328,14 @@ def get_random_dna(length, max_repeat_nuc=float('inf')):
 
         random_dna = _get_random_dna(length)
 
-        if is_valid(random_dna, max_repeat_nuc):
+        valid = True
+        for invalid_pattern in invalid_patterns:
+
+            if len(re.findall(invalid_pattern, random_dna, overlapped=True)) \
+                    > 0:
+                valid = False
+
+        if valid and is_valid(random_dna, max_repeat_nuc):
             return random_dna
 
     return None
@@ -337,7 +347,7 @@ def get_random_aa(length, insertions=False):
     return ''.join(random.choice(dictionary) for _ in range(length))
 
 
-def get_melting_temp(dna1, dna2=None, reag_concs=None):
+def get_melting_temp(dna1, dna2=None, reag_concs=None, strict=True):
     '''Calculates melting temperarure of DNA sequence against its
     complement, or against second DNA sequence using Nearest-Neighbour
     method.'''
@@ -351,11 +361,11 @@ def get_melting_temp(dna1, dna2=None, reag_concs=None):
     reagent_conc = {k: v * 1000 for k, v in reagent_concs.iteritems()}
     dnac1 = 30
 
-    return Tm_NN(dna1, check=True, strict=True, c_seq=dna2, shift=0,
+    return Tm_NN(dna1, check=True, strict=strict, c_seq=dna2, shift=0,
                  Na=reagent_conc[NA], K=reagent_conc[K],
                  Tris=reagent_conc[TRIS], Mg=reagent_conc[MG],
                  dNTPs=reagent_conc[DNTP],
-                 dnac1=dnac1, dnac2=dnac1, selfcomp=True,
+                 dnac1=dnac1, dnac2=dnac1, selfcomp=dna2 is None,
                  saltcorr=7)
 
 
@@ -464,8 +474,14 @@ def get_rev_comp(seq):
     return str(seq.reverse_complement())
 
 
+def get_comp(seq):
+    '''Returns complement of sequence.'''
+    seq = Seq(seq)
+    return str(seq.complement())
+
+
 def do_blast(id_seqs_subjects, id_seqs_queries, program='blastn',
-             dbtype='nucl', evalue=1.0):
+             dbtype='nucl', evalue=1.0, word_size=28):
     '''Performs BLAST of query sequences against subject sequences.'''
 
     db_filename = write_fasta(id_seqs_subjects)
@@ -483,6 +499,7 @@ def do_blast(id_seqs_subjects, id_seqs_queries, program='blastn',
           '-db', db_filename,
           '-out', result_file.name,
           '-evalue', str(evalue),
+          '-word_size', str(word_size),
           '-outfmt', '5'])
 
     return NCBIXML.parse(open(result_file.name))
@@ -512,7 +529,8 @@ def translate(seq, trans_table=CodonTable.unambiguous_dna_by_name["Standard"],
 
     for strand, nuc in [('+', seq), ('-', seq.reverse_complement())]:
         for frame in range(3):
-            trans = str(nuc[frame:].translate(trans_table))
+            trans = \
+                str(nuc[frame:-(len(nuc[frame:]) % 3)].translate(trans_table))
             trans_len = len(trans)
             aa_start = 0
             aa_end = 0

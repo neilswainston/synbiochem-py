@@ -37,15 +37,28 @@ class Test(unittest.TestCase):
         '''Tests get_uniprot_values method.'''
         self.assertEquals(seq_utils.get_uniprot_values(['P19367', 'P46882'],
                                                        ['organism-id'], 1),
-                          {'P19367':
-                           {'Organism ID': '9606', 'Entry': 'P19367'},
-                           'P46882':
-                           {'Organism ID': '5061', 'Entry': 'P46882'}})
+                          {'P19367': {'Organism ID': '9606'},
+                           'P46882': {'Organism ID': '5061'}})
 
     def test_translate(self):
         '''Tests translate method.'''
-        results = seq_utils.translate('agcgtgcgat', min_prot_len=1)
+        results = seq_utils.translate('agcgtgcgatcc', min_prot_len=1)
         self.assertIn('ACD', [tokens[5] for tokens in results])
+
+    def test_do_blast(self):
+        '''Tests do_blast method.'''
+        id_seq = {'test': seq_utils.get_random_dna(1024)}
+        results = seq_utils.do_blast(id_seq, id_seq, evalue=10, word_size=4)
+
+        alignments = []
+
+        for result in results:
+            for alignment in result.alignments:
+                for hsp in alignment.hsps:
+                    alignments.append(hsp)
+                    print hsp
+
+        self.assertGreater(len(alignments), 1)
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']
