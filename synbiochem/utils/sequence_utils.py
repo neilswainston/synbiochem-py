@@ -369,10 +369,11 @@ def get_melting_temp(dna1, dna2=None, reag_concs=None, strict=True):
                  saltcorr=7)
 
 
-def get_seq_by_melt_temp(seq, target_melt_temp, reagent_concs=None):
+def get_seq_by_melt_temp(seq, target_melt_temp, forward=True,
+                         reagent_concs=None):
     '''Returns a subsequence close to desired melting temperature.'''
     for i in range(1, len(seq)):
-        subseq = seq[:(i + 1)]
+        subseq = seq[:(i + 1)] if forward else seq[-(i + 1):]
         melt_temp = get_melting_temp(subseq, None, reagent_concs)
 
         if melt_temp > target_melt_temp:
