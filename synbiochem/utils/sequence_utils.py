@@ -554,13 +554,11 @@ def translate(seq, trans_table=CodonTable.unambiguous_dna_by_name["Standard"],
 def ambiguous_to_regex(seq):
     '''Converts sequence with ambiguous nucleotides to regex,
     e.g. ANT to A[ACGT]T.'''
-    seq2 = [val
-            if val not in IUPACData.ambiguous_dna_values or
-            len(IUPACData.ambiguous_dna_values[val]) == 1
-            else '[' + IUPACData.ambiguous_dna_values[val] + ']'
-            for val in seq]
-    print ''.join(seq2)
-    return ''.join(seq2)
+    return ''.join([val
+                    if val not in IUPACData.ambiguous_dna_values or
+                    len(IUPACData.ambiguous_dna_values[val]) == 1
+                    else '[' + IUPACData.ambiguous_dna_values[val] + ']'
+                    for val in seq])
 
 
 def apply_restriction(seq, restrict):
