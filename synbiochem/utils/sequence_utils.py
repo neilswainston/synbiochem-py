@@ -22,7 +22,7 @@ import urllib
 import urllib2
 
 from Bio.Blast import NCBIXML
-from Bio.Data import CodonTable
+from Bio.Data import CodonTable, IUPACData
 from Bio.Seq import Seq
 from Bio.SeqUtils.MeltingTemp import Tm_NN
 import numpy
@@ -549,6 +549,18 @@ def translate(seq, trans_table=CodonTable.unambiguous_dna_by_name["Standard"],
                                    trans[aa_start:aa_end]))
                 aa_start = aa_end + 1
     return result
+
+
+def ambiguous_to_regex(seq):
+    '''Converts sequence with ambiguous nucleotides to regex,
+    e.g. ANT to A[ACGT]T.'''
+    seq2 = [val
+            if val not in IUPACData.ambiguous_dna_values or
+            len(IUPACData.ambiguous_dna_values[val]) == 1
+            else '[' + IUPACData.ambiguous_dna_values[val] + ']'
+            for val in seq]
+    print ''.join(seq2)
+    return ''.join(seq2)
 
 
 def apply_restriction(seq, restrict):
