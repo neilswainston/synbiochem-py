@@ -9,6 +9,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 '''
 import gzip
 import os
+import tempfile
 import urllib
 import zipfile
 
@@ -46,3 +47,12 @@ def get_file(source_url, target_filename):
             output_file.close()
 
     return target_filename
+
+
+def get_filename(filename):
+    '''Returns a filename, generating a temp file if necessary.'''
+    if filename is None:
+        fle = tempfile.NamedTemporaryFile(delete=False)
+        return fle.name
+
+    return filename
