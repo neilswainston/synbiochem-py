@@ -25,3 +25,16 @@ def get_taxonomy_id(name):
         return term[term.find(':') + 1:]
 
     raise RuntimeError(name + ' not found in NCBI Taxonomy')
+
+
+def search(term, exact=False):
+    '''Gets the NCBI Taxonomy id from supplied name.'''
+    url = 'http://www.ebi.ac.uk/ols/api/search?ontology=ncbitaxon' + \
+        '&exact=' + str(exact) + '&queryFields=label&q=' + urllib.quote(term)
+
+    response = urllib2.urlopen(url)
+    data = json.loads(response.read())
+
+    return [{'id': doc['obo_id'].replace('NCBITaxon:', ''),
+             'name': doc['label']}
+            for doc in data['response']['docs']]

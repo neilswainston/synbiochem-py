@@ -432,23 +432,21 @@ def get_uniprot_values(uniprot_ids, fields, batch_size=16):
             '&format=tab&columns=id,' + ','.join([urllib.quote(field)
                                                   for field in fields])
 
-        headers = None
+        _parse_uniprot_data(url, values)
 
-        for line in urllib2.urlopen(url):
-            tokens = line.strip().split('\t')
+    return values
 
-            if headers is None:
-                headers = tokens
-            else:
-                resp = dict(zip(headers, tokens))
-                entry = resp.pop('Entry')
 
-                if 'Protein names' in resp:
-                    regexp = re.compile(r'(?<=\()[^)]*(?=\))|^[^\(]*(?= \()')
-                    resp['Protein names'] = regexp.findall(
-                        resp.pop('Protein names'))
+def search_uniprot(name, fields, limit=128):
+    '''Gets dictionary of ids to values from Uniprot.'''
+    values = {}
 
-                values.update({entry: resp})
+    url = 'http://www.uniprot.org/uniprot/?query=name:' + name + \
+        '&limit=' + str(limit) + \
+        '&format=tab&columns=id,' + ','.join([urllib.quote(field)
+                                              for field in fields])
+
+    _parse_uniprot_data(url, values)
 
     return values
 
@@ -597,3 +595,24 @@ def _cleanup(drctry, pattern):
     for filename in os.listdir(drctry):
         if re.search(pattern, filename):
             os.remove(os.path.join(drctry, filename))
+
+
+def _parse_uniprot_data(url, values):
+    '''Parses Uniprot data.'''
+    headers = None
+
+    for line in urllib2.urlopen(url):
+        tokens = line.strip().split('\t')
+
+        if headers is None:
+            headers = tokens
+        else:
+            resp = dict(zip(headers, tokens))
+            entry = resp.pop('Entry')
+
+            if 'Protein names' in resp:
+                regexp = re.compile(r'(?<=\()[^)]*(?=\))|^[^\(]*(?= \()')
+                resp['Protein names'] = regexp.findall(
+                    resp.pop('Protein names'))
+
+            values.update({entry: resp})
