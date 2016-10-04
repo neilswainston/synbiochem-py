@@ -169,7 +169,8 @@ def parse_equation(equation, separator='='):
 def balance(reaction_def, optional_comp=None, max_stoich=8.0):
     '''Applies linear programming to balance reaction.'''
     if optional_comp is None:
-        optional_comp = [('H', 1, 'CHEBI:24636'), ('H2O', 0, 'CHEBI:15377')]
+        optional_comp = []
+        # optional_comp = [('H', 1, 'CHEBI:24636'), ('H2O', 0, 'CHEBI:15377')]
 
     all_formulae = [[x[0] for x in reaction_def if x[2] <= 0],
                     [x[0] for x in reaction_def if x[2] > 0]]
@@ -195,7 +196,8 @@ def balance(reaction_def, optional_comp=None, max_stoich=8.0):
                                             all_charges, all_ids)) \
         if balanced else reaction_def
 
-    return balanced, _compare_reaction_defs(reaction_def, balanced_def), \
+    return balanced, \
+        balanced and _compare_reaction_defs(reaction_def, balanced_def), \
         balanced_def
 
 
