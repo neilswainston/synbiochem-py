@@ -54,6 +54,24 @@ AA_CODES = {'Ala': 'A',
             'Tyr': 'Y',
             'End': '*'}
 
+NUCL_CODES = {
+    'A': 'A',
+    'C': 'C',
+    'G': 'G',
+    'T': 'T',
+    'AG': 'R',
+    'CT': 'Y',
+    'CG': 'S',
+    'AT': 'W',
+    'GT': 'K',
+    'AC': 'M',
+    'CGT': 'B',
+    'AGT': 'D',
+    'ACT': 'H',
+    'ACG': 'V',
+    'ACGT': 'N',
+}
+
 # KD Hydrophobicity, EIIP, Helix, Sheet, Turn
 AA_PROPS = {
     'A': [1.8, -0.0667, 32.9, -23.6, -41.6],
