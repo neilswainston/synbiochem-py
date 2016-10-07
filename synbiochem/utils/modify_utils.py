@@ -32,10 +32,10 @@ class CodonSelector(object):
 
     def optimise_codon(self, amino_acids):
         '''Optimises codon selection.'''
-        codons = self.__get_codons(amino_acids)
+        codons = self.__get_codons(set(amino_acids))
         combos = [combo for combo in itertools.product(*codons)]
-        analyses = [self.__analyse(combo) for combo in combos]
-        analyses.sort(key=operator.itemgetter(3))
+        analyses = list(set([self.__analyse(combo) for combo in combos]))
+        analyses.sort(key=operator.itemgetter(4, 3))
 
         for analysis in analyses:
             print '\t'.join([str(val) for val in analysis])
@@ -50,13 +50,16 @@ class CodonSelector(object):
         amino acids encodes, and number of variants.'''
         transpose = map(list, zip(*combo))
         nucls = [''.join(sorted(list(set(pos)))) for pos in transpose]
-        ambig_codons = ''.join([sequence_utils.NUCL_CODES[nucl]
-                                for nucl in nucls])
+        ambig_codon = ''.join([sequence_utils.NUCL_CODES[nucl]
+                               for nucl in nucls])
         amino_acids = dict(Counter([self.__codon_to_aa.get(''.join(combo),
                                                            'Stop')
                                     for combo in itertools.product(*nucls)]))
 
-        return ambig_codons, nucls, amino_acids, \
+        return ambig_codon, \
+            tuple(nucls), \
+            frozenset(amino_acids.items()), \
+            len(amino_acids), \
             reduce(mul, [len(nucl) for nucl in nucls])
 
 
