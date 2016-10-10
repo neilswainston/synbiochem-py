@@ -36,9 +36,7 @@ class CodonSelector(object):
         combos = [combo for combo in itertools.product(*codons)]
         analyses = list(set([self.__analyse(combo) for combo in combos]))
         analyses.sort(key=operator.itemgetter(4, 3))
-
-        for analysis in analyses:
-            print '\t'.join([str(val) for val in analysis])
+        return analyses
 
     def __get_codons(self, amino_acids):
         '''Gets codons for a list of amino acids.'''
@@ -65,7 +63,11 @@ class CodonSelector(object):
 
 def main(args):
     '''main method.'''
-    CodonSelector().optimise_codon(args[0])
+    analyses = CodonSelector().optimise_codon(args[0])
+
+    for analysis in analyses:
+        print '\t'.join([str(val) for val in analysis])
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])
