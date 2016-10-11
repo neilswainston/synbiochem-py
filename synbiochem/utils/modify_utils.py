@@ -55,7 +55,7 @@ class CodonSelector(object):
                                     for combo in itertools.product(*nucls)]))
 
         return ambig_codon, \
-            '[' + ']['.join(nucls) + ']', \
+            tuple(nucls), \
             frozenset(amino_acids.items()), \
             len(amino_acids), \
             reduce(mul, [len(nucl) for nucl in nucls])
