@@ -50,13 +50,17 @@ class CodonSelector(object):
         nucls = [''.join(sorted(list(set(pos)))) for pos in transpose]
         ambig_codon = ''.join([sequence_utils.NUCL_CODES[nucl]
                                for nucl in nucls])
-        amino_acids = dict(Counter([self.__codon_to_aa.get(''.join(combo),
-                                                           'Stop')
-                                    for combo in itertools.product(*nucls)]))
+        amino_acids = defaultdict(list)
+
+        for val in [(self.__codon_to_aa.get(''.join(combo), 'Stop'),
+                     ''.join(combo))
+                    for combo in itertools.product(*nucls)]:
+            amino_acids[val[0]].append(val[1])
 
         return ambig_codon, \
             tuple(nucls), \
-            frozenset(amino_acids.items()), \
+            tuple([(key, tuple(value))
+                   for key, value in dict(amino_acids).iteritems()]), \
             len(amino_acids), \
             reduce(mul, [len(nucl) for nucl in nucls])
 
