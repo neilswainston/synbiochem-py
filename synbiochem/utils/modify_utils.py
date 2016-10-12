@@ -30,6 +30,8 @@ class CodonSelector(object):
         for codon, amino_acid in self.__codon_to_aa.iteritems():
             self.__aa_to_codon[amino_acid].append(codon)
 
+        self.__codon_opt = {}
+
     def optimise_codons(self, query):
         '''Optimises codon selection.'''
         codons = self.__get_codons(set(query['aminoAcids'].upper()))
@@ -47,7 +49,7 @@ class CodonSelector(object):
     def __analyse(self, combo, tax_id):
         '''Analyses a combo, returning nucleotides, ambigous nucleotides,
         amino acids encodes, and number of variants.'''
-        codon_opt = CodonOptimiser(tax_id)
+        codon_opt = self.__get_codon_opt(tax_id)
         transpose = map(list, zip(*combo))
         nucls = [''.join(sorted(list(set(pos)))) for pos in transpose]
         ambig_codon = ''.join([sequence_utils.NUCL_CODES[nucl]
@@ -66,3 +68,10 @@ class CodonSelector(object):
                    for key, value in dict(amino_acids).iteritems()]), \
             len(amino_acids), \
             reduce(mul, [len(nucl) for nucl in nucls])
+
+    def __get_codon_opt(self, tax_id):
+        '''Gets the CodonOptimiser for the supplied taxonomy.'''
+        if tax_id not in self.__codon_opt:
+            self.__codon_opt[tax_id] = CodonOptimiser(tax_id)
+
+        return self.__codon_opt[tax_id]
