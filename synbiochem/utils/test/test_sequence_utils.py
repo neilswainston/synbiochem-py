@@ -33,6 +33,13 @@ class CodonOptimiserTest(unittest.TestCase):
 class Test(unittest.TestCase):
     '''Test class for sequence_utils.'''
 
+    def test_get_codon_usage_organisms(self):
+        '''Tests get_codon_usage_organisms() method.'''
+        organisms = seq_utils.get_codon_usage_organisms()
+        expected = {'\'Arthromyces ramosus\'': '5451',
+                    'thiosulfate-reducing anaerobe SRL 4198': '267367'}
+        self.assertDictContainsSubset(expected, organisms)
+
     def test_get_uniprot_values(self):
         '''Tests get_uniprot_values method.'''
         self.assertEquals(seq_utils.get_uniprot_values(['P19367', 'P46882'],

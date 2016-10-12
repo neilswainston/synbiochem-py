@@ -137,6 +137,24 @@ def __scale(scale):
 __DEFAULT_REAG_CONC = {NA: 0.05, K: 0, TRIS: 0, MG: 0.01, DNTP: 0}
 
 
+def get_codon_usage_organisms():
+    '''Gets name to taxonomy id dictionary of available codon usage tables.'''
+    name_to_id = {}
+
+    tmpfile = tempfile.NamedTemporaryFile()
+    url = 'ftp://ftp.kazusa.or.jp/pub/codon/current/species.table'
+    urllib.urlretrieve(url, tmpfile.name)
+
+    with open(tmpfile.name, 'r') as textfile:
+        next(textfile)
+
+        for line in textfile:
+            tokens = line.strip().split('\t')
+            name_to_id[tokens[0]] = tokens[1]
+
+    return name_to_id
+
+
 class CodonOptimiser(object):
     '''Class to support codon optimisation.'''
 

@@ -9,7 +9,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 '''
 # pylint: disable=bad-builtin
 # pylint: disable=too-few-public-methods
-from collections import defaultdict, Counter
+from collections import defaultdict
 from operator import mul
 import itertools
 import operator
@@ -32,7 +32,7 @@ class CodonSelector(object):
 
     def optimise_codon(self, amino_acids):
         '''Optimises codon selection.'''
-        codons = self.__get_codons(set(amino_acids))
+        codons = self.__get_codons(set(amino_acids.upper()))
         combos = [combo for combo in itertools.product(*codons)]
         analyses = list(set([self.__analyse(combo) for combo in combos]))
         analyses.sort(key=operator.itemgetter(4, 3))
