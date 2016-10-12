@@ -30,9 +30,9 @@ class CodonSelector(object):
         for codon, amino_acid in self.__codon_to_aa.iteritems():
             self.__aa_to_codon[amino_acid].append(codon)
 
-    def optimise_codon(self, amino_acids):
+    def optimise_codons(self, query):
         '''Optimises codon selection.'''
-        codons = self.__get_codons(set(amino_acids.upper()))
+        codons = self.__get_codons(set(query['aminoAcids'].upper()))
         combos = [combo for combo in itertools.product(*codons)]
         analyses = list(set([self.__analyse(combo) for combo in combos]))
         analyses.sort(key=operator.itemgetter(4, 3))
