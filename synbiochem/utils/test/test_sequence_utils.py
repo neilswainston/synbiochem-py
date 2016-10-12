@@ -16,6 +16,11 @@ import synbiochem.utils.sequence_utils as seq_utils
 class CodonOptimiserTest(unittest.TestCase):
     '''Test class for CodonOptimiser.'''
 
+    def test_get_codon_prob(self):
+        '''Tests get_codon_prob method.'''
+        cod_opt = seq_utils.CodonOptimiser('83333')
+        self.assertAlmostEquals(0.46, cod_opt.get_codon_prob('CTG'), 2)
+
     def test_get_random_codon(self):
         '''Tests get_random_codon method.'''
         cod_opt = seq_utils.CodonOptimiser('83333')

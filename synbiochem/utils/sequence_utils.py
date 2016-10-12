@@ -160,13 +160,21 @@ class CodonOptimiser(object):
 
     def __init__(self, taxonomy_id):
         self.__taxonomy_id = taxonomy_id
-        self.__codon_usage_table = self.__get_codon_usage_table()
+        self.__aa_to_codon_prob = self.__get_codon_usage()
+        self.__codon_prob = {item[0]: item[1]
+                             for lst in self.__aa_to_codon_prob.values()
+                             for item in lst}
+
         self.__codon_to_w = {}
 
-        for key in self.__codon_usage_table:
-            aa_dict = dict([(a, b / self.__codon_usage_table[key][0][1])
-                            for a, b in self.__codon_usage_table[key]])
+        for key in self.__aa_to_codon_prob:
+            aa_dict = dict([(a, b / self.__aa_to_codon_prob[key][0][1])
+                            for a, b in self.__aa_to_codon_prob[key]])
             self.__codon_to_w.update(aa_dict)
+
+    def get_codon_prob(self, codon):
+        '''Gets the codon probability.'''
+        return self.__codon_prob[codon]
 
     def optimise(self, protein_seqs, max_repeat_nuc=float('inf')):
         '''Codon optimises the supplied protein sequences.'''
@@ -260,7 +268,7 @@ class CodonOptimiser(object):
 
     def get_all_codons(self, amino_acid):
         '''Returns all codons for a given amino acid.'''
-        return [t[0] for t in self.__codon_usage_table[amino_acid]]
+        return [t[0] for t in self.__aa_to_codon_prob[amino_acid]]
 
     def get_random_codon(self, amino_acid, excl_codons=None):
         '''Returns a random codon for a given amino acid,
@@ -269,7 +277,7 @@ class CodonOptimiser(object):
             excl_codons = []
 
         codon_usage = [codon_usage
-                       for codon_usage in self.__codon_usage_table[amino_acid]
+                       for codon_usage in self.__aa_to_codon_prob[amino_acid]
                        if codon_usage[0] not in excl_codons]
 
         if len(codon_usage) == 0:
@@ -286,9 +294,9 @@ class CodonOptimiser(object):
                 if cumulative_prob > rand:
                     return codon
 
-    def __get_codon_usage_table(self):
+    def __get_codon_usage(self):
         '''Gets the codon usage table for a given taxonomy id.'''
-        codon_usage_table = {aa_code: {} for aa_code in AA_CODES.values()}
+        aa_to_codon_prob = {aa_code: {} for aa_code in AA_CODES.values()}
 
         url = 'http://www.kazusa.or.jp/codon/cgi-bin/showcodon.cgi?species=' \
             + self.__taxonomy_id + '&aa=1&style=GCG'
@@ -304,13 +312,13 @@ class CodonOptimiser(object):
                 values = re.split('\\s+', line)
 
                 if values[0] in AA_CODES:
-                    codon_usage = codon_usage_table[AA_CODES[values[0]]]
-                    codon_usage[values[1]] = float(values[3])
+                    codon_prob = aa_to_codon_prob[AA_CODES[values[0]]]
+                    codon_prob[values[1]] = float(values[3])
 
-        codon_usage_table.update((x, _scale(y))
-                                 for x, y in codon_usage_table.items())
+        aa_to_codon_prob.update((x, _scale(y))
+                                for x, y in aa_to_codon_prob.items())
 
-        return codon_usage_table
+        return aa_to_codon_prob
 
 
 def get_minimum_free_energy(sequences):
