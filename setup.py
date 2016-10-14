@@ -11,7 +11,7 @@ from setuptools import find_packages, setup
 
 
 setup(name='synbiochem-py',
-      version='0.9.0',
+      version='0.1.0',
       description='synbiochem-py: Core python modules for SYNBIOCHEM',
       long_description='synbiochem-py: Core python modules for SYNBIOCHEM',
       url='https://github.com/synbiochem/synbiochem-py',
@@ -25,9 +25,7 @@ setup(name='synbiochem-py',
                    'License :: OSI Approved :: MIT License',
                    'Programming Language :: Python :: 2.7'
       ],
-      keywords='synbio',
+      keywords='synbio synthetic biology',
       packages=find_packages(),
-      install_requires=['regex', 'numpy', 'scipy', 'matplotlib', 'gurobipy',
-                        'biopython'],
-      test_suite='nose.collector',
-      tests_require=['nose'])
+      test_suite='synbiochem.utils.test',
+      install_requires=['regex', 'numpy', 'scipy', 'matplotlib', 'biopython'])

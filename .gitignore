@@ -5,3 +5,6 @@
 /.project
 /.pydevproject
 /.settings/**
+/build/
+/dist/
+/synbiochem_py.egg-info/
