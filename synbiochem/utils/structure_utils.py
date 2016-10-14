@@ -9,17 +9,20 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 '''
 # pylint: disable=too-many-arguments
 from matplotlib.colors import LinearSegmentedColormap
+import collections
+import itertools
 import os
 import random
 import re
+import sys
 
 from Bio import SeqUtils
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.Polypeptide import PPBuilder
 import numpy
 import pylab
-import scipy.spatial
 
+import scipy.spatial.distance as dist
 import synbiochem.utils.io_utils as io_utils
 
 
@@ -130,23 +133,35 @@ def get_structure(pdb_id):
 
 def calc_proximities(pdb_id):
     '''Calculates residue proximities from PDB file.'''
+    all_proximities = []
     structure = get_structure(pdb_id)
     chains = [c for c in structure.get_chains()]
 
-    coords = [[residue.child_dict['CA'].get_coord()
-               for residue in chn
-               if 'CA' in residue.child_dict]
-              for chn in chains]
+    for chn in chains:
+        res_coords = []
 
-    residues = [[residue.get_id()[1]
-                 for residue in chn
-                 if 'CA' in residue.child_dict]
-                for chn in chains]
+        for residue in chn:
+            if 'CA' in residue.child_dict:
+                res_coords.append([atom.get_coord()
+                                   for atom_id, atom
+                                   in residue.child_dict.iteritems()
+                                   if atom_id
+                                   not in ['C', 'N', 'O', 'OXT']])
 
-    return [(residue, scipy.spatial.distance.cdist(coord, coord, 'euclidean'))
-            if len(coord) > 0
-            else None
-            for residue, coord in zip(residues, coords)]
+        residues = [residue.get_id()[1]
+                    for residue in chn
+                    if 'CA' in residue.child_dict]
+
+        chn_prox = collections.defaultdict(list)
+
+        for res1, res2 in itertools.product(zip(residues, res_coords),
+                                            repeat=2):
+            chn_prox[res1[0]].append(numpy.amin(dist.cdist(res1[1], res2[1],
+                                                           'euclidean')))
+
+        all_proximities.append([chn_prox.keys(), chn_prox.values()])
+
+    return all_proximities
 
 
 def get_phi_psi_data(pdb_id, chain=None):
@@ -258,3 +273,11 @@ def _get_struct_filename(directory, struct):
     '''Gets filename for a given secondary structure class.'''
     # struct = struct if struct is not ' ' else 'blank'
     return os.path.join(directory, struct + '.xls')
+
+
+def main(args):
+    '''main method'''
+    plot_proximities(args[0])
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
