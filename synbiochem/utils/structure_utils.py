@@ -8,9 +8,9 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 @author:  neilswainston
 '''
 # pylint: disable=too-many-arguments
+from itertools import izip_longest, product
 from matplotlib.colors import LinearSegmentedColormap
 import collections
-import itertools
 import os
 import random
 import re
@@ -19,9 +19,9 @@ import sys
 from Bio import SeqUtils
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.Polypeptide import PPBuilder
-import numpy
 import pylab
 
+import numpy as np
 import scipy.spatial.distance as dist
 import synbiochem.utils.io_utils as io_utils
 
@@ -154,10 +154,9 @@ def calc_proximities(pdb_id):
 
         chn_prox = collections.defaultdict(list)
 
-        for res1, res2 in itertools.product(zip(residues, res_coords),
-                                            repeat=2):
-            chn_prox[res1[0]].append(numpy.amin(dist.cdist(res1[1], res2[1],
-                                                           'euclidean')))
+        for res1, res2 in product(zip(residues, res_coords), repeat=2):
+            chn_prox[res1[0]].append(np.amin(dist.cdist(res1[1], res2[1],
+                                                        'euclidean')))
 
         all_proximities.append([chn_prox.keys(), chn_prox.values()])
 
@@ -174,9 +173,10 @@ def get_phi_psi_data(pdb_id, chain=None):
             for polypep in builder.build_peptides(chn)]
 
 
-def plot_proximities(pdb_id):
+def plot_proximities(pdb_id, groupings=None, group_len=0):
     '''Plots proximity plot(s).'''
-    all_proximities = calc_proximities(pdb_id)
+    all_proximities = _group_proximities(calc_proximities(pdb_id), groupings,
+                                         group_len)
 
     plot_format = 'png'
 
@@ -202,8 +202,8 @@ def _plot(residues, values, plot_filename, plot_format, title, max_value=None):
 
     # Add colorbar, make sure to specify tick locations to match desired tick
     # labels
-    min_val = numpy.min(values)
-    max_val = numpy.max(values)
+    min_val = np.min(values)
+    max_val = np.max(values)
     cbar = fig.colorbar(cax, ticks=[min_val, max_val])
     cbar.set_ticks([min_val, max_val])
 
@@ -275,8 +275,47 @@ def _get_struct_filename(directory, struct):
     return os.path.join(directory, struct + '.xls')
 
 
+def _group_proximities(proximities, groupings, group_len=0):
+    '''Groups proximities.'''
+    if groupings is None and group_len < 1:
+        return proximities
+
+    group_proxs = []
+
+    for chain_prox in proximities:
+        len_prox = (max(chain_prox[0]) + 1)
+
+        if group_len > 0:
+            groupings = [[item for item in vals if item is not None]
+                         for vals in izip_longest(*[iter(range(len_prox))] *
+                                                  group_len)]
+
+        prox_list = [[float('NaN')] * len_prox] * len_prox
+
+        for prox, value in zip(*chain_prox):
+            prox_list[prox] = [float('NaN')] * len_prox
+
+            for idx, res in enumerate(chain_prox[0]):
+                prox_list[prox][res] = value[idx]
+
+        group_prox = [None] * len(groupings)
+
+        for idx1, group1 in enumerate(groupings):
+            group_prox[idx1] = [None] * len(groupings)
+
+            for idx2, group2 in enumerate(groupings):
+                group_prox[idx1][idx2] = np.mean([prox_list[pair[0]][pair[1]]
+                                                  for pair in product(group1,
+                                                                      group2)])
+
+        group_proxs.append([range(len(groupings)), group_prox])
+
+    return group_proxs
+
+
 def main(args):
     '''main method'''
+    print
     plot_proximities(args[0])
 
 if __name__ == '__main__':
