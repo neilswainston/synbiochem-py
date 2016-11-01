@@ -206,9 +206,9 @@ def _get_reaction_participants(equation_term, stoich_factor):
         return []
 
     all_terms = [participant.split() for participant in equation_term]
-    return [(terms[0], stoich_factor)
+    return [[terms[0], stoich_factor]
             if len(terms) == 1
-            else (terms[1], stoich_factor * float(terms[0]))
+            else [terms[1], stoich_factor * float(terms[0])]
             for terms in all_terms]
 
 
