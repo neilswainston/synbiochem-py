@@ -10,7 +10,6 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=bad-builtin
 # pylint: disable=too-few-public-methods
 from collections import defaultdict
-from operator import mul
 import itertools
 import operator
 
@@ -36,38 +35,52 @@ class CodonSelector(object):
         '''Optimises codon selection.'''
         codons = self.__get_codons(set(query['aminoAcids'].upper()))
         combos = [combo for combo in itertools.product(*codons)]
-        analyses = list(set([self.__analyse(combo, query['organism']['id'])
-                             for combo in combos]))
+        analyses = [self.__analyse(combo, query['organism']['id'])
+                    for combo in combos]
+        analyses = list(set([codon for analysis in analyses
+                             for codon in analysis]))
         analyses.sort(key=operator.itemgetter(4, 3))
         return analyses
 
     def __get_codons(self, amino_acids):
         '''Gets codons for a list of amino acids.'''
-        return [self.__aa_to_codon[amino_acid]
+        return [sequence_utils.CODONS[amino_acid]
                 for amino_acid in amino_acids]
 
     def __analyse(self, combo, tax_id):
-        '''Analyses a combo, returning nucleotides, ambigous nucleotides,
+        '''Analyses a combo, returning nucleotides, ambiguous nucleotides,
         amino acids encodes, and number of variants.'''
         codon_opt = self.__get_codon_opt(tax_id)
-        transpose = map(list, zip(*combo))
-        nucls = [''.join(sorted(list(set(pos)))) for pos in transpose]
-        ambig_codon = ''.join([sequence_utils.NUCL_CODES[nucl]
-                               for nucl in nucls])
-        amino_acids = defaultdict(list)
+        transpose = [sorted(list(term))
+                     for term in map(set, zip(*combo))]
 
-        for val in [(self.__codon_to_aa.get(''.join(combo), 'Stop'),
-                     ''.join(combo),
-                     codon_opt.get_codon_prob(''.join(combo)))
-                    for combo in itertools.product(*nucls)]:
-            amino_acids[val[0]].append(val[1:])
+        nucls = [[''.join(sorted(list(set(pos))))]
+                 for pos in transpose[:2]] + \
+            [_optimise_pos_3(transpose[2])]
 
-        return ambig_codon, \
-            tuple(nucls), \
-            tuple([(key, tuple(value))
-                   for key, value in dict(amino_acids).iteritems()]), \
-            len(amino_acids), \
-            reduce(mul, [len(nucl) for nucl in nucls])
+        ambig_codons = [[''.join([sequence_utils.NUCL_CODES[term]
+                                  for term in cdn]),
+                         cdn,
+                         [''.join(c)
+                          for c in itertools.product(*cdn)]]
+                        for cdn in itertools.product(*nucls)]
+
+        for ambig_codon in ambig_codons:
+            num_codons = len(ambig_codon[2])
+            amino_acids = defaultdict(list)
+
+            for codon in ambig_codon[2]:
+                a_a = self.__codon_to_aa.get(codon, 'Stop')
+                amino_acids[a_a].append((codon,
+                                         codon_opt.get_codon_prob(codon)))
+
+            ambig_codon[2] = tuple([(key, tuple(value))
+                                    for key, value in amino_acids.iteritems()])
+
+            ambig_codon.append(len(amino_acids))
+            ambig_codon.append(num_codons)
+
+        return [tuple(ambig_codon) for ambig_codon in ambig_codons]
 
     def __get_codon_opt(self, tax_id):
         '''Gets the CodonOptimiser for the supplied taxonomy.'''
@@ -75,3 +88,15 @@ class CodonSelector(object):
             self.__codon_opt[tax_id] = CodonOptimiser(tax_id)
 
         return self.__codon_opt[tax_id]
+
+
+def _optimise_pos_3(options):
+    options = list(set([tuple(sorted(set(opt)))
+                        for opt in itertools.product(*options)]))
+    options.sort(key=len)
+    return [''.join(opt) for opt in options]
+
+
+cod_sel = CodonSelector()
+print cod_sel.optimise_codons({'aminoAcids': 'FLIMV',
+                               'organism': {'id': '37762'}})

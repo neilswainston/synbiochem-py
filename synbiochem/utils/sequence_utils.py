@@ -54,6 +54,28 @@ AA_CODES = {'Ala': 'A',
             'Tyr': 'Y',
             'End': '*'}
 
+CODONS = {'A': [['G', 'C', 'ACGT']],
+          'C': [['T', 'G', 'CT']],
+          'D': [['G', 'A', 'CT']],
+          'E': [['G', 'A', 'AG']],
+          'F': [['T', 'T', 'CT']],
+          'G': [['G', 'G', 'ACGT']],
+          'H': [['C', 'A', 'CT']],
+          'I': [['A', 'T', 'ACT']],
+          'K': [['A', 'A', 'AG']],
+          'L': [['C', 'T', 'ACGT'], ['T', 'T', 'AG']],
+          'M': [['A', 'T', 'G']],
+          'N': [['A', 'A', 'CT']],
+          'P': [['C', 'C', 'ACGT']],
+          'Q': [['C', 'A', 'AG']],
+          'R': [['C', 'G', 'ACGT'], ['A', 'G', 'AG']],
+          'S': [['T', 'C', 'ACGT'], ['A', 'G', 'CT']],
+          'T': [['A', 'C', 'ACGT']],
+          'V': [['G', 'T', 'ACGT']],
+          'W': [['T', 'G', 'G']],
+          'Y': [['T', 'A', 'CT']],
+          'Stop': [['T', 'A', 'AG'], ['T', 'G', 'A']]}
+
 NUCL_CODES = {
     'A': 'A',
     'C': 'C',
@@ -416,6 +438,22 @@ def get_melting_temp(dna1, dna2=None, reag_concs=None, strict=True):
 def get_seq_by_melt_temp(seq, target_melt_temp, forward=True,
                          reagent_concs=None):
     '''Returns a subsequence close to desired melting temperature.'''
+    for i in range(1, len(seq)):
+        subseq = seq[:(i + 1)] if forward else seq[-(i + 1):]
+        melt_temp = get_melting_temp(subseq, None, reagent_concs)
+
+        if melt_temp > target_melt_temp:
+            return subseq, melt_temp
+
+    raise ValueError('Unable to get sequence of required melting temperature')
+
+
+def get_rand_seq_by_melt_temp(target_melt_temp, forward=True,
+                              reagent_concs=None, init_len=1000,
+                              max_repeat_nuc=float('inf')):
+    '''Returns a random close to desired melting temperature.'''
+    seq = get_random_dna(init_len, max_repeat_nuc)
+
     for i in range(1, len(seq)):
         subseq = seq[:(i + 1)] if forward else seq[-(i + 1):]
         melt_temp = get_melting_temp(subseq, None, reagent_concs)
