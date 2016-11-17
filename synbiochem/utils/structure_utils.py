@@ -18,10 +18,10 @@ import sys
 from Bio import SeqUtils
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.Polypeptide import PPBuilder
-
 from matplotlib.colors import LinearSegmentedColormap
-import numpy as np
 import pylab
+
+import numpy as np
 import scipy.spatial.distance as dist
 import synbiochem.utils.io_utils as io_utils
 
@@ -60,7 +60,7 @@ def get_seq_structs(pdb_ids=None):
     seq_structs = {}
     pdb_ids = sorted(pdb_ids) if pdb_ids is not None else None
     in_field = False
-    tokens = None
+    tokens = ()
     str_data = ''
 
     source_url = 'http://www.rcsb.org/pdb/files/ss.txt'
@@ -93,7 +93,7 @@ def get_seq_structs(pdb_ids=None):
                     str_data = ''
 
                     in_field = False
-                    tokens = None
+                    tokens = ()
                     str_data = ''
 
             elif in_field:
