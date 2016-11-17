@@ -10,13 +10,12 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=no-member
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
-from subprocess import call
+from subprocess import call, Popen
 import collections
 import itertools
 import operator
 import os
 import random
-import subprocess
 import tempfile
 import urllib
 import urllib2
@@ -93,6 +92,8 @@ NUCL_CODES = {
     'ACG': 'V',
     'ACGT': 'N',
 }
+
+INV_NUCL_CODES = {val: key for key, val in NUCL_CODES.items()}
 
 # KD Hydrophobicity, EIIP, Helix, Sheet, Turn
 AA_PROPS = {
@@ -354,9 +355,9 @@ def get_minimum_free_energy(sequences):
 
         input_file.close()
 
-        proc = subprocess.Popen('RNAfold',
-                                stdin=open(input_file.name),
-                                stdout=output_file)
+        proc = Popen('RNAfold',
+                     stdin=open(input_file.name),
+                     stdout=output_file)
 
         proc.wait()
 

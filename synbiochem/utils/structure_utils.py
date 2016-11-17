@@ -9,7 +9,6 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 '''
 # pylint: disable=too-many-arguments
 from itertools import izip_longest, product
-from matplotlib.colors import LinearSegmentedColormap
 import collections
 import os
 import random
@@ -19,9 +18,10 @@ import sys
 from Bio import SeqUtils
 from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.Polypeptide import PPBuilder
-import pylab
 
+from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
+import pylab
 import scipy.spatial.distance as dist
 import synbiochem.utils.io_utils as io_utils
 
