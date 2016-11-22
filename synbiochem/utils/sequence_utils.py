@@ -596,7 +596,7 @@ def write_fasta(id_seqs, filename=None):
 
     with open(filename, 'w') as fle:
         for seq_id, seq in id_seqs.iteritems():
-            fle.write('>' + seq_id + '\n')
+            fle.write('>' + str(seq_id) + '\n')
             fle.write(seq + '\n')
 
     return filename
