@@ -12,6 +12,7 @@ from xml.etree import ElementTree
 import math
 import uuid
 
+
 _RDF_NS = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
 _NS = {'ns': 'http://sbols.org/v1#',
        'rdf': _RDF_NS}

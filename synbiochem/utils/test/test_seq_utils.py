@@ -10,7 +10,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=too-many-public-methods
 import unittest
 
-import synbiochem.utils.sequence_utils as seq_utils
+from synbiochem.utils import seq_utils
 
 
 class CodonOptimiserTest(unittest.TestCase):
