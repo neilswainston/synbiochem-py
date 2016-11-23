@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:RDF xmlns="http://sbols.org/v1#" xmlns:ns2="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <DnaComponent ns2:about="https://ice.synbiochem.co.uk:443/entry/dc#SBC000123">
+        <displayId>SBC000123</displayId>
+        <name>ahpC L177Q</name>
+        <description>ORF</description>
+        <dnaSequence>
+            <DnaSequence ns2:about="https://ice.synbiochem.co.uk:443/entry/ds#0205ec7403cafbbe288df3800ff993f21644031b">
+                <nucleotides>ctcgagaattcaaaagatctgagtcataggtagaagctagaggcgagaaaccttcccaatcttatcattacgaaaggacgtccctatgagcctgattaacaccaaaattaagccgttcaagaaccaggcgtttaaaaatggcgagttcattgaaatcactgaaaaagataccgaaggtcgctggagcgtgtttttcttttacccagcggatttcactttcgtctgcccgacagaactgggcgatgttgcggatcactatgaggagctgcaaaaactgggggtggacgtgtatgccgtgtctacggatacccattttacgcacaaagcgtggcatagcagtagcgaaactatcgcaaagatcaaatatgctatgattggcgacccgacgggtgctttgacgcgaaattttgataatatgcgcgaagatgaaggactggcggatcgggccacatttgtcgtagatccgcagggcatcatccaggcgattgaagtaactgccgaaggtatcgggcgagatgcatcagatttgttgcgcaaaatcaaagccgcccagtacgtggcatcacaccctggtgaagtgtgccccgccaaatggaaagagggtgaagccacccaagcacctagcctggatctggtgggtaagatctaattgtagactcggatccaaactcgag</nucleotides>
+            </DnaSequence>
+        </dnaSequence>
+        <annotation>
+            <SequenceAnnotation ns2:about="https://ice.synbiochem.co.uk:443/entry/sa#79de62e1-6d25-4434-bab2-91a41e8b219f">
+                <bioStart>1</bioStart>
+                <bioEnd>674</bioEnd>
+                <strand>+</strand>
+                <subComponent>
+                    <DnaComponent ns2:about="https://ice.synbiochem.co.uk:443/entry/dc#5dcce791-bba0-4304-962f-db6c977b7a94">
+                        <ns2:type ns2:resource="http://purl.obolibrary.org/obo/SO_0000149"/>
+                        <displayId>5dcce791-bba0-4304-962f-db6c977b7a94</displayId>
+                        <name>synthetic DNA construct</name>
+                    </DnaComponent>
+                </subComponent>
+            </SequenceAnnotation>
+        </annotation>
+        <annotation>
+            <SequenceAnnotation ns2:about="https://ice.synbiochem.co.uk:443/entry/sa#25ae0d3a-c26e-4077-8c3f-65a8ca2e86ca">
+                <bioStart>86</bioStart>
+                <bioEnd>649</bioEnd>
+                <strand>-</strand>
+                <subComponent>
+                    <DnaComponent ns2:about="https://ice.synbiochem.co.uk:443/entry/dc#1a4523a7-f8b2-4fe5-8907-f8356b7168fe">
+                        <ns2:type ns2:resource="http://purl.obolibrary.org/obo/SO_0000316"/>
+                        <displayId>1a4523a7-f8b2-4fe5-8907-f8356b7168fe</displayId>
+                        <name>EcahpC L177Q</name>
+                    </DnaComponent>
+                </subComponent>
+            </SequenceAnnotation>
+        </annotation>
+    </DnaComponent>
+</ns2:RDF>
