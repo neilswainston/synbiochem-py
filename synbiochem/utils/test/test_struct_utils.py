@@ -10,7 +10,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=too-many-public-methods
 import unittest
 
-import synbiochem.utils.structure_utils as struct_utils
+from synbiochem.utils import struct_utils
 
 
 class Test(unittest.TestCase):
