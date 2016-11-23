@@ -45,6 +45,9 @@ class Dna(object):
         '''Adds feature.'''
         self.__dict__['features'].append(feature)
 
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
     def __repr__(self):
         return self.__dict__['id']
 
