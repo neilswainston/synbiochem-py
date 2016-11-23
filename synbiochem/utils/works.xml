@@ -1,0 +1,12 @@
+<ns2:RDF xmlns="http://sbols.org/v1#" xmlns:ns2="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+	<DnaComponent ns2:about="https://www.synbiochem.co.uk#SBC001227">
+		<displayId>SBC001227</displayId>
+		<name>PlacUV5 2</name>
+		<description>Promoter</description>
+		<dnaSequence>
+			<DnaSequence ns2:about="https://www.synbiochem.co.uk#08749234e7ba52893b6b9fd8e9afc7657fcb2cab">
+				<nucleotides>gaattcaaaagatctgagtcttgtatatctggcagtcagggattccgcaacgaaaaaaaaccccgccctgtcaggggcggggtttttttttgttcagtcgctcgtcgggtgtctctcgtttctacacttagagacgttgcgccaccattacttcgataggctgggagatttcgtgtcgttacgcggtcgggccattaagtatagtggtaaagtactcaatttctagtctcgacgaactctacggcatccgctaactcactctttaaggaaaggtcgccctcagtatcgtaatatgcagtctgctaaccttctttcgccaaagtacagtcacactagagactatgacctcctaggataatatgccagacgattcgatggtgattaggacctctttacactttatgcttccggctcgtataatgtgtggaattgtgagcggataacaatttcagcggcgtctcgtagataacctgcactcacttgtagactcggatccaaactcgag</nucleotides>
+			</DnaSequence>
+		</dnaSequence>
+	</DnaComponent>
+</ns2:RDF>
