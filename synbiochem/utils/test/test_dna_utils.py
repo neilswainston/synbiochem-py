@@ -8,6 +8,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 @author:  neilswainston
 '''
 # pylint: disable=too-many-public-methods
+import os
 import tempfile
 import unittest
 
@@ -19,7 +20,8 @@ class Test(unittest.TestCase):
 
     def test(self):
         '''Tests round trip equality.'''
-        dna1 = dna_utils.read('sbol.xml')
+        directory = os.path.dirname(os.path.realpath(__file__))
+        dna1 = dna_utils.read(os.path.join(directory, 'sbol.xml'))
         tmp = tempfile.NamedTemporaryFile()
         dna_utils.write(dna1, tmp.name)
         dna2 = dna_utils.read(tmp.name)

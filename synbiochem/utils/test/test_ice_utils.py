@@ -10,6 +10,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=no-member
 # pylint: disable=too-many-public-methods
 import getpass
+import os
 import unittest
 
 from synbiochem.utils.ice_utils import ICEClient, ICEEntry
@@ -76,7 +77,7 @@ class TestICEEntry(unittest.TestCase):
 
     def test_get_sbol_doc(self):
         '''Tests get_sbol_doc method.'''
-        dna = dna_utils.read('sbol.xml')
+        dna = _read('sbol.xml')
         ice_entry = ICEEntry(typ='PLASMID', dna=dna)
         self.assertEqual(ice_entry.get_dna(), dna)
 
@@ -117,8 +118,8 @@ class TestICEEntry(unittest.TestCase):
 
     def test_set_dna(self):
         '''Tests set_dna method.'''
-        dna1 = dna_utils.read('sbol.xml')
-        dna2 = dna_utils.read('sbol2.xml')
+        dna1 = _read('sbol.xml')
+        dna2 = _read('sbol2.xml')
 
         ice_entry = ICEEntry(typ='PLASMID', dna=dna1)
         self.__ice_client.set_ice_entry(ice_entry)
@@ -140,7 +141,7 @@ class TestICEClient(unittest.TestCase):
 
     def test_get_ice_entry(self):
         '''Tests get_ice_entry method.'''
-        dna = dna_utils.read('sbol.xml')
+        dna = _read('sbol.xml')
 
         ice_entry_in = ICEEntry(typ='PART', dna=dna)
         self.__ice_client.set_ice_entry(ice_entry_in)
@@ -151,7 +152,7 @@ class TestICEClient(unittest.TestCase):
 
     def test_set_ice_entry(self):
         '''Tests set_ice_entry method.'''
-        dna_in = dna_utils.read('sbol.xml')
+        dna_in = _read('sbol.xml')
 
         ice_entry_in = ICEEntry(typ='PLASMID', dna=dna_in)
         self.__ice_client.set_ice_entry(ice_entry_in)
@@ -170,7 +171,7 @@ class TestICEClient(unittest.TestCase):
 
     def test_get_ice_entries_by_seq(self):
         '''Tests get_ice_entries_by_seq method.'''
-        dna = dna_utils.read('sbol.xml')
+        dna = _read('sbol.xml')
         # dna.set_seq(sequence_utils.get_random_dna(4096))
 
         ice_entry = ICEEntry(typ='PLASMID', dna=dna)
@@ -191,6 +192,11 @@ class Test(unittest.TestCase):
         self.assertEqual(ice_utils.get_ice_number('63', 'TEST'), '63')
         self.assertEqual(ice_utils.get_ice_number(63, 'TEST'), '63')
 
+
+def _read(filename):
+    '''Reads sbol file.'''
+    directory = os.path.dirname(os.path.realpath(__file__))
+    return dna_utils.read(os.path.join(directory, filename))
 
 if __name__ == "__main__":
     unittest.main()
