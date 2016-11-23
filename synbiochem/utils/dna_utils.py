@@ -165,5 +165,3 @@ def _get_about(uid=None):
 def _get_uid():
     '''Gets a unique (valid) id.'''
     return '0' + str(uuid.uuid4()).replace('-', '')
-
-write(read('sbol.xml'), 'out.xml')
