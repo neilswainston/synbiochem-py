@@ -7,11 +7,19 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
+# pylint: disable=no-member
 # pylint: disable=too-many-arguments
 from xml.etree import ElementTree
+import copy
 import math
+import re
 import uuid
 
+from synbiochem.utils import seq_utils
+
+
+SO_CDS = 'http://purl.obolibrary.org/obo/SO_0000316'
+SO_PROM = 'http://purl.obolibrary.org/obo/SO_0000167'
 
 _RDF_NS = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
 _NS = {'ns': 'http://sbols.org/v1#',
@@ -42,9 +50,11 @@ class Dna(object):
         if math.isnan(self.__dict__['end']):
             self.__dict__['end'] = len(seq)
 
-    def add_feature(self, feature):
-        '''Adds feature.'''
-        self.__dict__['features'].append(feature)
+    def clone(self):
+        '''Clones the DNA object (making a deep copy).'''
+        clone_dna = Dna()
+        clone_dna.__dict__ = copy.deepcopy(self.__dict__)
+        return clone_dna
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
@@ -76,7 +86,7 @@ def read(filename):
                    end=int(seq_annot.find('ns:bioEnd', _NS).text),
                    forward=seq_annot.find('ns:strand', _NS).text == '+')
 
-        dna.add_feature(feat)
+        dna.features.append(feat)
 
     return dna
 
@@ -107,6 +117,29 @@ def write(dna, filename=None):
         outfile.write(sbol)
 
     return sbol
+
+
+def concat(dnas):
+    '''Concatenates a list of DNA objects into a single DNA object.'''
+    concat_dna = dnas[0].clone()
+
+    for dna in dnas[1:]:
+        concat_dna = _add(concat_dna, dna)
+
+    return concat_dna
+
+
+def apply_restricts(dna, restricts, circular=False):
+    '''Applies restriction site cleavage to forward and reverse strands.'''
+    out_dnas = [dna]
+
+    for restrict in restricts:
+        out_dnas = _apply_restrict_to_dnas(out_dnas, restrict)
+
+    if circular and len(out_dnas) > 1:
+        return [concat([out_dnas[-1], out_dnas[0]])] + out_dnas[1:-1]
+    else:
+        return out_dnas
 
 
 def _read_dna_comp(dna_comp):
@@ -153,6 +186,80 @@ def _write(parent, name, params=None, text=None):
     node = ElementTree.SubElement(parent, name, params)
     node.text = text
     return node
+
+
+def _add(dna1, dna2):
+    '''Adds two DNA objects together.'''
+    # Add names, etc.
+    dna1.id = _concat([dna1.id, dna2.id])
+    dna1.name = _concat([dna1.name, dna2.name])
+    dna1.description = _concat([dna1.description, dna2.description])
+
+    # Add sequences:
+    orig_seq_len = len(dna1.sequence)
+    dna1.sequence += dna2.sequence
+
+    # Update features:
+    for feature in dna2.features:
+        feature = feature.clone()
+        feature.start += orig_seq_len
+        feature.end += orig_seq_len
+        dna1.features.append(feature)
+
+    return dna1
+
+
+def _concat(strs):
+    '''Concatenates non-None strings.'''
+    return '_'.join([string for string in strs if string is not None])
+
+
+def _apply_restrict_to_dnas(dnas, restrict):
+    '''Applies restriction site cleavage to forward and reverse strands.'''
+    out_dnas = []
+
+    for dna in dnas:
+        parent_seq = dna.sequence
+
+        for forw in _apply_restrict_to_seq(parent_seq, restrict):
+            for rev in _apply_restrict_to_seq(seq_utils.get_rev_comp(forw[0]),
+                                              restrict):
+                rev_comp = seq_utils.get_rev_comp(rev[0])
+                start = forw[1] + len(forw[0]) - rev[1] - len(rev[0])
+                end = start + len(rev_comp)
+                out_dnas.append(_get_concat_dna(dna, rev_comp, start, end))
+
+    return out_dnas
+
+
+def _apply_restrict_to_seq(seq, restrict):
+    '''Applies restriction site cleavage to a sequence.'''
+    sub_seqs = [(match.group(0), match.start())
+                for match in re.finditer(restrict, seq)]
+    end = sub_seqs[0][1] if len(sub_seqs) > 0 else len(seq)
+    return [(seq[:end], 0)] + sub_seqs
+
+
+def _get_concat_dna(parent_dna, seq, start, end):
+    '''Returns a DNA object from the supplied subsequence from a parent DNA
+    object.'''
+    frag_str = '_' + str(start) + '_' + str(end) \
+        if parent_dna.sequence != seq else ''
+
+    dna = Dna(parent_dna.id + frag_str,
+              parent_dna.name + frag_str,
+              parent_dna.description + frag_str,
+              seq=seq)
+
+    # TODO: This may not work for sub-sequences arriving from circular DNA:
+    for feature in parent_dna.features:
+        if feature.start >= start and feature.end <= end:
+            clone_feature = feature.clone()
+            clone_feature.start -= start
+            clone_feature.end -= start
+            dna.features.append(clone_feature)
+
+    return dna
 
 
 def _get_about(uid=None):

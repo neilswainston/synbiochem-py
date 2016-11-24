@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:so="http://purl.obolibrary.org/obo/" xmlns:s="http://sbols.org/v1#">
+	<s:DnaComponent rdf:about="http://synbiochem.co.uk#b4d7b13c-02b3-4bf2-921a-f68f28e3240a">
+		<s:displayId>SBC000128 [25:488]</s:displayId>
+		<s:name>PlacUV5 4 [25:488]</s:name>
+		<s:description>Promoter [25:488]</s:description>
+		<s:dnaSequence>
+			<s:DnaSequence rdf:about="http://synbiochem.co.uk#5a1ad9f9-ba77-4ae9-8802-48c2df3b9d7f">
+				<s:nucleotides>tcctgggaaagtccgacgagcgtatctaaaaaaaaccccgccctgtcaggggcggggtttttttttcgggatctcgacgctctcccttatgcgactgctgcattaggaagcagcccagtagtaggttgaggccgttgagcaccgccgccgcaaggaatggtgcatgcaaggagatggcgcccaacagtcccccggccacggggcctgccaccatacccacgccgaaacaagcgctcatgagcccgaagtggcgagcccgatcttccccatcggtgatgtcggcgatataggcgccagcaaccgcacctgtggcgccggtgatgccggccacgatgcgtccggcgtagaggatcgagatcgtttaggcaccccaggctttacactttatgcttccggctcgtataatgtgtggaattgtgagcggataacaatttcagcgttggatagcgttcgcacaggtcac</s:nucleotides>
+			</s:DnaSequence>
+		</s:dnaSequence>
+		<s:annotation>
+			<s:SequenceAnnotation rdf:about="https://ice.synbiochem.co.uk:443/entry/sa#7c610eca-e179-4039-bcbd-893f60a33733">
+				<s:bioStart>415</s:bioStart>
+				<s:bioEnd>431</s:bioEnd>
+				<s:strand>+</s:strand>
+				<s:subComponent>
+					<s:DnaComponent rdf:about="https://ice.synbiochem.co.uk:443/entry/dc#6e4be7bd-5397-42aa-b22b-916fefcbc004">
+						<rdf:type rdf:resource="http://purl.obolibrary.org/obo/SO_0000410"/>
+						<s:displayId>dc#6e4be7bd-5397-42aa-b22b-916fefcbc004</s:displayId>
+						<s:name>lac operator</s:name>
+					</s:DnaComponent>
+				</s:subComponent>
+			</s:SequenceAnnotation>
+		</s:annotation>
+	</s:DnaComponent>
+</rdf:RDF>
