@@ -269,7 +269,6 @@ class ICEClient(object):
         '''Uploads an SBOLDocument to ICE database.'''
         sbol_file = tempfile.NamedTemporaryFile(suffix='.xml')
         dna_utils.write(dna, sbol_file.name)
-
         return self.__upload_seq_file(record_id, typ, sbol_file.name)
 
     def __get_ice_number(self, ice_identifier):

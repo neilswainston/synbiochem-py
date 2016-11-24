@@ -48,12 +48,12 @@ class Test(unittest.TestCase):
     def test_app_restrict_site_linear(self):
         '''Tests apply_restriction_site method.'''
         _, dnas = _get_apply_restrict_site_dnas('(?<=gagtc.{5}).*', False)
-        self.assertEquals([len(dna.sequence) for dna in dnas], [25, 25, 831])
+        self.assertEquals([len(dna.seq) for dna in dnas], [25, 25, 831])
 
     def test_app_restrict_site_circular(self):
         '''Tests apply_restriction_site method.'''
         _, dnas = _get_apply_restrict_site_dnas('(?<=gagtc.{5}).*', True)
-        self.assertEquals([len(dna.sequence) for dna in dnas], [856, 25])
+        self.assertEquals([len(dna.seq) for dna in dnas], [856, 25])
 
     def test_app_restrict_site_nomatch(self):
         '''Tests aplly_restriction_site method.'''

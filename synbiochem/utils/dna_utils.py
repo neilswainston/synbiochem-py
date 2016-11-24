@@ -29,13 +29,14 @@ _NS = {'ns': 'http://sbols.org/v1#',
 class Dna(object):
     '''Class to represent a DNA object.'''
 
-    def __init__(self, dna_id=None, name=None, desc=None, typ=None, seq=None,
+    def __init__(self, disp_id=None, name=None, desc=None, typ=None, seq=None,
                  start=float('NaN'), end=float('NaN'), forward=True):
-        self.__dict__ = {'id': dna_id if dna_id is not None else _get_uid(),
-                         'sequence': seq,
+        self.__dict__ = {'disp_id': disp_id
+                         if disp_id is not None else _get_uid(),
+                         'seq': seq,
                          'name': name,
-                         'description': desc,
-                         'type': typ,
+                         'desc': desc,
+                         'typ': typ,
                          'start': start if not math.isnan(start) else 1,
                          'end': end if not math.isnan(end) else
                          (len(seq) if seq is not None else end),
@@ -60,7 +61,7 @@ class Dna(object):
         return self.__dict__ == other.__dict__
 
     def __repr__(self):
-        return self.__dict__['id']
+        return self.__dict__['name']
 
 
 def read(filename):
@@ -69,22 +70,36 @@ def read(filename):
     root = tree.getroot()
 
     dna_comp = root.find('ns:DnaComponent', _NS)
-
-    dna = Dna(*_read_dna_comp(dna_comp))
-
     dna_seq = dna_comp.find('ns:dnaSequence', _NS)
     dna_seq = dna_seq.find('ns:DnaSequence', _NS)
-    dna.set_seq(dna_seq.find('ns:nucleotides', _NS).text)
+
+    params = _read_dna_comp(dna_comp)
+    params.update({'seq': dna_seq.find('ns:nucleotides', _NS).text})
+    dna = Dna(**params)
 
     for annot in dna_comp.findall('ns:annotation', _NS):
         seq_annot = annot.find('ns:SequenceAnnotation', _NS)
         sub_comp = seq_annot.find('ns:subComponent', _NS)
         dna_comp = sub_comp.find('ns:DnaComponent', _NS)
 
-        feat = Dna(*_read_dna_comp(dna_comp),
-                   start=int(seq_annot.find('ns:bioStart', _NS).text),
-                   end=int(seq_annot.find('ns:bioEnd', _NS).text),
-                   forward=seq_annot.find('ns:strand', _NS).text == '+')
+        params = _read_dna_comp(dna_comp)
+
+        start = _find_text(seq_annot, 'ns:bioStart')
+
+        if start:
+            params.update({'start': int(start)})
+
+        end = _find_text(seq_annot, 'ns:bioEnd')
+
+        if end:
+            params.update({'end': int(end)})
+
+        forward = _find_text(seq_annot, 'ns:strand')
+
+        if forward:
+            params.update({'forward': forward == '+'})
+
+        feat = Dna(**params)
 
         dna.features.append(feat)
 
@@ -100,7 +115,7 @@ def write(dna, filename=None):
 
     dna_seq = _write(dna_comp, 'dnaSequence')
     dna_seq = _write(dna_seq, 'DnaSequence', _get_about())
-    _write(dna_seq, 'nucleotides', text=dna.sequence)
+    _write(dna_seq, 'nucleotides', text=dna.seq)
 
     for feature in dna.features:
         annot = _write(dna_comp, 'annotation')
@@ -150,7 +165,11 @@ def _read_dna_comp(dna_comp):
     typ_node = dna_comp.find('rdf:type', _NS)
     typ = typ_node.attrib['{' + _RDF_NS + '}resource'] \
         if typ_node is not None else None
-    return disp_id, name, desc, typ
+
+    if not re.match('^[\\w-]+$', disp_id):
+        disp_id = _get_uid()
+
+    return {'disp_id': disp_id, 'name': name, 'desc': desc, 'typ': typ}
 
 
 def _find_text(parent, field):
@@ -162,18 +181,18 @@ def _find_text(parent, field):
 def _write_dna_comp(parent, dna):
     '''Write DNAComponent node.'''
     dna_comp = ElementTree.SubElement(parent, 'DnaComponent',
-                                      _get_about(dna.id))
+                                      _get_about(dna.disp_id))
 
-    if dna.type:
-        _write(dna_comp, 'ns2:type', {'ns2:resource': dna.type})
+    if dna.typ:
+        _write(dna_comp, 'ns2:type', {'ns2:resource': dna.typ})
 
-    _write(dna_comp, 'displayId', text=dna.id)
+    _write(dna_comp, 'displayId', text=dna.disp_id)
 
     if dna.name:
         _write(dna_comp, 'name', text=dna.name)
 
-    if dna.description:
-        _write(dna_comp, 'description', text=dna.description)
+    if dna.desc:
+        _write(dna_comp, 'description', text=dna.desc)
 
     return dna_comp
 
@@ -191,13 +210,13 @@ def _write(parent, name, params=None, text=None):
 def _add(dna1, dna2):
     '''Adds two DNA objects together.'''
     # Add names, etc.
-    dna1.id = _concat([dna1.id, dna2.id])
+    dna1.disp_id = _get_uid()
     dna1.name = _concat([dna1.name, dna2.name])
-    dna1.description = _concat([dna1.description, dna2.description])
+    dna1.description = _concat([dna1.desc, dna2.desc])
 
     # Add sequences:
-    orig_seq_len = len(dna1.sequence)
-    dna1.sequence += dna2.sequence
+    orig_seq_len = len(dna1.seq)
+    dna1.seq += dna2.seq
 
     # Update features:
     for feature in dna2.features:
@@ -211,7 +230,7 @@ def _add(dna1, dna2):
 
 def _concat(strs):
     '''Concatenates non-None strings.'''
-    return '_'.join([string for string in strs if string is not None])
+    return ' - '.join([string for string in strs if string is not None])
 
 
 def _apply_restrict_to_dnas(dnas, restrict):
@@ -219,7 +238,7 @@ def _apply_restrict_to_dnas(dnas, restrict):
     out_dnas = []
 
     for dna in dnas:
-        parent_seq = dna.sequence
+        parent_seq = dna.seq
 
         for forw in _apply_restrict_to_seq(parent_seq, restrict):
             for rev in _apply_restrict_to_seq(seq_utils.get_rev_comp(forw[0]),
@@ -243,12 +262,16 @@ def _apply_restrict_to_seq(seq, restrict):
 def _get_concat_dna(parent_dna, seq, start, end):
     '''Returns a DNA object from the supplied subsequence from a parent DNA
     object.'''
-    frag_str = '_' + str(start) + '_' + str(end) \
-        if parent_dna.sequence != seq else ''
+    if parent_dna.seq == seq:
+        disp_id = parent_dna.disp_id
+        frag_str = ''
+    else:
+        disp_id = _get_uid()
+        frag_str = ' [' + str(start) + ':' + str(end) + ']'
 
-    dna = Dna(parent_dna.id + frag_str,
-              parent_dna.name + frag_str,
-              parent_dna.description + frag_str,
+    dna = Dna(disp_id=disp_id,
+              name=parent_dna.name + frag_str,
+              desc=parent_dna.desc + frag_str,
               seq=seq)
 
     # TODO: This may not work for sub-sequences arriving from circular DNA:
@@ -272,4 +295,4 @@ def _get_about(uid=None):
 
 def _get_uid():
     '''Gets a unique (valid) id.'''
-    return '0' + str(uuid.uuid4()).replace('-', '')
+    return str(uuid.uuid4())
