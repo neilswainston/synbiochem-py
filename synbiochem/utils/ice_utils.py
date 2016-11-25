@@ -12,7 +12,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 import json
 import tempfile
 
-from synbiochem.utils import net_utils as net_utils, dna_utils
+from synbiochem.utils import net_utils, sbol_utils
 
 
 _DEFAULT_ID_PREFIX = 'SBC'
@@ -183,7 +183,7 @@ class ICEClient(object):
                 if result['queryLength'] == int(result['alignment']):
                     entry = self.get_ice_entry(result['entryInfo']['id'])
 
-                    if entry.get_dna().sequence == seq:
+                    if entry.get_dna().seq == seq:
                         entries.append(entry)
 
         return entries
@@ -248,7 +248,7 @@ class ICEClient(object):
         with open(temp_file.name, 'w') as text_file:
             text_file.write(net_utils.get(url))
 
-        return dna_utils.read(temp_file.name)
+        return sbol_utils.read(temp_file.name)
 
     def __create_entry(self, ice_entry):
         '''Creates a new ICE entry in the database.'''
@@ -268,7 +268,7 @@ class ICEClient(object):
     def __upload_dna(self, record_id, typ, dna):
         '''Uploads an SBOLDocument to ICE database.'''
         sbol_file = tempfile.NamedTemporaryFile(suffix='.xml')
-        dna_utils.write(dna, sbol_file.name)
+        sbol_utils.write(dna, sbol_file.name)
         return self.__upload_seq_file(record_id, typ, sbol_file.name)
 
     def __get_ice_number(self, ice_identifier):

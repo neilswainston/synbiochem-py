@@ -10,35 +10,28 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=no-member
 # pylint: disable=too-many-public-methods
 import os
-import tempfile
 import unittest
 
-import synbiochem.utils.dna_utils as dna_utils
+from synbiochem.utils import dna_utils, sbol_utils
+import synbiochem.utils.test.test_sbol_utils as test_sbol_utils
 
 
 class Test(unittest.TestCase):
     '''Test class for dna_utils.'''
 
-    def test(self):
-        '''Tests round trip equality.'''
-        directory = os.path.dirname(os.path.realpath(__file__))
-        dna1 = dna_utils.read(os.path.join(directory, 'sbol.xml'))
-        dna2 = _round_trip(dna1)
-        self.assertEqual(dna1, dna2)
-
     def test_clone(self):
         '''Tests clone method.'''
         directory = os.path.dirname(os.path.realpath(__file__))
-        dna1 = dna_utils.read(os.path.join(directory, 'sbol.xml'))
-        dna2 = _round_trip(dna1.clone())
+        dna1 = sbol_utils.read(os.path.join(directory, 'sbol.xml'))
+        dna2 = test_sbol_utils.round_trip(dna1.clone())
         self.assertEqual(dna1, dna2)
 
     def test_concat(self):
         '''Tests concat method.'''
         directory = os.path.dirname(os.path.realpath(__file__))
-        dna2 = dna_utils.read(os.path.join(directory, 'sbol2.xml'))
-        dna3 = dna_utils.read(os.path.join(directory, 'sbol3.xml'))
-        concat_dna = _round_trip(dna_utils.concat([dna2, dna3]))
+        dna2 = sbol_utils.read(os.path.join(directory, 'sbol2.xml'))
+        dna3 = sbol_utils.read(os.path.join(directory, 'sbol3.xml'))
+        concat_dna = test_sbol_utils.round_trip(dna_utils.concat([dna2, dna3]))
 
         self.assertFalse(concat_dna.features[0].forward)
 
@@ -62,18 +55,11 @@ class Test(unittest.TestCase):
         self.assertEquals(parent, dnas[0])
 
 
-def _round_trip(dna):
-    '''Writes / reads DNA object, via SBOL export / import.'''
-    tmp = tempfile.NamedTemporaryFile()
-    dna_utils.write(dna, tmp.name)
-    return dna_utils.read(tmp.name)
-
-
 def _get_apply_restrict_site_dnas(restr, circ):
     '''Tests apply_restriction_site method.'''
     directory = os.path.dirname(os.path.realpath(__file__))
-    par = dna_utils.read(os.path.join(directory, 'restrict.xml'))
-    return par, [_round_trip(dna)
+    par = sbol_utils.read(os.path.join(directory, 'restrict.xml'))
+    return par, [test_sbol_utils.round_trip(dna)
                  for dna in dna_utils.apply_restricts(par, [restr], circ)]
 
 if __name__ == "__main__":

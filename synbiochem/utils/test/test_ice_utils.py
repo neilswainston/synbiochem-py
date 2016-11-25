@@ -13,9 +13,8 @@ import getpass
 import os
 import unittest
 
+from synbiochem.utils import ice_utils, sbol_utils
 from synbiochem.utils.ice_utils import ICEClient, ICEEntry
-import synbiochem.utils.dna_utils as dna_utils
-import synbiochem.utils.ice_utils as ice_utils
 
 
 class TestICEEntry(unittest.TestCase):
@@ -127,7 +126,7 @@ class TestICEEntry(unittest.TestCase):
         ice_entry.set_dna(dna2)
         self.__ice_client.set_ice_entry(ice_entry)
 
-        self.assertEqual(ice_entry.get_dna().sequence, dna2.sequence)
+        self.assertEqual(ice_entry.get_dna().seq, dna2.seq)
 
 
 class TestICEClient(unittest.TestCase):
@@ -148,7 +147,7 @@ class TestICEClient(unittest.TestCase):
 
         ice_entry_out = self.__ice_client.get_ice_entry(
             ice_entry_in.get_ice_number())
-        self.assertEqual(ice_entry_out.get_dna().sequence, dna.sequence)
+        self.assertEqual(ice_entry_out.get_dna().seq, dna.seq)
 
     def test_set_ice_entry(self):
         '''Tests set_ice_entry method.'''
@@ -178,7 +177,7 @@ class TestICEClient(unittest.TestCase):
         self.__ice_client.set_ice_entry(ice_entry)
 
         self.__ice_client.reconnect()
-        result = self.__ice_client.get_ice_entries_by_seq(dna.sequence)
+        result = self.__ice_client.get_ice_entries_by_seq(dna.seq)
         self.assertTrue(len(result) > 0)
 
 
@@ -196,7 +195,7 @@ class Test(unittest.TestCase):
 def _read(filename):
     '''Reads sbol file.'''
     directory = os.path.dirname(os.path.realpath(__file__))
-    return dna_utils.read(os.path.join(directory, filename))
+    return sbol_utils.read(os.path.join(directory, filename))
 
 if __name__ == "__main__":
     unittest.main()
