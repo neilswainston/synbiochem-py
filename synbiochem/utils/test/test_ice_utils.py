@@ -206,6 +206,14 @@ class TestICEClient(unittest.TestCase):
                         [link['id']
                          for link in ice_entry1.get_metadata()['linkedParts']])
 
+    def test_search_groups(self):
+        '''Tests get_group_id and search_groups method.'''
+        groups = self.__ice_client.get_groups()
+
+        for name in groups:
+            groups = self.__ice_client.search_groups(name[:-1])
+            self.assertTrue(name in [grp['label'] for grp in groups])
+
 
 class Test(unittest.TestCase):
     '''Test class for ice_utils.'''

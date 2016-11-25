@@ -197,6 +197,17 @@ class ICEClient(object):
                                          data=json.dumps(data),
                                          headers=self.__headers))
 
+    def get_groups(self):
+        '''Gets a group name to id map.'''
+        url = self.__url + '/rest/groups?offset=0&limit=4096'
+        groups = _read_resp(net_utils.get(url, headers=self.__headers))
+        return {group['label']: group['id'] for group in groups['data']}
+
+    def search_groups(self, term):
+        '''Gets groups from search terms.'''
+        url = self.__url + '/rest/groups/autocomplete?token=' + term
+        return _read_resp(net_utils.get(url, headers=self.__headers))
+
     def add_permission(self, ice_id, group_number, read=True):
         '''Adds user permissions to a given ICE entry.'''
         url = self.__url + '/parts/' + self.__get_ice_number(ice_id) + \
