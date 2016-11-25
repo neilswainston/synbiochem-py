@@ -180,6 +180,32 @@ class TestICEClient(unittest.TestCase):
         result = self.__ice_client.get_ice_entries_by_seq(dna.seq)
         self.assertTrue(len(result) > 0)
 
+    def test_add_link(self):
+        '''Tests add_link method.'''
+        dna1 = _read('sbol.xml')
+        dna2 = _read('sbol2.xml')
+
+        ice_entry1 = ICEEntry(typ='PLASMID', dna=dna1)
+        self.__ice_client.set_ice_entry(ice_entry1)
+
+        ice_entry2 = ICEEntry(typ='PLASMID', dna=dna2)
+        self.__ice_client.set_ice_entry(ice_entry2)
+
+        self.__ice_client.add_link(
+            ice_entry1.get_ice_number(), ice_entry2.get_ice_number())
+
+        # "Refresh" (update metadata)
+        ice_entry1 = self.__ice_client.get_ice_entry(ice_entry1.get_ice_id())
+        ice_entry2 = self.__ice_client.get_ice_entry(ice_entry2.get_ice_id())
+
+        self.assertTrue(ice_entry1.get_ice_number() in
+                        [par['id']
+                         for par in ice_entry2.get_metadata()['parents']])
+
+        self.assertTrue(ice_entry2.get_ice_number() in
+                        [link['id']
+                         for link in ice_entry1.get_metadata()['linkedParts']])
+
 
 class Test(unittest.TestCase):
     '''Test class for ice_utils.'''

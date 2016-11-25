@@ -188,6 +188,15 @@ class ICEClient(object):
 
         return entries
 
+    def add_link(self, parent_id, child_id):
+        '''Adds a link between a parent and child.'''
+        url = self.__url + '/rest/parts/' + get_ice_number(parent_id) + \
+            '/links'
+        data = {'id': get_ice_number(child_id)}
+        return _read_resp(net_utils.post(url,
+                                         data=json.dumps(data),
+                                         headers=self.__headers))
+
     def add_permission(self, ice_id, group_number, read=True):
         '''Adds user permissions to a given ICE entry.'''
         url = self.__url + '/parts/' + self.__get_ice_number(ice_id) + \
@@ -301,4 +310,4 @@ def get_ice_id(ice_number, id_prefix=_DEFAULT_ID_PREFIX):
 
 def _read_resp(response):
     '''Parses a string response into json.'''
-    return json.loads(str(response))
+    return json.loads(str(response)) if len(response) else None
