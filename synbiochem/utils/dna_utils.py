@@ -29,7 +29,12 @@ class DNA(object):
     '''Class to represent a DNA object.'''
 
     def __init__(self, disp_id=None, name=None, desc=None, typ=None, seq=None,
-                 start=float('NaN'), end=float('NaN'), forward=True):
+                 start=float('NaN'), end=float('NaN'), forward=True,
+                 features=None):
+
+        if math.isnan(end) and (not seq or len(seq) == 0):
+            raise ValueError('Unable to determine sequence length')
+
         self.__dict__ = {'disp_id': disp_id
                          if disp_id is not None else str(uuid.uuid4()),
                          'seq': seq,
@@ -37,10 +42,9 @@ class DNA(object):
                          'desc': desc,
                          'typ': typ,
                          'start': start if not math.isnan(start) else 1,
-                         'end': end if not math.isnan(end) else
-                         (len(seq) if seq is not None else end),
+                         'end': end if not math.isnan(end) else len(seq),
                          'forward': forward,
-                         'features': []
+                         'features': [] if features is None else features
                          }
 
     def set_seq(self, seq):
@@ -52,8 +56,8 @@ class DNA(object):
 
     def clone(self):
         '''Clones the DNA object (making a deep copy).'''
-        clone_dna = DNA()
-        clone_dna.__dict__ = copy.deepcopy(self.__dict__)
+        copy_dict = copy.deepcopy(self.__dict__)
+        clone_dna = DNA(**copy_dict)
         return clone_dna
 
     def __eq__(self, other):

@@ -38,30 +38,7 @@ def read(filename):
     dna = DNA(**params)
 
     for annot in dna_comp.findall('ns:annotation', _NS):
-        seq_annot = annot.find('ns:SequenceAnnotation', _NS)
-        sub_comp = seq_annot.find('ns:subComponent', _NS)
-        dna_comp = sub_comp.find('ns:DnaComponent', _NS)
-
-        params = _read_dna_comp(dna_comp)
-
-        start = _find_text(seq_annot, 'ns:bioStart')
-
-        if start:
-            params.update({'start': int(start)})
-
-        end = _find_text(seq_annot, 'ns:bioEnd')
-
-        if end:
-            params.update({'end': int(end)})
-
-        forward = _find_text(seq_annot, 'ns:strand')
-
-        if forward:
-            params.update({'forward': forward == '+'})
-
-        feat = DNA(**params)
-
-        dna.features.append(feat)
+        _read_annot(dna, annot)
 
     return dna
 
@@ -107,6 +84,45 @@ def _read_dna_comp(dna_comp):
         disp_id = str(uuid.uuid4())
 
     return {'disp_id': disp_id, 'name': name, 'desc': desc, 'typ': typ}
+
+
+def _read_annot(dna, annot):
+    '''Reads annotation node.'''
+    seq_annot = annot.find('ns:SequenceAnnotation', _NS)
+    sub_comp = seq_annot.find('ns:subComponent', _NS)
+    dna_comp = sub_comp.find('ns:DnaComponent', _NS)
+
+    params = _read_dna_comp(dna_comp)
+
+    start = _find_text(seq_annot, 'ns:bioStart')
+
+    if start:
+        params.update({'start': int(start)})
+
+    end = _find_text(seq_annot, 'ns:bioEnd')
+
+    if end:
+        params.update({'end': int(end)})
+
+    forward = _find_text(seq_annot, 'ns:strand')
+
+    if forward:
+        params.update({'forward': forward == '+'})
+
+    # Tests due to ICE eccentricities...
+    try:
+        feat = DNA(**params)
+
+        pos = (feat.start, feat.end, feat.forward)
+
+        # Prevents cases where features are duplicated in the SBOL:
+        if pos not in [(feature.start, feature.end, feature.forward)
+                       for feature in dna.features]:
+            dna.features.append(feat)
+
+    except ValueError:
+        # Prevents cases with no end position and no sequence:
+        print 'Ignoring invalid feature.'
 
 
 def _find_text(parent, field):
