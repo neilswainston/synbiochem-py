@@ -8,6 +8,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 @author:  neilswainston
 '''
 # pylint: disable=no-member
+# pylint: disable=redundant-unittest-assert
 # pylint: disable=too-many-public-methods
 import getpass
 import os
@@ -213,6 +214,20 @@ class TestICEClient(unittest.TestCase):
         for name in groups:
             groups = self.__ice_client.search_groups(name[:-1])
             self.assertTrue(name in [grp['label'] for grp in groups])
+
+    def test_add_permission(self):
+        '''Tests add_permission method.'''
+        dna = _read('sbol.xml')
+        ice_entry = ICEEntry(typ='PLASMID', dna=dna)
+        self.__ice_client.set_ice_entry(ice_entry)
+
+        groups = self.__ice_client.get_groups()
+
+        for group_num in groups.values():
+            self.__ice_client.add_permission(ice_entry.get_ice_id(), group_num)
+
+        # If test progresses to here, it has succeeded:
+        self.assertTrue(True)
 
 
 class Test(unittest.TestCase):
