@@ -208,13 +208,13 @@ class ICEClient(object):
         url = self.__url + '/rest/groups/autocomplete?token=' + term
         return _read_resp(net_utils.get(url, headers=self.__headers))
 
-    def add_permission(self, ice_id, group_number, read=True):
+    def add_permission(self, ice_id, group_id, read=True):
         '''Adds user permissions to a given ICE entry.'''
         url = self.__url + '/rest/parts/' + self.__get_ice_number(ice_id) + \
             '/permissions'
         data = {'type': 'READ_ENTRY' if read else 'WRITE_ENTRY',
                 'article': 'GROUP',
-                'articleId': group_number}
+                'articleId': group_id}
 
         return _read_resp(net_utils.post(url, json.dumps(data),
                                          self.__headers))
