@@ -157,7 +157,6 @@ def _get_concat_dna(parent_dna, seq, start, end):
               desc=parent_dna.desc + frag_str,
               seq=seq)
 
-    # TODO: This may not work for sub-sequences arriving from circular DNA:
     for feature in parent_dna.features:
         if feature.start >= start and feature.end <= end:
             clone_feature = feature.clone()
