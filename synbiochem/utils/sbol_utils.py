@@ -52,14 +52,14 @@ def write(dna, filename=None):
 
     dna_seq = _write(dna_comp, 'dnaSequence')
     dna_seq = _write(dna_seq, 'DnaSequence', _get_about())
-    _write(dna_seq, 'nucleotides', text=dna.seq)
+    _write(dna_seq, 'nucleotides', text=dna['seq'])
 
-    for feature in dna.features:
+    for feature in dna['features']:
         annot = _write(dna_comp, 'annotation')
         annot = _write(annot, 'SequenceAnnotation', _get_about())
-        _write(annot, 'bioStart', text=str(feature.start))
-        _write(annot, 'bioEnd', text=str(feature.end))
-        _write(annot, 'strand', text='+' if feature.forward else '-')
+        _write(annot, 'bioStart', text=str(feature['start']))
+        _write(annot, 'bioEnd', text=str(feature['end']))
+        _write(annot, 'strand', text='+' if feature['forward'] else '-')
         sub_comp = _write(annot, 'subComponent')
         _write_dna_comp(sub_comp, feature)
 
@@ -113,12 +113,12 @@ def _read_annot(dna, annot):
     try:
         feat = DNA(**params)
 
-        pos = (feat.start, feat.end, feat.forward)
+        pos = (feat['start'], feat['end'], feat['forward'])
 
         # Prevents cases where features are duplicated in the SBOL:
-        if pos not in [(feature.start, feature.end, feature.forward)
-                       for feature in dna.features]:
-            dna.features.append(feat)
+        if pos not in [(feature['start'], feature['end'], feature['forward'])
+                       for feature in dna['features']]:
+            dna['features'].append(feat)
 
     except ValueError:
         # Prevents cases with no end position and no sequence:
@@ -134,18 +134,18 @@ def _find_text(parent, field):
 def _write_dna_comp(parent, dna):
     '''Write DNAComponent node.'''
     dna_comp = ElementTree.SubElement(parent, 'DnaComponent',
-                                      _get_about(dna.disp_id))
+                                      _get_about(dna['disp_id']))
 
-    if dna.typ:
-        _write(dna_comp, 'ns2:type', {'ns2:resource': dna.typ})
+    if dna['typ']:
+        _write(dna_comp, 'ns2:type', {'ns2:resource': dna['typ']})
 
-    _write(dna_comp, 'displayId', text=dna.disp_id)
+    _write(dna_comp, 'displayId', text=dna['disp_id'])
 
-    if dna.name:
-        _write(dna_comp, 'name', text=dna.name)
+    if dna['name']:
+        _write(dna_comp, 'name', text=dna['name'])
 
-    if dna.desc:
-        _write(dna_comp, 'description', text=dna.desc)
+    if dna['desc']:
+        _write(dna_comp, 'description', text=dna['desc'])
 
     return dna_comp
 

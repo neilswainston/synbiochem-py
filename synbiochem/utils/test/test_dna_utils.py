@@ -9,6 +9,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 '''
 # pylint: disable=no-member
 # pylint: disable=too-many-public-methods
+import json
 import os
 import unittest
 
@@ -19,11 +20,11 @@ import synbiochem.utils.test.test_sbol_utils as test_sbol_utils
 class Test(unittest.TestCase):
     '''Test class for dna_utils.'''
 
-    def test_clone(self):
-        '''Tests clone method.'''
+    def test_copy(self):
+        '''Tests copy method.'''
         directory = os.path.dirname(os.path.realpath(__file__))
         dna1 = sbol_utils.read(os.path.join(directory, 'sbol.xml'))
-        dna2 = test_sbol_utils.round_trip(dna1.clone())
+        dna2 = test_sbol_utils.round_trip(dna1.copy())
         self.assertEqual(dna1, dna2)
 
     def test_concat(self):
@@ -33,20 +34,28 @@ class Test(unittest.TestCase):
         dna3 = sbol_utils.read(os.path.join(directory, 'sbol3.xml'))
         concat_dna = test_sbol_utils.round_trip(dna_utils.concat([dna2, dna3]))
 
-        self.assertFalse(concat_dna.features[0].forward)
+        self.assertFalse(concat_dna['features'][0]['forward'])
 
-        self.assertEqual(len(dna2.features) + len(dna3.features),
-                         len(concat_dna.features))
+        self.assertEqual(len(dna2['features']) + len(dna3['features']),
+                         len(concat_dna['features']))
+
+    def test_json(self):
+        '''Tests json roundtrip.'''
+        directory = os.path.dirname(os.path.realpath(__file__))
+        dna1 = sbol_utils.read(os.path.join(directory, 'sbol.xml'))
+        params = json.loads(json.dumps(dna1))
+        dna2 = dna_utils.DNA(**params)
+        self.assertEqual(dna1, dna2)
 
     def test_app_restrict_site_linear(self):
         '''Tests apply_restriction_site method.'''
         _, dnas = _get_apply_restrict_site_dnas('(?<=gagtc.{5}).*', False)
-        self.assertEquals([len(dna.seq) for dna in dnas], [25, 25, 831])
+        self.assertEquals([len(dna['seq']) for dna in dnas], [25, 25, 831])
 
     def test_app_restrict_site_circular(self):
         '''Tests apply_restriction_site method.'''
         _, dnas = _get_apply_restrict_site_dnas('(?<=gagtc.{5}).*', True)
-        self.assertEquals([len(dna.seq) for dna in dnas], [856, 25])
+        self.assertEquals([len(dna['seq']) for dna in dnas], [856, 25])
 
     def test_app_restrict_site_nomatch(self):
         '''Tests aplly_restriction_site method.'''
