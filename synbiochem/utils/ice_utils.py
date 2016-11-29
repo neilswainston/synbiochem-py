@@ -59,6 +59,28 @@ class ICEEntry(object):
         '''Gets the ICE name.'''
         return self.__metadata['name'] if 'name' in self.__metadata else ''
 
+    def set_parameter(self, key, value):
+        '''Sets a parameter.'''
+        parameters = self.get_parameters()
+        parameters[key] = value
+
+        self.set_value('parameters',
+                       [{'name': key, 'value': value}
+                        for key, value in parameters.iteritems()])
+
+    def get_parameters(self):
+        '''Gets parameters.'''
+        if 'parameters' in self.__metadata:
+            return {parameter['name']: parameter['value']
+                    for parameter in self.__metadata['parameters']}
+
+        return {}
+
+    def get_parameter(self, key):
+        '''Gets parameter.'''
+        parameters = self.get_parameters()
+        return parameters.get(key, None)
+
     def get_metadata(self):
         '''Gets the metadata.'''
         return self.__metadata
@@ -66,6 +88,10 @@ class ICEEntry(object):
     def get_dna(self):
         '''Gets the DNA object.'''
         return self.__dna
+
+    def get_seq(self):
+        '''Gets the sequence.'''
+        return self.__dna['seq']
 
     def get_dna_updated(self):
         '''Gets the DNA object updated flag.'''
@@ -183,7 +209,7 @@ class ICEClient(object):
                 if result['queryLength'] == int(result['alignment']):
                     entry = self.get_ice_entry(result['entryInfo']['id'])
 
-                    if entry.get_dna().seq == seq:
+                    if entry.get_seq() == seq:
                         entries.append(entry)
 
         return entries

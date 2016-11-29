@@ -127,7 +127,27 @@ class TestICEEntry(unittest.TestCase):
         ice_entry.set_dna(dna2)
         self.__ice_client.set_ice_entry(ice_entry)
 
-        self.assertEqual(ice_entry.get_dna().seq, dna2.seq)
+        self.assertEqual(ice_entry.get_seq(), dna2['seq'])
+
+    def test_get_seq(self):
+        '''Tests get_seq method.'''
+        dna = _read('sbol.xml')
+
+        ice_entry = ICEEntry(typ='PLASMID', dna=dna)
+        self.__ice_client.set_ice_entry(ice_entry)
+        ice_entry = self.__ice_client.get_ice_entry(ice_entry.get_ice_id())
+
+        self.assertEqual(ice_entry.get_seq(), dna['seq'])
+
+    def test_set_get_parameter(self):
+        '''Tests set/get_parameter method.'''
+
+        ice_entry = ICEEntry(typ='PLASMID')
+        ice_entry.set_parameter('Cheese', 'Brie')
+        self.__ice_client.set_ice_entry(ice_entry)
+        ice_entry = self.__ice_client.get_ice_entry(ice_entry.get_ice_id())
+
+        self.assertEqual(ice_entry.get_parameter('Cheese'), 'Brie')
 
 
 class TestICEClient(unittest.TestCase):
@@ -148,7 +168,7 @@ class TestICEClient(unittest.TestCase):
 
         ice_entry_out = self.__ice_client.get_ice_entry(
             ice_entry_in.get_ice_number())
-        self.assertEqual(ice_entry_out.get_dna().seq, dna.seq)
+        self.assertEqual(ice_entry_out.get_seq(), dna['seq'])
 
     def test_set_ice_entry(self):
         '''Tests set_ice_entry method.'''
@@ -178,7 +198,7 @@ class TestICEClient(unittest.TestCase):
         self.__ice_client.set_ice_entry(ice_entry)
 
         self.__ice_client.reconnect()
-        result = self.__ice_client.get_ice_entries_by_seq(dna.seq)
+        result = self.__ice_client.get_ice_entries_by_seq(dna['seq'])
         self.assertTrue(len(result) > 0)
 
     def test_add_link(self):
