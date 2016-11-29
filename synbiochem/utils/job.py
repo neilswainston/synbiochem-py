@@ -8,16 +8,21 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 @author:  neilswainston
 '''
 from threading import Thread
+import uuid
 
 
 class JobThread(Thread):
     '''Wraps a job into a thread, and fires events.'''
 
-    def __init__(self, job_id):
+    def __init__(self):
         Thread.__init__(self)
-        self.__job_id = job_id
+        self.__job_id = str(uuid.uuid4())
         self.__cancelled = False
         self._event_handler = EventHandler()
+
+    def get_job_id(self):
+        '''Gets thread job id.'''
+        return self.__job_id
 
     def cancel(self):
         '''Cancels the current job.'''
