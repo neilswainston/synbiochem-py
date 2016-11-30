@@ -9,6 +9,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 '''
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
+from xml.etree.ElementTree import ParseError
 import json
 import tempfile
 
@@ -91,7 +92,7 @@ class ICEEntry(object):
 
     def get_seq(self):
         '''Gets the sequence.'''
-        return self.__dna['seq']
+        return self.__dna['seq'] if self.__dna else ''
 
     def get_dna_updated(self):
         '''Gets the DNA object updated flag.'''
@@ -153,15 +154,15 @@ class ICEClient(object):
     def get_ice_entry(self, ice_id):
         '''Gets an ICEEntry object from the ICE database.'''
         metadata = self.__get_meta_data(ice_id)
-        dna = self.__get_dna(ice_id) if metadata['hasSequence'] \
-            else None
+
+        try:
+            dna = self.__get_dna(ice_id) if metadata['hasSequence'] \
+                else None
+        except ParseError:
+            # Take no action
+            dna = None
 
         return ICEEntry(dna, metadata=metadata)
-
-    def get_dna(self, ice_id):
-        '''Gets a DNA object from the ICE database.'''
-        ice_entry = self.get_ice_entry(ice_id)
-        return ice_entry.get_dna()
 
     def set_ice_entry(self, ice_entry):
         '''Saves an ICEEntry object in the ICE database.'''
