@@ -11,10 +11,10 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 import math
 import random
 
-from synbiochem.utils.job import EventHandler
+from synbiochem.utils.job import JobThread
 
 
-class SimulatedAnnealer(object):
+class SimulatedAnnealer(JobThread):
     '''Class to perform simulated annealing method.'''
 
     def __init__(self, solution, acceptance=0.1, max_iter=10000,
@@ -23,22 +23,9 @@ class SimulatedAnnealer(object):
         self.__acceptance = acceptance
         self.__max_iter = max_iter
         self.__verbose = verbose
-        self.__cancelled = False
-        self.__ev_hand = EventHandler()
+        JobThread.__init__(self)
 
-    def cancel(self):
-        '''Cancel job.'''
-        self.__cancelled = True
-
-    def add_listener(self, listener):
-        '''Adds an event listener.'''
-        self.__ev_hand.add_listener(listener)
-
-    def remove_listener(self, listener):
-        '''Removes an event listener.'''
-        self.__ev_hand.remove_listener(listener)
-
-    def optimise(self):
+    def run(self):
         '''Optmises a solution with simulated annealing.'''
 
         # Initialization:
@@ -50,7 +37,7 @@ class SimulatedAnnealer(object):
 
         energy = self.__solution.get_energy()
 
-        while not self.__cancelled \
+        while not self._cancelled \
                 and energy > self.__acceptance \
                 and iteration < self.__max_iter:
             iteration += 1
@@ -108,7 +95,7 @@ class SimulatedAnnealer(object):
             message = 'Unable to optimise in ' + str(self.__max_iter) + \
                 ' iterations'
             self.__fire_event('error', 100, iteration, message=message)
-        elif self.__cancelled:
+        elif self._cancelled:
             self.__fire_event('cancelled', 100, iteration,
                               message='Job cancelled')
         else:
@@ -136,4 +123,4 @@ class SimulatedAnnealer(object):
         if status == 'finished':
             event['result'] = self.__solution.get_result()
 
-        self.__ev_hand.fire_event(event)
+        self._fire_event(event)
