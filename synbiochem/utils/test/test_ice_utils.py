@@ -249,6 +249,13 @@ class TestICEClient(unittest.TestCase):
         # If test progresses to here, it has succeeded:
         self.assertTrue(True)
 
+    def test_search(self):
+        '''Tests add_permission method.'''
+        resp = self.__ice_client.search('PLASMID')
+
+        # If test progresses to here, it has succeeded:
+        self.assertTrue(resp['resultCount'] > 0)
+
 
 class Test(unittest.TestCase):
     '''Test class for ice_utils.'''
