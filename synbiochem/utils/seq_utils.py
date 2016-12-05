@@ -504,11 +504,17 @@ def get_sequences(protein_ids):
     return sequences
 
 
-def get_uniprot_values(uniprot_ids, fields, batch_size=16):
+def get_uniprot_values(uniprot_ids, fields, batch_size=64, verbose=False):
     '''Gets dictionary of ids to values from Uniprot.'''
     values = {}
 
     for i in xrange(0, len(uniprot_ids), batch_size):
+
+        if verbose:
+            print 'seq_utils: getting Uniprot values ' + str(i) + ' - ' + \
+                str(min(i + batch_size, len(uniprot_ids))) + ' / ' + \
+                str(len(uniprot_ids))
+
         batch = uniprot_ids[i:min(i + batch_size, len(uniprot_ids))]
         query = '+or+'.join(['id:' + uniprot_id for uniprot_id in batch])
         url = 'http://www.uniprot.org/uniprot/?query=' + query + \
