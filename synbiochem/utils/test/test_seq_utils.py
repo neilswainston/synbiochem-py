@@ -47,10 +47,20 @@ class Test(unittest.TestCase):
 
     def test_get_uniprot_values(self):
         '''Tests get_uniprot_values method.'''
-        self.assertEquals(seq_utils.get_uniprot_values(['P19367', 'P46882'],
-                                                       ['organism-id'], 1),
-                          {'P19367': {'Organism ID': '9606'},
-                           'P46882': {'Organism ID': '5061'}})
+        result = seq_utils.get_uniprot_values(['P19367', 'P42212'],
+                                              ['organism-id',
+                                               'protein names'], 1)
+
+        expected = {'P19367': {'Organism ID': '9606',
+                               'Protein names': ['Hexokinase-1',
+                                                 'EC 2.7.1.1',
+                                                 'Brain form hexokinase',
+                                                 'Hexokinase type I',
+                                                 'HK I']},
+                    'P42212': {'Organism ID': '6100',
+                               'Protein names': ['Green fluorescent protein']}}
+
+        self.assertEquals(result, expected)
 
     def test_translate(self):
         '''Tests translate method.'''

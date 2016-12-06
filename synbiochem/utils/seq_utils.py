@@ -700,8 +700,8 @@ def _parse_uniprot_data(url, values):
             entry = resp.pop('Entry')
 
             if 'Protein names' in resp:
-                regexp = re.compile(r'(?<=\()[^)]*(?=\))|^[^\(]*(?= \()')
-                resp['Protein names'] = regexp.findall(
-                    resp.pop('Protein names'))
+                regexp = re.compile(r'(?<=\()[^)]*(?=\))|^[^(][^()]*')
+                names = regexp.findall(resp.pop('Protein names'))
+                resp['Protein names'] = [nme.strip() for nme in names]
 
             values.update({entry: resp})
