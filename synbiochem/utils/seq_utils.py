@@ -690,18 +690,21 @@ def _parse_uniprot_data(url, values):
     '''Parses Uniprot data.'''
     headers = None
 
-    for line in urllib2.urlopen(url):
-        tokens = line.strip().split('\t')
+    try:
+        for line in urllib2.urlopen(url):
+            tokens = line.strip().split('\t')
 
-        if headers is None:
-            headers = tokens
-        else:
-            resp = dict(zip(headers, tokens))
-            entry = resp.pop('Entry')
+            if headers is None:
+                headers = tokens
+            else:
+                resp = dict(zip(headers, tokens))
+                entry = resp.pop('Entry')
 
-            if 'Protein names' in resp:
-                regexp = re.compile(r'(?<=\()[^)]*(?=\))|^[^(][^()]*')
-                names = regexp.findall(resp.pop('Protein names'))
-                resp['Protein names'] = [nme.strip() for nme in names]
+                if 'Protein names' in resp:
+                    regexp = re.compile(r'(?<=\()[^)]*(?=\))|^[^(][^()]*')
+                    names = regexp.findall(resp.pop('Protein names'))
+                    resp['Protein names'] = [nme.strip() for nme in names]
 
-            values.update({entry: resp})
+                values.update({entry: resp})
+    except urllib2.HTTPError, err:
+        print err
