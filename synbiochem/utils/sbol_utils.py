@@ -15,6 +15,7 @@ import uuid
 
 from synbiochem.utils.dna_utils import DNA
 
+
 SO_RBS = 'http://purl.obolibrary.org/obo/SO_0000139'
 SO_CDS = 'http://purl.obolibrary.org/obo/SO_0000316'
 SO_PROM = 'http://purl.obolibrary.org/obo/SO_0000167'
