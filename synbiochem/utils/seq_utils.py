@@ -540,14 +540,14 @@ def search_uniprot(name, fields, limit=128):
     return values
 
 
-def count_pattern(strings, pattern):
+def count_pattern(strings, pattern, both_strands=True):
     '''Counts pattern in string of list of strings.'''
-    if isinstance(strings, str) or isinstance(strings, unicode):
-        return len(re.findall(pattern, strings))
-    elif strings is None:
-        return 0
+    forward = _count_pattern(strings, pattern)
+
+    if both_strands:
+        return forward + _count_pattern(get_rev_comp(strings), pattern)
     else:
-        return [count_pattern(s, pattern) for s in strings]
+        return forward
 
 
 def get_hamming(str1, str2):
@@ -663,6 +663,16 @@ def _apply_restriction(seq, restrict):
         seq = match.group(0)
 
     return seq
+
+
+def _count_pattern(strings, pattern):
+    '''Counts pattern in string of list of strings.'''
+    if isinstance(strings, str) or isinstance(strings, unicode):
+        return len(re.findall(pattern, strings))
+    elif strings is None:
+        return 0
+    else:
+        return [count_pattern(s, pattern) for s in strings]
 
 
 def _scale(codon_usage):
