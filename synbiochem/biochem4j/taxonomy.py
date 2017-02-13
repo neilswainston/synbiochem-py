@@ -10,6 +10,16 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 from synbiochem import biochem4j
 
 
+def get_synonyms_by_id(tax_id):
+    '''Gets a taxonomy's children.'''
+    qry = 'MATCH (o:Organism {taxonomy: {tax_id}}) RETURN o'
+
+    parameters = {'tax_id': tax_id}
+
+    results = _parse(biochem4j.run_query(qry, parameters))
+    return results[0]['names'] if len(results) > 0 else ''
+
+
 def get_children_by_id(tax_id):
     '''Gets a taxonomy's children.'''
     qry = 'MATCH (p:Organism {taxonomy: {tax_id}})<--(c:Organism) ' + \

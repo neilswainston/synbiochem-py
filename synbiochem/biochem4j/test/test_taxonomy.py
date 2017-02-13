@@ -16,6 +16,11 @@ from synbiochem.biochem4j import taxonomy
 class TestTaxonomy(unittest.TestCase):
     '''Test class for taxonomy.'''
 
+    def test_get_synonyms_by_id(self):
+        '''Tests get_synonyms_by_id method.'''
+        synonyms = taxonomy.get_synonyms_by_id('511145')
+        self.assertTrue('Escherichia coli strain MG1655' in synonyms)
+
     def test_get_children_by_id(self):
         '''Tests get_children_by_id method.'''
         children = taxonomy.get_children_by_id('83333')

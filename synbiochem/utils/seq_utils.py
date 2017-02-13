@@ -24,8 +24,10 @@ from Bio.Blast import NCBIXML
 from Bio.Data import CodonTable, IUPACData
 from Bio.Seq import Seq
 from Bio.SeqUtils.MeltingTemp import Tm_NN
+from requests.exceptions import ConnectionError
 import numpy
 
+from synbiochem.biochem4j import taxonomy
 import regex as re
 
 
@@ -160,22 +162,34 @@ def __scale(scale):
 __DEFAULT_REAG_CONC = {NA: 0.05, K: 0, TRIS: 0, MG: 0.01, DNTP: 0}
 
 
-def get_codon_usage_organisms():
+def get_codon_usage_organisms(expand=False):
     '''Gets name to taxonomy id dictionary of available codon usage tables.'''
-    name_to_id = {}
+    destination = os.path.join(os.path.expanduser('~'), 'codon')
+    filename = 'expand.txt' if expand else 'normal.txt'
+    filepath = os.path.join(destination, filename)
 
-    tmpfile = tempfile.NamedTemporaryFile()
-    url = 'ftp://ftp.kazusa.or.jp/pub/codon/current/species.table'
-    urllib.urlretrieve(url, tmpfile.name)
+    if not os.path.exists(filepath):
+        # Download:
+        if not os.path.exists(destination):
+            os.makedirs(destination)
 
-    with open(tmpfile.name, 'r') as textfile:
-        next(textfile)
+        url = 'ftp://ftp.kazusa.or.jp/pub/codon/current/species.table'
+        tmp = tempfile.NamedTemporaryFile(delete=False)
+        urllib.urlretrieve(url, tmp.name)
 
-        for line in textfile:
-            tokens = line.strip().split('\t')
-            name_to_id[tokens[0]] = tokens[1]
+        # Read:
+        codon_orgs = _read_codon_usage_orgs_file(tmp.name)
 
-    return name_to_id
+        # Expand:
+        if expand:
+            _expand_codon_usage_orgs(codon_orgs)
+
+        # Save:
+        _write_codon_usage_orgs_file(codon_orgs, filepath)
+
+        return codon_orgs
+    else:
+        return _read_codon_usage_orgs_file(filepath)
 
 
 class CodonOptimiser(object):
@@ -718,3 +732,66 @@ def _parse_uniprot_data(url, values):
                 values.update({entry: resp})
     except urllib2.HTTPError, err:
         print err
+
+
+def _read_codon_usage_orgs_file(filename):
+    '''Reads Codon Usage Database table of species file.'''
+    codon_orgs = {}
+
+    with open(filename, 'r') as textfile:
+        next(textfile)
+
+        for line in textfile:
+            tokens = line.strip().split('\t')
+            codon_orgs[tokens[0]] = tokens[1]
+
+    return codon_orgs
+
+
+def _expand_codon_usage_orgs(codon_orgs, max_errors=16):
+    '''Expand Codon Usage Db table of species with children and synonyms.'''
+    for tax_id in codon_orgs.values():
+        for name in taxonomy.get_synonyms_by_id(tax_id):
+            _add_codon_usage_org(codon_orgs, name, tax_id)
+
+        errors = 0
+        success = False
+
+        while not success:
+            try:
+                for child in taxonomy.get_children_by_id(tax_id):
+                    _add_codon_usage_org(codon_orgs, child['name'], tax_id)
+
+                    for name in child['names']:
+                        _add_codon_usage_org(codon_orgs, name, tax_id)
+
+                success = True
+
+            except ConnectionError, err:
+                errors += 1
+
+                if errors == max_errors:
+                    raise err
+
+
+def _add_codon_usage_org(codon_orgs, name, tax_id):
+    '''Adds name to codon_orgs.'''
+    if name not in codon_orgs:
+        codon_orgs[name] = tax_id
+
+
+def _write_codon_usage_orgs_file(codon_orgs, filepath):
+    '''Writes Codon Usage Database table of species file.'''
+    with open(filepath, 'w+') as fle:
+        fle.write('Name\tId\n')
+
+        for name, tax_id in codon_orgs.iteritems():
+            fle.write(name + '\t' + tax_id + '\n')
+
+
+def main():
+    '''main method.'''
+    get_codon_usage_organisms(expand=True)
+
+if __name__ == '__main__':
+    main()
