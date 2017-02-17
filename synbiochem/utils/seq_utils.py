@@ -428,6 +428,30 @@ def get_random_aa(length, insertions=False):
     return ''.join(random.choice(dictionary) for _ in range(length))
 
 
+def mutate_seq(seq, alphabet=None):
+    '''Mutates sequence.'''
+    if alphabet is None:
+        alphabet = NUCLEOTIDES
+
+    move = random.random()
+    pos = int(random.random() * len(seq))
+    base = random.choice(alphabet)
+
+    # Insert:
+    if move < 0.1:
+        seq_new = seq[1:pos] + base + seq[pos:]
+
+    # Delete:
+    elif move < 0.2:
+        seq_new = base + seq[:pos] + seq[pos + 1:]
+
+    # Replace:
+    else:
+        seq_new = seq[:pos] + base + seq[pos + 1:]
+
+    return seq_new
+
+
 def get_melting_temp(dna1, dna2=None, reag_concs=None, strict=True):
     '''Calculates melting temperarure of DNA sequence against its
     complement, or against second DNA sequence using Nearest-Neighbour
@@ -496,26 +520,6 @@ def is_valid(dna_seq, max_repeat_nuc):
             return False
 
     return True
-
-
-def get_sequences(protein_ids):
-    '''Returns sequences from protein ids, which may be either Uniprot ids,
-    or a protein sequence itself.'''
-    uniprot_id_pattern = \
-        '[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}'
-
-    sequences = {}
-
-    for idx, protein_id in enumerate(protein_ids):
-        if re.match(uniprot_id_pattern, protein_id):
-            sequences.update({uniprot_id: values['Sequence']
-                              for uniprot_id, values
-                              in get_uniprot_values([protein_id],
-                                                    ['sequence']).iteritems()})
-        else:
-            sequences[str(idx)] = protein_id
-
-    return sequences
 
 
 def get_uniprot_values(uniprot_ids, fields, batch_size=64, verbose=False):
