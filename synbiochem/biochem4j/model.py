@@ -118,10 +118,16 @@ def _add_species(model, cid, data, sbo=247):
     return spec
 
 
-def _add_reaction(model, cid, data):
+def _add_reaction(model, cid, data, reversible=False):
     '''Adds a reaction.'''
     react = model.createReaction()
+    react.setReversible(reversible)
+
     _init_sbase(react, cid, data, 167)
+
+    if not data.get('balance', False):
+        print 'WARNING: Reaction %id unbalanced' % data['id']
+
     return react
 
 
@@ -176,11 +182,18 @@ def _init_sbase(sbase, cid, data, sbo):
 
 def _add_identifiers(properties, sbase):
     '''Gets semantic identifiers.'''
-    for key, value in properties.iteritems():
-        url = 'http://identifiers.org/' + key + '/' + str(value)
+    ec_code = properties.get('ec', None)
 
-        if urllib.urlopen(url).getcode() == 200:
-            _add_cv_term(url, sbase)
+    if ec_code:
+        properties['ec-code'] = ec_code
+
+    for key, value in properties.iteritems():
+
+        for val in str(value).split(';'):
+            url = 'http://identifiers.org/' + key + '/' + val
+
+            if urllib.urlopen(url).getcode() == 200:
+                _add_cv_term(url, sbase)
 
 
 def _add_cv_term(url, sbase):
