@@ -27,8 +27,7 @@ _SPECIES_TO_IGNORE = ['http://identifiers.org/chebi/CHEBI:15377',
                       'http://identifiers.org/chebi/CHEBI:16526',
                       'http://identifiers.org/chebi/CHEBI:24636',
                       'http://identifiers.org/chebi/CHEBI:28938',
-                      'http://identifiers.org/chebi/CHEBI:33019',
-                      'http://identifiers.org/chebi/CHEBI:456215']
+                      'http://identifiers.org/chebi/CHEBI:33019']
 
 _FORMULA_TO_ID = {}
 

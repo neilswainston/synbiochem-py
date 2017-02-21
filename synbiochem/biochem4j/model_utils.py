@@ -7,6 +7,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
+# pylint: disable=too-many-arguments
 # pylint: disable=ungrouped-imports
 from _collections import defaultdict
 import re
@@ -210,7 +211,8 @@ def _add_compartment(model, cid):
     cmpt.setSize(1)
 
 
-def _add_species(model, cid, data, sbo=SBO_TERMS[SIMPLE_CHEM], conc=0):
+def _add_species(model, cid, data, sbo=SBO_TERMS[SIMPLE_CHEM], conc=0,
+                 const=False):
     '''Adds a species.'''
     spec = model.createSpecies()
     _init_sbase(spec, cid, data, sbo)
@@ -221,6 +223,8 @@ def _add_species(model, cid, data, sbo=SBO_TERMS[SIMPLE_CHEM], conc=0):
 
     spec.setCompartment('c')
     spec.setInitialConcentration(conc)
+    spec.setConstant(const)
+    spec.setBoundaryCondition(const)
 
     return spec
 
@@ -271,7 +275,8 @@ def _add_modifier(model, react_id, uniprot_id):
         if len(names) > 0:
             data['name'] = names[0]
 
-        spec = _add_species(model, cid, data, sbo=SBO_TERMS[PROTEIN], conc=1)
+        spec = _add_species(model, cid, data, sbo=SBO_TERMS[PROTEIN], conc=1,
+                            const=True)
 
     reaction.addModifier(spec)
 
