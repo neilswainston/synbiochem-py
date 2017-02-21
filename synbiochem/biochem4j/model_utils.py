@@ -204,11 +204,11 @@ def _get_id(cid):
     return '_' + re.sub('\\W', '_', cid)
 
 
-def _add_compartment(model, cid):
+def _add_compartment(model, cid, size=1e-15):
     '''Adds a compartment.'''
     cmpt = model.createCompartment()
     cmpt.setId(cid)
-    cmpt.setSize(1)
+    cmpt.setSize(size)
 
 
 def _add_species(model, cid, data, sbo=SBO_TERMS[SIMPLE_CHEM], conc=0,
@@ -275,8 +275,8 @@ def _add_modifier(model, react_id, uniprot_id):
         if len(names) > 0:
             data['name'] = names[0]
 
-        spec = _add_species(model, cid, data, sbo=SBO_TERMS[PROTEIN], conc=1,
-                            const=True)
+        spec = _add_species(model, cid, data, sbo=SBO_TERMS[PROTEIN],
+                            conc=1e-5, const=True)
 
     reaction.addModifier(spec)
 
