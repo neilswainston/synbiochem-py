@@ -25,9 +25,9 @@ from Bio.Data import CodonTable, IUPACData
 from Bio.Seq import Seq
 from Bio.SeqUtils.MeltingTemp import Tm_NN
 from requests.exceptions import ConnectionError
+from synbiochem.biochem4j import taxonomy
 import numpy
 
-from synbiochem.biochem4j import taxonomy
 import regex as re
 
 
@@ -475,14 +475,29 @@ def get_melting_temp(dna1, dna2=None, reag_concs=None, strict=True):
 
 
 def get_seq_by_melt_temp(seq, target_melt_temp, forward=True,
+                         terminii=None,
                          reagent_concs=None):
     '''Returns a subsequence close to desired melting temperature.'''
+    if terminii is None:
+        terminii = ['A', 'C', 'G', 'T']
+
+    best_delta_tm = float('inf')
+    best_subseq = ''
+    best_melt_temp = float('NaN')
+
     for i in range(1, len(seq)):
         subseq = seq[:(i + 1)] if forward else seq[-(i + 1):]
         melt_temp = get_melting_temp(subseq, None, reagent_concs)
 
-        if melt_temp > target_melt_temp:
-            return subseq, melt_temp
+        if subseq[-1] in terminii:
+            delta_tm = abs(melt_temp - target_melt_temp)
+
+            if delta_tm < best_delta_tm:
+                best_delta_tm = delta_tm
+                best_subseq = subseq
+                best_melt_temp = melt_temp
+            else:
+                return best_subseq, best_melt_temp
 
     raise ValueError('Unable to get sequence of required melting temperature')
 
