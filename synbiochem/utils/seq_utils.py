@@ -480,6 +480,8 @@ def get_seq_by_melt_temp(seq, target_melt_temp, forward=True,
     '''Returns a subsequence close to desired melting temperature.'''
     if terminii is None:
         terminii = ['A', 'C', 'G', 'T']
+    else:
+        terminii = [term.upper() for term in terminii]
 
     best_delta_tm = float('inf')
     best_subseq = ''
@@ -489,7 +491,7 @@ def get_seq_by_melt_temp(seq, target_melt_temp, forward=True,
         subseq = seq[:(i + 1)] if forward else seq[-(i + 1):]
         melt_temp = get_melting_temp(subseq, None, reagent_concs)
 
-        if subseq[-1] in terminii:
+        if subseq[-1].upper() in terminii:
             delta_tm = abs(melt_temp - target_melt_temp)
 
             if delta_tm < best_delta_tm:
