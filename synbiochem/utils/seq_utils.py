@@ -428,26 +428,29 @@ def get_random_aa(length, insertions=False):
     return ''.join(random.choice(dictionary) for _ in range(length))
 
 
-def mutate_seq(seq, alphabet=None):
+def mutate_seq(seq, mutations=1, alphabet=None):
     '''Mutates sequence.'''
     if alphabet is None:
         alphabet = NUCLEOTIDES
 
-    move = random.random()
-    pos = int(random.random() * len(seq))
-    base = random.choice(alphabet)
+    seq_new = seq
 
-    # Insert:
-    if move < 0.1:
-        seq_new = seq[1:pos] + base + seq[pos:]
+    for _ in range(mutations):
+        move = random.random()
+        pos = int(random.random() * len(seq))
+        base = random.choice(alphabet)
 
-    # Delete:
-    elif move < 0.2:
-        seq_new = base + seq[:pos] + seq[pos + 1:]
+        # Insert:
+        if move < 0.1:
+            seq_new = seq_new[1:pos + 1] + base + seq_new[pos + 1:]
 
-    # Replace:
-    else:
-        seq_new = seq[:pos] + base + seq[pos + 1:]
+        # Delete:
+        elif move < 0.2:
+            seq_new = base + seq_new[:pos] + seq_new[pos + 1:]
+
+        # Replace:
+        else:
+            seq_new = seq_new[:pos] + base + seq_new[pos + 1:]
 
     return seq_new
 
