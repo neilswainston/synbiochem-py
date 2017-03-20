@@ -30,7 +30,7 @@ class DNA(dict):
 
     def __init__(self, disp_id=None, name=None, desc=None, typ=None, seq=None,
                  start=1, end=float('NaN'), forward=True,
-                 features=None, links=None, parameters=None):
+                 features=None, options=None, links=None, parameters=None):
 
         if seq is None:
             seq = ''
@@ -47,8 +47,9 @@ class DNA(dict):
                      'end': end if not math.isnan(end) else len(seq),
                      'forward': forward,
                      'features': [] if features is None else features,
+                     'options': [] if options is None else options,
                      'links': [] if links is None else links,
-                     'parameters': [] if parameters is None else parameters
+                     'parameters': {} if parameters is None else parameters,
                      })
 
     def set_seq(self, seq):
@@ -69,6 +70,14 @@ class DNA(dict):
 
     def __repr__(self):
         return self['name']
+
+
+def get_dna(dct):
+    '''Factory method for constructing DNA object from dict.'''
+    dna = DNA(**dct)
+    dna['features'] = [get_dna(feat) for feat in dna['features']]
+    dna['options'] = [get_dna(opt) for opt in dna['options']]
+    return dna
 
 
 def concat(dnas):
