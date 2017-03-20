@@ -29,13 +29,13 @@ class DNA(dict):
     '''Class to represent a DNA object.'''
 
     def __init__(self, disp_id=None, name=None, desc=None, typ=None, seq=None,
-                 start=float('NaN'), end=float('NaN'), forward=True,
-                 features=None):
+                 start=1, end=float('NaN'), forward=True,
+                 features=None, links=None, parameters=None):
+
+        if seq is None:
+            seq = ''
 
         dict.__init__(self)
-
-        if math.isnan(end) and (not seq or len(seq) == 0):
-            raise ValueError('Unable to determine sequence length')
 
         self.update({'disp_id': disp_id
                      if disp_id is not None else str(uuid.uuid4()),
@@ -43,10 +43,12 @@ class DNA(dict):
                      'name': name,
                      'desc': desc,
                      'typ': typ,
-                     'start': start if not math.isnan(start) else 1,
+                     'start': start,
                      'end': end if not math.isnan(end) else len(seq),
                      'forward': forward,
-                     'features': [] if features is None else features
+                     'features': [] if features is None else features,
+                     'links': [] if links is None else links,
+                     'parameters': [] if parameters is None else parameters
                      })
 
     def set_seq(self, seq):
@@ -74,7 +76,7 @@ def concat(dnas):
     concat_dna = dnas[0].copy()
 
     for dna in dnas[1:]:
-        concat_dna = _add(concat_dna, dna)
+        concat_dna = add(concat_dna, dna)
 
     return concat_dna
 
@@ -92,23 +94,27 @@ def apply_restricts(dna, restricts, circular=False):
         return out_dnas
 
 
-def _add(dna1, dna2):
+def add(dna1, dna2):
     '''Adds two DNA objects together.'''
     # Add names, etc.
     dna1.disp_id = str(uuid.uuid4())
-    dna1.name = _concat([dna1['name'], dna2['name']])
-    dna1.description = _concat([dna1['desc'], dna2['desc']])
+    dna1['name'] = _concat([dna1['name'], dna2['name']])
+    dna1['desc'] = _concat([dna1['desc'], dna2['desc']])
 
     # Add sequences:
     orig_seq_len = len(dna1['seq'])
     dna1['seq'] += dna2['seq']
+    dna1['end'] = len(dna1['seq'])
 
     # Update features:
-    for feature in dna2['features']:
+    for feature in dna2.get('features', []):
         feature = feature.copy()
         feature['start'] += orig_seq_len
         feature['end'] += orig_seq_len
         dna1['features'].append(feature)
+
+    # Update links:
+    dna1['links'] = list(set(dna1['links'] + dna2['links']))
 
     return dna1
 

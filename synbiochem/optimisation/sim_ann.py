@@ -18,11 +18,12 @@ class SimulatedAnnealer(JobThread):
     '''Class to perform simulated annealing method.'''
 
     def __init__(self, solution, acceptance=0.1, max_iter=10000,
-                 verbose=False):
+                 heartbeat=1, verbose=False):
         self.__solution = solution
         self.__acceptance = acceptance
         self.__max_iter = max_iter
         self.__verbose = verbose
+        self.__heartbeat = heartbeat
         JobThread.__init__(self)
 
     def run(self):
@@ -32,8 +33,8 @@ class SimulatedAnnealer(JobThread):
         iteration = 0
         accepts = 0
         rejects = 0
-        r_temp = 0.0075
-        cooling_rate = 1e-3
+        r_temp = 0.025
+        cooling_rate = r_temp / 100
 
         energy = self.__solution.get_energy()
 
@@ -70,7 +71,7 @@ class SimulatedAnnealer(JobThread):
                                  str(self.__solution)])
 
             # Heartbeat:
-            if float(iteration) % 10 == 0:
+            if float(iteration) % self.__heartbeat == 0:
                 self.__fire_event('running',
                                   float(iteration) / self.__max_iter * 100,
                                   iteration,
