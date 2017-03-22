@@ -9,6 +9,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 '''
 # pylint: disable=no-member
 # pylint: disable=too-many-arguments
+from itertools import product
 import copy
 import math
 import re
@@ -121,15 +122,38 @@ def add(dna1, dna2):
         feature['end'] += orig_seq_len
         dna1['features'].append(feature)
 
-    # Update links:
-    dna1['links'] = list(set(dna1['links'] + dna2['links']))
-
     return dna1
+
+
+def expand(dna):
+    '''Expand a DNA object containing options into distinct DNA objects.'''
+    features = dna.pop('features')
+    dna['features'] = []
+
+    dnas = [dna]
+
+    for feature in features:
+        if len(feature['options']):
+            additions = feature['options']
+        elif len(feature['seq']):
+            additions = [feature]
+        else:
+            continue
+
+        for addition in additions:
+            addition['features'].append(addition.copy())
+
+        dnas = [add(dna.copy(), addition)
+                for dna, addition in product(dnas, additions)
+                if len(addition['seq'])]
+
+    return dnas
 
 
 def _concat(strs):
     '''Concatenates non-None strings.'''
-    return ' - '.join([string for string in strs if string is not None])
+    return ' - '.join([string for string in strs
+                       if string is not None and len(string)])
 
 
 def _apply_restrict_to_dnas(dnas, restrict):
