@@ -39,12 +39,13 @@ class DNA(dict):
 
         self.update({'disp_id': disp_id
                      if disp_id is not None else str(uuid.uuid4()),
-                     'seq': seq,
+                     'seq': seq.upper(),
                      'name': name,
                      'desc': desc,
                      'typ': typ,
                      'start': start,
-                     'end': end if not math.isnan(end) else len(seq),
+                     'end': end if not math.isnan(end)
+                     else start + len(seq) - 1,
                      'forward': forward,
                      'features': [] if features is None else features,
                      'options': [] if options is None else options,
@@ -54,10 +55,8 @@ class DNA(dict):
 
     def set_seq(self, seq):
         '''Sets sequence.'''
-        self['sequence'] = seq
-
-        if math.isnan(self['end']):
-            self['end'] = len(seq)
+        self['seq'] = seq.upper()
+        self['end'] = self['start'] + len(seq) - 1
 
     def copy(self):
         '''Copies the DNA object (making a deep copy).'''
