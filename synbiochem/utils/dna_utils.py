@@ -31,7 +31,8 @@ class DNA(dict):
 
     def __init__(self, disp_id=None, name=None, desc=None, typ=None, seq=None,
                  start=1, end=float('NaN'), forward=True,
-                 features=None, options=None, links=None, parameters=None):
+                 features=None, options=None, links=None,
+                 parameters=None, temp_params=None):
 
         if seq is None:
             seq = ''
@@ -52,6 +53,7 @@ class DNA(dict):
                      'options': [] if options is None else options,
                      'links': [] if links is None else links,
                      'parameters': {} if parameters is None else parameters,
+                     'temp_params': {} if temp_params is None else temp_params,
                      })
 
     def set_seq(self, seq):
