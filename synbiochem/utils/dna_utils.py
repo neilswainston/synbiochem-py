@@ -14,8 +14,7 @@ import copy
 import math
 import re
 import uuid
-
-from synbiochem.utils import seq_utils
+from Bio.Seq import Seq
 
 
 SO_CDS = 'http://purl.obolibrary.org/obo/SO_0000316'
@@ -97,12 +96,9 @@ def apply_restricts(dna, restricts, circular=False):
     out_dnas = [dna]
 
     for restrict in restricts:
-        out_dnas = _apply_restrict_to_dnas(out_dnas, restrict)
+        out_dnas = _apply_restrict_to_dnas(out_dnas, restrict, circular)
 
-    if circular and len(out_dnas) > 1:
-        return [concat([out_dnas[-1], out_dnas[0]])] + out_dnas[1:-1]
-    else:
-        return out_dnas
+    return out_dnas
 
 
 def add(dna1, dna2):
@@ -158,20 +154,28 @@ def _concat(strs):
                        if string is not None and len(string)])
 
 
-def _apply_restrict_to_dnas(dnas, restrict):
+def _apply_restrict_to_dnas(dnas, restrict, circular):
     '''Applies restriction site cleavage to forward and reverse strands.'''
     out_dnas = []
 
     for dna in dnas:
-        parent_seq = dna['seq']
+        restrict.catalyse(Seq(dna['seq']), linear=not circular)
+        start = 0
+        seqs = []
 
-        for forw in _apply_restrict_to_seq(parent_seq, restrict):
-            for rev in _apply_restrict_to_seq(seq_utils.get_rev_comp(forw[0]),
-                                              restrict):
-                rev_comp = seq_utils.get_rev_comp(rev[0])
-                start = forw[1] + len(forw[0]) - rev[1] - len(rev[0])
-                end = start + len(rev_comp)
-                out_dnas.append(_get_concat_dna(dna, rev_comp, start, end))
+        for result in restrict.results:
+            end = result - 1
+            seqs.append((dna['seq'][start:end], start, end))
+            start = end
+
+        seqs.append((dna['seq'][start:], start, len(dna['seq'])))
+
+        if circular:
+            seqs = [(seqs[-1][0] + seqs[0][0], seqs[-1][1], seqs[0][2])] + \
+                seqs[1:-1]
+
+        for seq in seqs:
+            out_dnas.append(_get_concat_dna(dna, seq[0], seq[1], seq[2]))
 
     return out_dnas
 
