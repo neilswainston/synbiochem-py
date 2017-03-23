@@ -494,7 +494,7 @@ def get_seq_by_melt_temp(seq, target_melt_temp, forward=True,
         subseq = seq[:(i + 1)] if forward else seq[-(i + 1):]
         melt_temp = get_melting_temp(subseq, None, reagent_concs)
 
-        if subseq[-1].upper() in terminii:
+        if subseq[-1 if forward else 0].upper() in terminii:
             delta_tm = abs(melt_temp - target_melt_temp)
 
             if delta_tm < best_delta_tm:
