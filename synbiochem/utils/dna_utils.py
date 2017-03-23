@@ -18,8 +18,11 @@ from Bio.Restriction import RestrictionBatch
 from Bio.Seq import Seq
 
 
-SO_CDS = 'http://purl.obolibrary.org/obo/SO_0000316'
 SO_PROM = 'http://purl.obolibrary.org/obo/SO_0000167'
+SO_RBS = 'http://purl.obolibrary.org/obo/SO_0000139'
+SO_CDS = 'http://purl.obolibrary.org/obo/SO_0000316'
+SO_PART = 'http://purl.obolibrary.org/obo/SO_0000804'
+SO_PLASMID = 'http://purl.obolibrary.org/obo/SO_0000637'
 
 _RDF_NS = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
 _NS = {'ns': 'http://sbols.org/v1#',

@@ -16,10 +16,6 @@ import uuid
 from synbiochem.utils.dna_utils import DNA
 
 
-SO_RBS = 'http://purl.obolibrary.org/obo/SO_0000139'
-SO_CDS = 'http://purl.obolibrary.org/obo/SO_0000316'
-SO_PROM = 'http://purl.obolibrary.org/obo/SO_0000167'
-
 _RDF_NS = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
 _NS = {'ns': 'http://sbols.org/v1#',
        'rdf': _RDF_NS}
