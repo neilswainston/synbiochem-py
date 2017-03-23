@@ -56,7 +56,7 @@ class Test(unittest.TestCase):
 
     def test_app_restrict_site_circular(self):
         '''Tests apply_restriction_site method.'''
-        _, dnas = _get_apply_restrict_site_dnas(Restriction.MlyI, True)
+        _, dnas = _get_apply_restrict_site_dnas('MlyI', True)
         self.assertEquals([len(dna['seq']) for dna in dnas], [50, 831])
 
     def test_app_restrict_site_nomatch(self):

@@ -14,6 +14,7 @@ import copy
 import math
 import re
 import uuid
+from Bio.Restriction import RestrictionBatch
 from Bio.Seq import Seq
 
 
@@ -96,6 +97,9 @@ def apply_restricts(dna, restricts, circular=False):
     out_dnas = [dna]
 
     for restrict in restricts:
+        batch = RestrictionBatch()
+        batch.add(str(restrict))
+        restrict = batch.get(str(restrict))
         out_dnas = _apply_restrict_to_dnas(out_dnas, restrict, circular)
 
     return out_dnas
