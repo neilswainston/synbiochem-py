@@ -206,10 +206,11 @@ class ICEClient(object):
 
         return response['id']
 
-    def do_blast(self, seq):
+    def do_blast(self, seq, max_num=1024):
         '''Performs BLAST search against database.'''
         data = {'blastQuery': {'blastProgram': 'BLAST_N',
-                               'sequence': seq.lower()}}
+                               'sequence': seq.lower()},
+                'parameters': {'retrieveCount': max_num}}
         return _read_resp(net_utils.post(self.__url + '/rest/search',
                                          json.dumps(data), self.__headers))
 
@@ -368,4 +369,4 @@ def get_ice_id(ice_number, id_prefix=_DEFAULT_ID_PREFIX):
 
 def _read_resp(response):
     '''Parses a string response into json.'''
-    return json.loads(str(response)) if len(response) else None
+    return json.loads(unicode(response)) if len(response) else None
