@@ -34,8 +34,8 @@ class DNA(dict):
 
     def __init__(self, disp_id=None, name=None, desc=None, typ=None, seq=None,
                  start=1, end=float('NaN'), forward=True,
-                 features=None, options=None, links=None,
-                 parameters=None, temp_params=None):
+                 features=None, parents=None, options=None,
+                 links=None, parameters=None, temp_params=None):
 
         if seq is None:
             seq = ''
@@ -53,6 +53,7 @@ class DNA(dict):
                      else start + len(seq) - 1,
                      'forward': forward,
                      'features': [] if features is None else features,
+                     'parents': [] if parents is None else parents,
                      'options': [] if options is None else options,
                      'links': [] if links is None else links,
                      'parameters': {} if parameters is None else parameters,
@@ -81,6 +82,7 @@ def get_dna(dct):
     '''Factory method for constructing DNA object from dict.'''
     dna = DNA(**dct)
     dna['features'] = [get_dna(feat) for feat in dna['features']]
+    dna['parents'] = [get_dna(par) for par in dna['parents']]
     dna['options'] = [get_dna(opt) for opt in dna['options']]
     return dna
 
@@ -88,6 +90,7 @@ def get_dna(dct):
 def concat(dnas):
     '''Concatenates a list of DNA objects into a single DNA object.'''
     concat_dna = dnas[0].copy()
+    concat_dna['disp_id'] = str(uuid.uuid4())
 
     for dna in dnas[1:]:
         concat_dna = add(concat_dna, dna)

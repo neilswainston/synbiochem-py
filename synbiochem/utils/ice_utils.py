@@ -126,17 +126,26 @@ class ICEEntry(object):
 class ICEClient(object):
     '''Class representing an ICE client.'''
 
-    def __init__(self, url, username, psswrd, id_prefix=_DEFAULT_ID_PREFIX):
+    def __init__(self, url, username, psswrd, id_prefix=_DEFAULT_ID_PREFIX,
+                 group_names=None):
         self.__url = url[:-1] if url[-1] == '/' else url
         self.__username = username
         self.__psswrd = psswrd
         self.__id_prefix = id_prefix
+
+        if group_names is None:
+            group_names = []
 
         self.__headers = {'Accept': 'application/json',
                           'Content-Type': 'application/json'}
 
         self.__sid, self.__user, self.__email = self.reconnect()
         self.__headers[_SESSION_KEY] = self.__sid
+
+        self.__group_ids = [group_id
+                            for name, group_id
+                            in self.get_groups().iteritems()
+                            if name in group_names]
 
     def reconnect(self):
         '''Reconnects to ICE server.'''
@@ -191,6 +200,10 @@ class ICEClient(object):
 
         metadata = self.__get_meta_data(self.__get_ice_id(response['id']))
         ice_entry.set_values(metadata)
+
+        for group_id in self.__group_ids:
+            self.add_permission(ice_entry.get_ice_id(), group_id)
+
         return response['id']
 
     def do_blast(self, seq):
