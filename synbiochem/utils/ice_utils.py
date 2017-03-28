@@ -377,9 +377,11 @@ class DNAWriter(object):
         typ = 'PLASMID' if dna.get('typ', None) == dna_utils.SO_PLASMID \
             else 'PART'
 
+        dna['parameters']['Full name'] = dna['name']
+
         ice_entry = ICEEntry(dna, typ)
 
-        ice_entry.set_value('name', dna['name'])
+        ice_entry.set_value('name', dna['name'][:125])
         ice_entry.set_value('shortDescription', dna['desc'])
 
         _add_params(ice_entry, dna)
