@@ -362,12 +362,17 @@ class DNAWriter(object):
         if dna['seq'] in self.__cache:
             return self.__cache[dna['seq']]
 
-        ice_entries = self.__ice_client.get_ice_entries_by_seq(dna['seq'])
+        try:
+            ice_entry = self.__ice_client.get_ice_entry(dna['disp_id'])
+            ice_id = ice_entry.get_ice_id()
+        except ValueError:
+            # If disp_id is not a valid ICE id, try BLAST:
+            ice_entries = self.__ice_client.get_ice_entries_by_seq(dna['seq'])
 
-        if len(ice_entries):
-            ice_id = ice_entries[0].get_ice_id()
-        else:
-            ice_id = self.__write(dna)
+            if len(ice_entries):
+                ice_id = ice_entries[0].get_ice_id()
+            else:
+                ice_id = self.__write(dna)
 
         self.__cache[dna['seq']] = ice_id
         return ice_id
