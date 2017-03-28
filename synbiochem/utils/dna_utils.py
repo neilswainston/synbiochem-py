@@ -124,6 +124,18 @@ def add(dna1, dna2):
     dna1['seq'] += dna2['seq']
     dna1['end'] = len(dna1['seq'])
 
+    # Update parameters:
+    for key, value in dna2['parameters'].iteritems():
+        param = dna1['parameters'].get(key, None)
+
+        if param is None:
+            dna1['parameters'][key] = value
+        elif isinstance(param, list):
+            param.append(value)
+            dna1['parameters'][key] = param
+        else:
+            dna1['parameters'][key] = [param, value]
+
     # Update features:
     for feature in dna2.get('features', []):
         feature = feature.copy()
