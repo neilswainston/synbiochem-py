@@ -355,15 +355,22 @@ class DNAWriter(object):
     def __init__(self, url, username, pssword, group_names):
         self.__ice_client = ICEClient(url, username, pssword,
                                       group_names=[group_names])
+        self.__cache = {}
 
     def submit(self, dna):
         '''Submits DNA to ICE (or checks for existing entry.'''
+        if dna['seq'] in self.__cache:
+            return self.__cache[dna['seq']]
+
         ice_entries = self.__ice_client.get_ice_entries_by_seq(dna['seq'])
 
         if len(ice_entries):
-            return ice_entries[0].get_ice_id()
+            ice_id = ice_entries[0].get_ice_id()
         else:
-            return self.__write(dna)
+            ice_id = self.__write(dna)
+
+        self.__cache[dna['seq']] = ice_id
+        return ice_id
 
     def __write(self, dna):
         '''Writes DNA document to ICE.'''
