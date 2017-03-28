@@ -13,7 +13,7 @@ from xml.etree.ElementTree import ParseError
 import json
 import tempfile
 
-from synbiochem.utils import net_utils, sbol_utils
+from synbiochem.utils import dna_utils, net_utils, sbol_utils
 
 
 _DEFAULT_ID_PREFIX = 'SBC'
@@ -349,6 +349,53 @@ class ICEClient(object):
         return get_ice_id(ice_number, self.__id_prefix)
 
 
+class DNAWriter(object):
+    '''Class for writing DNA objects to ICE.'''
+
+    def __init__(self, url, username, pssword, group_names):
+        self.__ice_client = ICEClient(url, username, pssword,
+                                      group_names=[group_names])
+
+    def submit(self, dna):
+        '''Submits DNA to ICE (or checks for existing entry.'''
+        ice_entries = self.__ice_client.get_ice_entries_by_seq(dna['seq'])
+
+        if len(ice_entries):
+            return ice_entries[0].get_ice_id()
+        else:
+            return self.__write(dna)
+
+    def __write(self, dna):
+        '''Writes DNA document to ICE.'''
+        typ = 'PLASMID' if dna.get('typ', None) == dna_utils.SO_PLASMID \
+            else 'PART'
+
+        ice_entry = ICEEntry(dna, typ)
+
+        ice_entry.set_value('name', dna['name'])
+        ice_entry.set_value('shortDescription', dna['desc'])
+
+        _add_params(ice_entry, dna)
+        links = set(dna['links'])
+
+        if dna.get('typ', None):
+            links.add(dna['typ'])
+
+        for feature in dna['features']:
+            _add_params(ice_entry, feature)
+            links |= set(feature['links'])
+
+        ice_entry.set_value('links', list(links))
+
+        entry_id = self.__ice_client.set_ice_entry(ice_entry)
+
+        for child in dna['children']:
+            par_ice_entry = self.submit(child)
+            self.__ice_client.add_link(entry_id, par_ice_entry)
+
+        return entry_id
+
+
 def get_ice_number(ice_identifier, id_prefix=_DEFAULT_ID_PREFIX):
     '''Maps ICE number to ICE id, i.e. from SBC000123 to 123,
     or if a number is supplied, returns the number.'''
@@ -370,3 +417,11 @@ def get_ice_id(ice_number, id_prefix=_DEFAULT_ID_PREFIX):
 def _read_resp(response):
     '''Parses a string response into json.'''
     return json.loads(unicode(response)) if len(response) else None
+
+
+def _add_params(ice_entry, dna):
+    '''Adds parameter values to ICEENtry.'''
+    for key, value in dna['parameters'].iteritems():
+        ice_entry.set_parameter(key, (', '.join([str(val) for val in value])
+                                      if isinstance(value, list)
+                                      else value))
