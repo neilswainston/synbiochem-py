@@ -479,7 +479,8 @@ def get_melting_temp(dna1, dna2=None, reag_concs=None, strict=True):
 
 def get_seq_by_melt_temp(seq, target_melt_temp, forward=True,
                          terminii=None,
-                         reagent_concs=None):
+                         reagent_concs=None,
+                         tol=0.025):
     '''Returns a subsequence close to desired melting temperature.'''
     if terminii is None:
         terminii = ['A', 'C', 'G', 'T']
@@ -489,6 +490,7 @@ def get_seq_by_melt_temp(seq, target_melt_temp, forward=True,
     best_delta_tm = float('inf')
     best_subseq = ''
     best_melt_temp = float('NaN')
+    in_tol = False
 
     for i in range(1, len(seq)):
         subseq = seq[:(i + 1)] if forward else seq[-(i + 1):]
@@ -497,11 +499,14 @@ def get_seq_by_melt_temp(seq, target_melt_temp, forward=True,
         if subseq[-1 if forward else 0].upper() in terminii:
             delta_tm = abs(melt_temp - target_melt_temp)
 
-            if delta_tm < best_delta_tm:
-                best_delta_tm = delta_tm
-                best_subseq = subseq
-                best_melt_temp = melt_temp
-            else:
+            if delta_tm / target_melt_temp < tol:
+                in_tol = True
+
+                if delta_tm < best_delta_tm:
+                    best_delta_tm = delta_tm
+                    best_subseq = subseq
+                    best_melt_temp = melt_temp
+            elif in_tol:
                 return best_subseq, best_melt_temp
 
     raise ValueError('Unable to get sequence of required melting temperature')

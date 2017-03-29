@@ -62,6 +62,11 @@ class Test(unittest.TestCase):
 
         self.assertEquals(result, expected)
 
+    def test_get_seq_by_melt_temp(self):
+        '''Tests translate method.'''
+        seq, _ = seq_utils.get_seq_by_melt_temp('agcgtgcgaagcgtgcgatcctcc', 70)
+        self.assertEqual(seq, 'agcgtgcgaagcgtgcgatc')
+
     def test_translate(self):
         '''Tests translate method.'''
         results = seq_utils.translate('agcgtgcgatcc', min_prot_len=1)
