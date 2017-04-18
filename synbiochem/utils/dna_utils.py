@@ -14,6 +14,7 @@ import copy
 import math
 import re
 import uuid
+
 from Bio.Restriction import RestrictionBatch
 from Bio.Seq import Seq
 

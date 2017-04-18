@@ -298,19 +298,24 @@ def _group_proximities(proximities, groupings, group_len=0):
             for idx, res in enumerate(chain_prox[0]):
                 prox_list[prox][res] = value[idx]
 
-        group_prox = [None] * len(groupings)
-
-        for idx1, group1 in enumerate(groupings):
-            group_prox[idx1] = [None] * len(groupings)
-
-            for idx2, group2 in enumerate(groupings):
-                group_prox[idx1][idx2] = np.mean([prox_list[pair[0]][pair[1]]
-                                                  for pair in product(group1,
-                                                                      group2)])
-
-        group_proxs.append([range(len(groupings)), group_prox])
+        group_proxs.append([range(len(groupings)), _get_group_prox(groupings,
+                                                                   prox_list)])
 
     return group_proxs
+
+
+def _get_group_prox(groupings, prox_list):
+    group_prox = [None] * len(groupings)
+
+    for idx1, group1 in enumerate(groupings):
+        group_prox[idx1] = [None] * len(groupings)
+
+        for idx2, group2 in enumerate(groupings):
+            group_prox[idx1][idx2] = np.mean([prox_list[pair[0]][pair[1]]
+                                              for pair in product(group1,
+                                                                  group2)])
+
+    return group_prox
 
 
 def main(args):
