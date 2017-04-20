@@ -162,7 +162,7 @@ def __scale(scale):
 __DEFAULT_REAG_CONC = {NA: 0.05, K: 0, TRIS: 0, MG: 0.01, DNTP: 0}
 
 
-def get_codon_usage_organisms(expand=False):
+def get_codon_usage_organisms(expand=False, verbose=False):
     '''Gets name to taxonomy id dictionary of available codon usage tables.'''
     destination = os.path.join(os.path.expanduser('~'), 'codon')
     filename = 'expand.txt' if expand else 'normal.txt'
@@ -182,7 +182,7 @@ def get_codon_usage_organisms(expand=False):
 
         # Expand:
         if expand:
-            _expand_codon_usage_orgs(codon_orgs)
+            _expand_codon_usage_orgs(codon_orgs, verbose)
 
         # Save:
         _write_codon_usage_orgs_file(codon_orgs, filepath)
@@ -777,17 +777,21 @@ def _read_codon_usage_orgs_file(filename):
     return codon_orgs
 
 
-def _expand_codon_usage_orgs(codon_orgs, max_errors=16):
+def _expand_codon_usage_orgs(codon_orgs, verbose, max_errors=16):
     '''Expand Codon Usage Db table of species with children and synonyms.'''
     for tax_id in codon_orgs.values():
-        for name in taxonomy.get_synonyms_by_id(tax_id):
-            _add_codon_usage_org(codon_orgs, name, tax_id)
+
+        if verbose:
+            print 'Expanding codon usage for NCBI Taxonomy id: ' + tax_id
 
         errors = 0
         success = False
 
         while not success:
             try:
+                for name in taxonomy.get_synonyms_by_id(tax_id):
+                    _add_codon_usage_org(codon_orgs, name, tax_id)
+
                 for child in taxonomy.get_children_by_id(tax_id):
                     _add_codon_usage_org(codon_orgs, child['name'], tax_id)
 
