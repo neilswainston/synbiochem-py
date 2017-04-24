@@ -26,7 +26,3 @@ def _get_well_col(idx, rows):
 def _get_well_row(idx, columns):
     '''Map idx to well, row ordered.'''
     return chr(ord('A') + (idx / columns)) + str(idx % columns + 1)
-
-
-for i in range(100):
-    print get_well(i, col_ord=False)
