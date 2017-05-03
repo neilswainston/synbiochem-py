@@ -7,9 +7,14 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
+# pylint: disable=no-member
 import itertools
 import re
 
+import numpy
+
+from rdkit import Chem, DataStructs
+from rdkit.Chem import AllChem
 import synbiochem.utils.math_utils as math_utils
 
 
@@ -198,6 +203,15 @@ def balance(reaction_def, optional_comp=None, max_stoich=8.0):
     return balanced, \
         balanced and _compare_reaction_defs(reaction_def, balanced_def), \
         balanced_def
+
+
+def get_fingerprint(smiles, radius=2):
+    '''Gets a fingerprint from a SMILES.'''
+    mol = Chem.MolFromSmiles(smiles)
+    bit_vect = Chem.AllChem.GetMorganFingerprintAsBitVect(mol, radius)
+    fingerprint = numpy.zeros((1,))
+    DataStructs.ConvertToNumpyArray(bit_vect, fingerprint)
+    return fingerprint
 
 
 def _get_reaction_participants(equation_term, stoich_factor):
