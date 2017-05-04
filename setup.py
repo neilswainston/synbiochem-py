@@ -29,4 +29,4 @@ setup(name='synbiochem-py',
       packages=find_packages(),
       test_suite='synbiochem.utils.test',
       install_requires=['regex', 'requests', 'numpy', 'scipy', 'matplotlib',
-                        'biopython'])
+                        'biopython', 'glpk'])
