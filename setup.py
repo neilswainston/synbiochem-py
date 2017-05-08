@@ -11,7 +11,7 @@ from setuptools import find_packages, setup
 
 
 setup(name='synbiochem-py',
-      version='0.1.7',
+      version='0.1.8',
       description='synbiochem-py: Core python modules for SYNBIOCHEM',
       long_description='synbiochem-py: Core python modules for SYNBIOCHEM',
       url='https://github.com/synbiochem/synbiochem-py',

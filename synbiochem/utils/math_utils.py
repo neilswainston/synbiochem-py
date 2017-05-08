@@ -8,7 +8,6 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 @author:  neilswainston
 '''
 # pylint: disable=no-member
-import glpk
 
 
 def isclose(value_1, value_2, rel_tol=1e-09, abs_tol=0.0):
@@ -46,6 +45,7 @@ def linprog_gur(c_vector, a_eq, b_eq, bounds):
 
 def linprog(c_vector, a_eq, b_eq, bounds):
     '''Solve linear programming problem with GLPK.'''
+    import glpk
     linp = glpk.LPX()
 
     # Create variables:
