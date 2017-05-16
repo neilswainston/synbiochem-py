@@ -698,6 +698,21 @@ def apply_restriction(seq, restrict):
     return get_rev_comp(seq)
 
 
+def apply_mutations(seq, mutations):
+    '''Applies mutations to sequence.'''
+    seq = list(seq)
+
+    for mutation in mutations:
+        if mutation[0] != seq[mutation[1] - 1]:
+            raise ValueError('Invalid mutation at position %d.' +
+                             'Amino acid is %s but mutation is of %s.') \
+                % mutation[1], seq[mutation[1] - 1], mutation[0]
+
+        seq[mutation[1] - 1] = mutation[2]
+
+    return ''.join(seq)
+
+
 def _apply_restriction(seq, restrict):
     '''Applies restriction site cleavage to sequence.'''
     match = re.search(restrict, seq)
