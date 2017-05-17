@@ -25,6 +25,8 @@ SO_CDS = 'http://purl.obolibrary.org/obo/SO_0000316'
 SO_PART = 'http://purl.obolibrary.org/obo/SO_0000804'
 SO_ASS_COMP = 'http://purl.obolibrary.org/obo/SO_0000143'
 SO_PLASMID = 'http://purl.obolibrary.org/obo/SO_0000637'
+SO_DESIGNED = 'http://purl.obolibrary.org/obo/SO_0000546'
+SO_RANDOM = 'http://purl.obolibrary.org/obo/SO_0000449'
 
 _RDF_NS = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
 _NS = {'ns': 'http://sbols.org/v1#',
