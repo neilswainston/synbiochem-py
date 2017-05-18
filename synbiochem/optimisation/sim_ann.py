@@ -17,7 +17,7 @@ from synbiochem.utils.job import JobThread
 class SimulatedAnnealer(JobThread):
     '''Class to perform simulated annealing method.'''
 
-    def __init__(self, solution, acceptance=0.1, max_iter=10000,
+    def __init__(self, solution, acceptance=0.01, max_iter=10000,
                  heartbeat=1, verbose=False):
         self.__solution = solution
         self.__acceptance = acceptance
