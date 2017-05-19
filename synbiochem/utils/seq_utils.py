@@ -237,10 +237,12 @@ class CodonOptimiser(object):
         return optimised_seqs
 
     def get_codon_optim_seq(self, protein_seq, excl_codons=None,
-                            invalid_pattern=None, max_attempts=100,
-                            tolerant=False):
+                            max_repeat_nuc=float('inf'), invalid_seqs=None,
+                            max_attempts=100, tolerant=False):
         '''Returns a codon optimised DNA sequence.'''
-        if invalid_pattern is None:
+        inv_patt = _get_inv_patt(max_repeat_nuc, invalid_seqs)
+
+        if not len(inv_patt):
             return ''.join([self.get_random_codon(aa)
                             for aa in protein_seq])
         else:
@@ -255,7 +257,7 @@ class CodonOptimiser(object):
                 new_seq = seq + self.get_random_codon(amino_acid, excl_codons)
 
                 invalids = [invalid.start()
-                            for invalid in re.finditer(invalid_pattern,
+                            for invalid in re.finditer(inv_patt,
                                                        new_seq,
                                                        overlapped=True)]
                 if len(invalids) == inv_patterns or \
@@ -390,13 +392,13 @@ def get_minimum_free_energy(sequences):
         return mfes
 
 
-def get_random_dna(length, max_repeat_nuc=float('inf'), invalid_patterns=None):
+def get_random_dna(length, max_repeat_nuc=float('inf'), invalid_seqs=None):
     '''Returns a random sequence of DNA of the supplied length,
     while adhering to a maximum number of repeating nucleotides.'''
     max_attempts = 1000
     attempts = 0
 
-    invalid_patterns = get_invalid_patterns(max_repeat_nuc, invalid_patterns)
+    inv_patt = _get_inv_patt(max_repeat_nuc, invalid_seqs)
 
     while True:
         attempts += 1
@@ -407,11 +409,10 @@ def get_random_dna(length, max_repeat_nuc=float('inf'), invalid_patterns=None):
         random_dna = _get_random_dna(length)
 
         valid = True
-        for invalid_pattern in invalid_patterns:
 
-            if len(re.findall(invalid_pattern, random_dna, overlapped=True)) \
-                    > 0:
-                valid = False
+        if len(inv_patt) and \
+                len(re.findall(inv_patt, random_dna,  overlapped=True)) > 0:
+            valid = False
 
         if valid:
             return random_dna
@@ -419,17 +420,17 @@ def get_random_dna(length, max_repeat_nuc=float('inf'), invalid_patterns=None):
     return None
 
 
-def get_invalid_patterns(max_repeat_nuc=float('inf'), invalid_patterns=None):
+def _get_inv_patt(max_repeat_nuc=float('inf'), invalid_seqs=None):
     '''Gets invalid patterns.'''
-    if invalid_patterns is None:
-        invalid_patterns = []
+    if invalid_seqs is None:
+        invalid_seqs = []
 
     if max_repeat_nuc != float('inf'):
         invalid_repeat_nuc = [x * (max_repeat_nuc + 1) for x in NUCLEOTIDES]
     else:
         invalid_repeat_nuc = []
 
-    return '|'.join(invalid_patterns + invalid_repeat_nuc)
+    return '|'.join(invalid_seqs + invalid_repeat_nuc)
 
 
 def get_random_aa(length, insertions=False):
@@ -523,17 +524,18 @@ def get_seq_by_melt_temp(seq, target_melt_temp, forward=True,
 
 
 def get_rand_seq_by_melt_temp(target_melt_temp,
+                              max_repeat_nuc=float('inf'),
+                              invalid_seqs=None,
                               reagent_concs=None,
-                              invalid_patterns=None,
                               tol=0.025):
     '''Returns a random close to desired melting temperature.'''
+    inv_patt = _get_inv_patt(max_repeat_nuc, invalid_seqs)
     seq = random.choice(NUCLEOTIDES)
 
     while True:
         seq += random.choice(NUCLEOTIDES)
 
-        if invalid_patterns and len(re.findall(invalid_patterns, seq,
-                                               overlapped=True)) > 0:
+        if len(re.findall(inv_patt, seq, overlapped=True)) > 0:
             seq = seq[:-random.choice(range(len(seq)))]
             continue
 
@@ -602,12 +604,15 @@ def search_uniprot(name, fields, limit=128):
     return values
 
 
-def count_pattern(strings, pattern, both_strands=True):
-    '''Counts pattern in string of list of strings.'''
-    forward = _count_pattern(strings, pattern)
+def count_pattern(seq, max_repeat_nuc=float('inf'), pattern_strs=None,
+                  both_strands=True):
+    '''Counts pattern in seq.'''
+    pattern = _get_inv_patt(max_repeat_nuc, pattern_strs)
+
+    forward = _count_pattern(seq, pattern)
 
     if both_strands:
-        return forward + _count_pattern(get_rev_comp(strings), pattern)
+        return forward + _count_pattern(get_rev_comp(seq), pattern)
     else:
         return forward
 
