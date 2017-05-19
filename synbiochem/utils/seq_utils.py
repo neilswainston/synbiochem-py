@@ -396,16 +396,13 @@ def get_random_dna(length, max_repeat_nuc=float('inf'), invalid_patterns=None):
     max_attempts = 1000
     attempts = 0
 
-    if invalid_patterns is None:
-        invalid_patterns = []
+    invalid_patterns = get_invalid_patterns(max_repeat_nuc, invalid_patterns)
 
     while True:
         attempts += 1
 
         if attempts > max_attempts:
-            raise ValueError('Unable to optimise sequence. ' +
-                             'Greater than ' + str(max_repeat_nuc) +
-                             ' repeating nucleotides.')
+            raise ValueError('Unable to optimise sequence.')
 
         random_dna = _get_random_dna(length)
 
@@ -416,10 +413,23 @@ def get_random_dna(length, max_repeat_nuc=float('inf'), invalid_patterns=None):
                     > 0:
                 valid = False
 
-        if valid and is_valid(random_dna, max_repeat_nuc):
+        if valid:
             return random_dna
 
     return None
+
+
+def get_invalid_patterns(max_repeat_nuc=float('inf'), invalid_patterns=None):
+    '''Gets invalid patterns.'''
+    if invalid_patterns is None:
+        invalid_patterns = []
+
+    if max_repeat_nuc != float('inf'):
+        invalid_repeat_nuc = [x * (max_repeat_nuc + 1) for x in NUCLEOTIDES]
+    else:
+        invalid_repeat_nuc = []
+
+    return '|'.join(invalid_patterns + invalid_repeat_nuc)
 
 
 def get_random_aa(length, insertions=False):
@@ -512,18 +522,27 @@ def get_seq_by_melt_temp(seq, target_melt_temp, forward=True,
     raise ValueError('Unable to get sequence of required melting temperature')
 
 
-def get_rand_seq_by_melt_temp(target_melt_temp, forward=True,
-                              reagent_concs=None, init_len=1000,
-                              max_repeat_nuc=float('inf')):
+def get_rand_seq_by_melt_temp(target_melt_temp,
+                              reagent_concs=None,
+                              invalid_patterns=None,
+                              tol=0.025):
     '''Returns a random close to desired melting temperature.'''
-    seq = get_random_dna(init_len, max_repeat_nuc)
+    seq = random.choice(NUCLEOTIDES)
 
-    for i in range(1, len(seq)):
-        subseq = seq[:(i + 1)] if forward else seq[-(i + 1):]
-        melt_temp = get_melting_temp(subseq, None, reagent_concs)
+    while True:
+        seq += random.choice(NUCLEOTIDES)
 
-        if melt_temp > target_melt_temp:
-            return subseq, melt_temp
+        if invalid_patterns and len(re.findall(invalid_patterns, seq,
+                                               overlapped=True)) > 0:
+            seq = seq[:-random.choice(range(len(seq)))]
+            continue
+
+        melt_temp = get_melting_temp(seq, None, reagent_concs)
+
+        delta_tm = abs(melt_temp - target_melt_temp)
+
+        if delta_tm / target_melt_temp < tol:
+            return seq, melt_temp
 
     raise ValueError('Unable to get sequence of required melting temperature')
 
