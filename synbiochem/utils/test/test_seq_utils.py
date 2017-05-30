@@ -8,6 +8,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 @author:  neilswainston
 '''
 # pylint: disable=too-many-public-methods
+import random
 import unittest
 
 from synbiochem.utils import seq_utils
@@ -39,11 +40,43 @@ class Test(unittest.TestCase):
     '''Test class for sequence_utils.'''
 
     def test_get_codon_usage_organisms(self):
-        '''Tests get_codon_usage_organisms() method.'''
+        '''Tests get_codon_usage_organisms method.'''
         organisms = seq_utils.get_codon_usage_organisms()
         expected = {'\'Arthromyces ramosus\'': '5451',
                     'thiosulfate-reducing anaerobe SRL 4198': '267367'}
         self.assertDictContainsSubset(expected, organisms)
+
+    def test_find_invalid(self):
+        '''Tests find_invalid method.'''
+        seq = 'ggtctaaaaatttttttaaaaaccagagtttttt'
+
+        self.assertEquals(seq_utils.find_invalid(seq, 5, ['BsaI']),
+                          [10, 11, 28])
+
+    def test_is_invalid(self):
+        '''Tests is_invalid method.'''
+        seq_inv = 'ggtctaaaaatttttttaaaaaccagagtttttt'
+        self.assertTrue(seq_utils.is_invalid(seq_inv, 5, ['BsaI']))
+
+        seq_val = 'ggtctaaaa'
+        self.assertFalse(seq_utils.is_invalid(seq_val, 5, ['BsaI']))
+
+    def test_get_random_dna(self):
+        '''Tests get_random_dna method.'''
+        lngth = random.randint(1000, 10000)
+        self.assertEqual(lngth,
+                         len(seq_utils.get_random_dna(lngth, 4, ['BsaI'])))
+
+    def test_get_seq_by_melt_temp(self):
+        '''Tests get_seq_by_melt_temp method.'''
+        seq, _ = seq_utils.get_seq_by_melt_temp('agcgtgcgaagcgtgcgatcctcc', 70)
+        self.assertEqual(seq, 'agcgtgcgaagcgtgcgatc')
+
+    def test_get_rand_seq_by_melt_temp(self):
+        '''Tests get_rand_seq_by_melt_temp method.'''
+        target_temp = random.randint(50, 100)
+        _, temp = seq_utils.get_rand_seq_by_melt_temp(target_temp, 4, ['BsaI'])
+        self.assertTrue(abs(target_temp - temp) / target_temp < 0.025)
 
     def test_get_uniprot_values(self):
         '''Tests get_uniprot_values method.'''
@@ -61,16 +94,6 @@ class Test(unittest.TestCase):
                                'Protein names': ['Green fluorescent protein']}}
 
         self.assertEquals(result, expected)
-
-    def test_get_seq_by_melt_temp(self):
-        '''Tests translate method.'''
-        seq, _ = seq_utils.get_seq_by_melt_temp('agcgtgcgaagcgtgcgatcctcc', 70)
-        self.assertEqual(seq, 'agcgtgcgaagcgtgcgatc')
-
-    def test_translate(self):
-        '''Tests translate method.'''
-        results = seq_utils.translate('agcgtgcgatcc', min_prot_len=1)
-        self.assertIn('ACD', [tokens[5] for tokens in results])
 
     def test_do_blast(self):
         '''Tests do_blast method.'''

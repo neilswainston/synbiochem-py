@@ -11,7 +11,6 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
 from subprocess import call, Popen
-import collections
 import itertools
 import operator
 import os
@@ -21,12 +20,12 @@ import urllib
 import urllib2
 
 from Bio.Blast import NCBIXML
-from Bio.Data import CodonTable, IUPACData
+from Bio.Restriction import Restriction, RestrictionBatch, \
+    Restriction_Dictionary
 from Bio.Seq import Seq
 from Bio.SeqUtils.MeltingTemp import Tm_NN
 from requests.exceptions import ConnectionError
 from synbiochem.biochem4j import taxonomy
-import numpy
 
 import regex as re
 
@@ -97,31 +96,6 @@ NUCL_CODES = {
 
 INV_NUCL_CODES = {val: key for key, val in NUCL_CODES.items()}
 
-# KD Hydrophobicity, EIIP, Helix, Sheet, Turn
-AA_PROPS = {
-    'A': [1.8, -0.0667, 32.9, -23.6, -41.6],
-    'R': [-4.5, 0.2674, 0, -6.2, -5.1],
-    'N': [-3.5, -0.2589, -24.8, -41.6, 44.5],
-    'D': [-3.5, 0.4408, 5.8, -41.6, 37.8],
-    'C': [2.5, 0.1933, -5.1, 6.8, 17.4],
-    'Q': [-3.5, 0.1545, 11.3, 0, -2],
-    'E': [-3.5, -0.2463, 36.5, -67.3, -30.1],
-    'G': [-0.4, -0.2509, -46.2, -13.9, 44.5],
-    'H': [-3.2, -0.1414, 11.3, -18.6, -5.1],
-    'I': [4.5, -0.2794, -1, 45.1, -75.5],
-    'L': [3.8, -0.2794, 26.2, 15.7, -52.8],
-    'K': [-3.9, -0.0679, 19.1, -31.5, 1],
-    'M': [1.9, 0.1899, 27.8, 1, -51.1],
-    'F': [2.8, 0.26, 10.4, 20.7, -51.1],
-    'P': [-1.6, -0.1665, -59.8, -47.8, 41.9],
-    'S': [-0.8, 0.1933, -32.9, -6.2, 35.8],
-    'T': [-0.7, 0.2572, -24.8, 28.5, -4.1],
-    'W': [-0.9, 0.0331, 3, 21.5, -4.1],
-    'Y': [-1.3, 0.0148, -31.5, 27, 13.1],
-    'V': [4.2, -0.2469, -3, 49.5, -69.3]
-}
-
-NUM_AA_PROPS = len(AA_PROPS['A'])
 
 NA = 'NA'
 K = 'K'
@@ -131,33 +105,6 @@ DNTP = 'DNTP'
 
 START_CODON_PATT = '[ACGT]TG'
 
-
-def get_aa_props(all_sequences, scale=(0.1, 0.9)):
-    '''Returns input data for machine-learning problems.'''
-    scaled = __scale(scale)
-    mean_value = numpy.mean([x for sublist in scaled.values()
-                             for x in sublist])
-    return [list(itertools.chain.from_iterable([scaled[am_acid]
-                                                if am_acid in scaled
-                                                else [mean_value] *
-                                                len(scaled['A'])
-                                                for am_acid in sequences]))
-            for sequences in all_sequences]
-
-
-def __scale(scale):
-    '''Scale amino acid properties.'''
-    scaled = collections.defaultdict(list)
-
-    for i in range(NUM_AA_PROPS):
-        props = {key: value[i] for key, value in AA_PROPS.iteritems()}
-        min_val, max_val = min(props.values()), max(props.values())
-
-        for key, value in props.iteritems():
-            scaled[key].append(scale[0] + (scale[1] - scale[0]) *
-                               (value - min_val) / (max_val - min_val))
-
-    return scaled
 
 __DEFAULT_REAG_CONC = {NA: 0.05, K: 0, TRIS: 0, MG: 0.01, DNTP: 0}
 
@@ -230,19 +177,17 @@ class CodonOptimiser(object):
 
                 optimised_seq = self.get_codon_optim_seq(protein_seq)
 
-                if is_valid(optimised_seq, max_repeat_nuc):
+                if not is_invalid(optimised_seq, max_repeat_nuc):
                     optimised_seqs.append(optimised_seq)
                     break
 
         return optimised_seqs
 
     def get_codon_optim_seq(self, protein_seq, excl_codons=None,
-                            max_repeat_nuc=float('inf'), invalid_seqs=None,
+                            max_repeat_nuc=float('inf'), restr_enzyms=None,
                             max_attempts=100, tolerant=False):
         '''Returns a codon optimised DNA sequence.'''
-        inv_patt = _get_inv_patt(max_repeat_nuc, invalid_seqs)
-
-        if not len(inv_patt):
+        if max_repeat_nuc == float('inf') and restr_enzyms is None:
             return ''.join([self.get_random_codon(aa)
                             for aa in protein_seq])
         else:
@@ -257,9 +202,9 @@ class CodonOptimiser(object):
                 new_seq = seq + self.get_random_codon(amino_acid, excl_codons)
 
                 invalids = [invalid.start()
-                            for invalid in re.finditer(inv_patt,
-                                                       new_seq,
-                                                       overlapped=True)]
+                            for invalid in find_invalid(new_seq,
+                                                        max_repeat_nuc,
+                                                        restr_enzyms)]
                 if len(invalids) == inv_patterns or \
                         (attempts == max_attempts - 1 and tolerant):
 
@@ -360,6 +305,32 @@ class CodonOptimiser(object):
         return aa_to_codon_prob
 
 
+def find_invalid(seq, max_repeat_nuc=float('inf'), restr_enzyms=None):
+    '''Finds invalid sequences.'''
+    inv = []
+    seq = seq.upper()
+
+    # Invalid repeating nucleotides:
+    if max_repeat_nuc != float('inf'):
+        pattern = re.compile('|'.join([''.join([nucl] * (max_repeat_nuc + 1))
+                                       for nucl in NUCLEOTIDES]))
+
+        inv = [m.start() for m in pattern.finditer(seq, overlapped=True)]
+
+    # Invalid restriction sites:
+    if restr_enzyms:
+        for rest_enz in [_get_restr_type(name) for name in restr_enzyms]:
+            inv.extend(rest_enz.search(Seq(seq)))
+            inv.extend(rest_enz.search(Seq(seq).reverse_complement()))
+
+    return inv
+
+
+def is_invalid(seq, max_repeat_nuc=float('inf'), restr_enzyms=None):
+    '''Checks whether a sequence is valid.'''
+    return len(find_invalid(seq, max_repeat_nuc, restr_enzyms)) > 0
+
+
 def get_minimum_free_energy(sequences):
     '''Returns minimum free energy of supplied DNA / RNA sequences.'''
     with open(tempfile.NamedTemporaryFile(), 'w') as input_file, \
@@ -392,13 +363,14 @@ def get_minimum_free_energy(sequences):
         return mfes
 
 
-def get_random_dna(length, max_repeat_nuc=float('inf'), invalid_seqs=None):
+def get_random_dna(length, max_repeat_nuc=float('inf'), restr_enzyms=None):
     '''Returns a random sequence of DNA of the supplied length,
     while adhering to a maximum number of repeating nucleotides.'''
-    max_attempts = 1000
+    max_attempts = 100
     attempts = 0
+    len_add = 16
 
-    inv_patt = _get_inv_patt(max_repeat_nuc, invalid_seqs)
+    seq = ''
 
     while True:
         attempts += 1
@@ -406,37 +378,16 @@ def get_random_dna(length, max_repeat_nuc=float('inf'), invalid_seqs=None):
         if attempts > max_attempts:
             raise ValueError('Unable to optimise sequence.')
 
-        random_dna = _get_random_dna(length)
+        while len(seq) < length:
+            seq += _get_random_dna(len_add)
 
-        valid = True
+            if is_invalid(seq, max_repeat_nuc, restr_enzyms):
+                seq = seq[:-len_add]
 
-        if len(inv_patt) and \
-                len(re.findall(inv_patt, random_dna,  overlapped=True)) > 0:
-            valid = False
-
-        if valid:
-            return random_dna
+        if not is_invalid(seq, max_repeat_nuc, restr_enzyms):
+            return seq[:length]
 
     return None
-
-
-def _get_inv_patt(max_repeat_nuc=float('inf'), invalid_seqs=None):
-    '''Gets invalid patterns.'''
-    if invalid_seqs is None:
-        invalid_seqs = []
-
-    if max_repeat_nuc != float('inf'):
-        invalid_repeat_nuc = [x * (max_repeat_nuc + 1) for x in NUCLEOTIDES]
-    else:
-        invalid_repeat_nuc = []
-
-    return '|'.join(invalid_seqs + invalid_repeat_nuc)
-
-
-def get_random_aa(length, insertions=False):
-    '''Returns a random amino acid sequence of the supplied length.'''
-    dictionary = list(AA_PROPS.keys()) + (['.'] if insertions else [])
-    return ''.join(random.choice(dictionary) for _ in range(length))
 
 
 def mutate_seq(seq, mutations=1, alphabet=None):
@@ -525,17 +476,16 @@ def get_seq_by_melt_temp(seq, target_melt_temp, forward=True,
 
 def get_rand_seq_by_melt_temp(target_melt_temp,
                               max_repeat_nuc=float('inf'),
-                              invalid_seqs=None,
+                              restr_enzyms=None,
                               reagent_concs=None,
                               tol=0.025):
     '''Returns a random close to desired melting temperature.'''
-    inv_patt = _get_inv_patt(max_repeat_nuc, invalid_seqs)
     seq = random.choice(NUCLEOTIDES)
 
     while True:
         seq += random.choice(NUCLEOTIDES)
 
-        if len(re.findall(inv_patt, seq, overlapped=True)) > 0:
+        if is_invalid(seq, max_repeat_nuc, restr_enzyms):
             seq = seq[:-random.choice(range(len(seq)))]
             continue
 
@@ -547,25 +497,6 @@ def get_rand_seq_by_melt_temp(target_melt_temp,
             return seq, melt_temp
 
     raise ValueError('Unable to get sequence of required melting temperature')
-
-
-def is_valid(dna_seq, max_repeat_nuc):
-    '''Checks whether a DNA sequence is valid, in terms of a supplied maximum
-    number of repeating nucleotides.'''
-    nuc_count = 0
-    prev_nuc = ''
-
-    for nuc in dna_seq:
-        if prev_nuc == nuc:
-            nuc_count += 1
-        else:
-            prev_nuc = nuc
-            nuc_count = 1
-
-        if nuc_count > max_repeat_nuc:
-            return False
-
-    return True
 
 
 def get_uniprot_values(uniprot_ids, fields, batch_size=64, verbose=False):
@@ -602,37 +533,6 @@ def search_uniprot(name, fields, limit=128):
     _parse_uniprot_data(url, values)
 
     return values
-
-
-def count_pattern(seq, max_repeat_nuc=float('inf'), pattern_strs=None,
-                  both_strands=True):
-    '''Counts pattern in seq.'''
-    pattern = _get_inv_patt(max_repeat_nuc, pattern_strs)
-
-    forward = _count_pattern(seq, pattern)
-
-    if both_strands:
-        return forward + _count_pattern(get_rev_comp(seq), pattern)
-    else:
-        return forward
-
-
-def get_hamming(str1, str2):
-    '''Returns Hamming distance for two sequences, which are assumed to be of
-    the same length.'''
-    return sum(itertools.imap(operator.ne, str1, str2))
-
-
-def get_rev_comp(seq):
-    '''Returns reverse complement of sequence.'''
-    seq = Seq(seq)
-    return str(seq.reverse_complement())
-
-
-def get_comp(seq):
-    '''Returns complement of sequence.'''
-    seq = Seq(seq)
-    return str(seq.complement())
 
 
 def do_blast(id_seqs_subjects, id_seqs_queries, program='blastn',
@@ -675,53 +575,6 @@ def write_fasta(id_seqs, filename=None):
     return filename
 
 
-def translate(seq, trans_table=CodonTable.unambiguous_dna_by_name["Standard"],
-              min_prot_len=128):
-    '''Translates supplied nucleotide sequence in all 6 reading frames.'''
-    result = []
-
-    seq = Seq(seq)
-
-    for strand, nuc in [('+', seq), ('-', seq.reverse_complement())]:
-        for frame in range(3):
-            trans = \
-                str(nuc[frame:-(len(nuc[frame:]) % 3)].translate(trans_table))
-            trans_len = len(trans)
-            aa_start = 0
-            aa_end = 0
-
-            while aa_start < trans_len:
-                aa_end = trans.find("*", aa_start)
-                if aa_end == -1:
-                    aa_end = trans_len
-                if aa_end - aa_start >= min_prot_len:
-                    start = frame + aa_start * 3
-                    end = frame + aa_end * 3
-
-                    result.append((start, end, strand, frame,
-                                   len(trans[aa_start:aa_end]),
-                                   trans[aa_start:aa_end]))
-                aa_start = aa_end + 1
-    return result
-
-
-def ambiguous_to_regex(seq):
-    '''Converts sequence with ambiguous nucleotides to regex,
-    e.g. ANT to A[ACGT]T.'''
-    return ''.join([val
-                    if val not in IUPACData.ambiguous_dna_values or
-                    len(IUPACData.ambiguous_dna_values[val]) == 1
-                    else '[' + IUPACData.ambiguous_dna_values[val] + ']'
-                    for val in seq])
-
-
-def apply_restriction(seq, restrict):
-    '''Applies restriction site cleavage to forward and reverse strands.'''
-    seq = _apply_restriction(seq, restrict)
-    seq = _apply_restriction(get_rev_comp(seq), restrict)
-    return get_rev_comp(seq)
-
-
 def apply_mutations(seq, mutations):
     '''Applies mutations to sequence.'''
     seq = list(seq)
@@ -735,26 +588,6 @@ def apply_mutations(seq, mutations):
         seq[mutation[1] - 1] = mutation[2]
 
     return ''.join(seq)
-
-
-def _apply_restriction(seq, restrict):
-    '''Applies restriction site cleavage to sequence.'''
-    match = re.search(restrict, seq)
-
-    if match:
-        seq = match.group(0)
-
-    return seq
-
-
-def _count_pattern(strings, pattern):
-    '''Counts pattern in string of list of strings.'''
-    if isinstance(strings, str) or isinstance(strings, unicode):
-        return len(re.findall(pattern, strings))
-    elif strings is None:
-        return 0
-    else:
-        return [count_pattern(s, pattern) for s in strings]
 
 
 def _scale(codon_usage):
@@ -861,9 +694,14 @@ def _write_codon_usage_orgs_file(codon_orgs, filepath):
             fle.write(name + '\t' + tax_id + '\n')
 
 
-def main():
-    '''main method.'''
-    get_codon_usage_organisms(expand=True)
+def _get_restr_type(name):
+    '''Gets RestrictionType from name.'''
+    types = [
+        x for _, (x, y) in Restriction_Dictionary.typedict.items()
+        if name in y][0]
 
-if __name__ == '__main__':
-    main()
+    enz_types = tuple(getattr(Restriction, typ)
+                      for typ in types)
+
+    return Restriction.RestrictionType(name, enz_types,
+                                       Restriction_Dictionary.rest_dict[name])
