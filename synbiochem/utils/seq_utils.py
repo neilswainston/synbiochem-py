@@ -20,8 +20,7 @@ import urllib
 import urllib2
 
 from Bio.Blast import NCBIXML
-from Bio.Restriction import Restriction, RestrictionBatch, \
-    Restriction_Dictionary
+from Bio.Restriction import Restriction, Restriction_Dictionary
 from Bio.Seq import Seq
 from Bio.SeqUtils.MeltingTemp import Tm_NN
 from requests.exceptions import ConnectionError
@@ -160,29 +159,6 @@ class CodonOptimiser(object):
         '''Gets the codon probability.'''
         return self.__codon_prob[codon]
 
-    def optimise(self, protein_seqs, max_repeat_nuc=float('inf')):
-        '''Codon optimises the supplied protein sequences.'''
-        optimised_seqs = []
-        max_attempts = 1000
-        attempts = 0
-
-        for protein_seq in protein_seqs:
-            while True:
-                attempts += 1
-
-                if attempts > max_attempts:
-                    raise ValueError('Unable to optimise sequence. ' +
-                                     'Greater than ' + str(max_repeat_nuc) +
-                                     ' repeating nucleotides.')
-
-                optimised_seq = self.get_codon_optim_seq(protein_seq)
-
-                if not is_invalid(optimised_seq, max_repeat_nuc):
-                    optimised_seqs.append(optimised_seq)
-                    break
-
-        return optimised_seqs
-
     def get_codon_optim_seq(self, protein_seq, excl_codons=None,
                             max_repeat_nuc=float('inf'), restr_enzyms=None,
                             max_attempts=100, tolerant=False):
@@ -201,10 +177,9 @@ class CodonOptimiser(object):
                 amino_acid = protein_seq[i]
                 new_seq = seq + self.get_random_codon(amino_acid, excl_codons)
 
-                invalids = [invalid.start()
-                            for invalid in find_invalid(new_seq,
-                                                        max_repeat_nuc,
-                                                        restr_enzyms)]
+                invalids = find_invalid(new_seq, max_repeat_nuc,
+                                        restr_enzyms)
+
                 if len(invalids) == inv_patterns or \
                         (attempts == max_attempts - 1 and tolerant):
 
