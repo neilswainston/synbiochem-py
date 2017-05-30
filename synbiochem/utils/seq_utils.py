@@ -678,5 +678,5 @@ def _get_restr_type(name):
     enz_types = tuple(getattr(Restriction, typ)
                       for typ in types)
 
-    return Restriction.RestrictionType(name, enz_types,
-                                       Restriction_Dictionary.rest_dict[name])
+    return Restriction.RestrictionType(
+        str(name), enz_types, Restriction_Dictionary.rest_dict[name])
