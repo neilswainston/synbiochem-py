@@ -73,6 +73,7 @@ def _get_apply_restrict_site_dnas(restr, circ):
     return par, [test_sbol_utils.round_trip(dna)
                  for dna in dna_utils.apply_restricts(par, [restr], circ)]
 
+
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

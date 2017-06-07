@@ -7,12 +7,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
-# pylint: disable=no-member
 import re
-
-from rdkit import Chem, DataStructs
-from rdkit.Chem import AllChem
-import numpy
 
 
 __ELEMENTAL_MASSES = {
@@ -166,15 +161,6 @@ def parse_equation(equation, separator='='):
     # Add reactants and products:
     return _get_reaction_participants(equation_terms[0], -1) + \
         _get_reaction_participants(equation_terms[1], 1)
-
-
-def get_fingerprint(smiles, radius=2):
-    '''Gets a fingerprint from a SMILES.'''
-    mol = Chem.MolFromSmiles(smiles)
-    bit_vect = Chem.AllChem.GetMorganFingerprintAsBitVect(mol, radius)
-    fingerprint = numpy.zeros((1,))
-    DataStructs.ConvertToNumpyArray(bit_vect, fingerprint)
-    return fingerprint
 
 
 def _get_reaction_participants(equation_term, stoich_factor):

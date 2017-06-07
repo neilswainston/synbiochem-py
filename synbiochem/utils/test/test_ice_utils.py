@@ -273,5 +273,6 @@ def _read(filename):
     directory = os.path.dirname(os.path.realpath(__file__))
     return sbol_utils.read(os.path.join(directory, filename))
 
+
 if __name__ == "__main__":
     unittest.main()

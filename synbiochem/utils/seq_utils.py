@@ -15,6 +15,7 @@ import itertools
 import operator
 import os
 import random
+import re
 import tempfile
 import urllib
 import urllib2
@@ -26,8 +27,6 @@ from Bio.Seq import Seq
 from Bio.SeqUtils.MeltingTemp import Tm_NN
 from requests.exceptions import ConnectionError
 from synbiochem.biochem4j import taxonomy
-
-import regex as re
 
 
 NUCLEOTIDES = ['A', 'C', 'G', 'T']
@@ -288,10 +287,11 @@ def find_invalid(seq, max_repeat_nuc=float('inf'), restr_enzyms=None):
 
     # Invalid repeating nucleotides:
     if max_repeat_nuc != float('inf'):
-        pattern = re.compile('|'.join([''.join([nucl] * (max_repeat_nuc + 1))
-                                       for nucl in NUCLEOTIDES]))
+        pattern = [''.join([nucl] * (max_repeat_nuc + 1))
+                   for nucl in NUCLEOTIDES]
+        pattern = re.compile(r'(?=(' + '|'.join(pattern) + '))')
 
-        inv = [m.start() for m in pattern.finditer(seq, overlapped=True)]
+        inv = [m.start() for m in pattern.finditer(seq)]
 
     # Invalid restriction sites:
     if restr_enzyms:

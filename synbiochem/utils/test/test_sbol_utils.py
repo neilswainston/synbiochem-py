@@ -33,6 +33,7 @@ def round_trip(dna):
     sbol_utils.write(dna, tmp.name)
     return sbol_utils.read(tmp.name)
 
+
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
