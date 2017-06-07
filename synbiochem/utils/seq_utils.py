@@ -19,6 +19,7 @@ import tempfile
 import urllib
 import urllib2
 
+from Bio import SeqIO
 from Bio.Blast import NCBIXML
 from Bio.Restriction import Restriction, Restriction_Dictionary
 from Bio.Seq import Seq
@@ -295,8 +296,12 @@ def find_invalid(seq, max_repeat_nuc=float('inf'), restr_enzyms=None):
     # Invalid restriction sites:
     if restr_enzyms:
         for rest_enz in [_get_restr_type(name) for name in restr_enzyms]:
+            # Forward:
             inv.extend(rest_enz.search(Seq(seq)))
-            inv.extend(rest_enz.search(Seq(seq).reverse_complement()))
+
+            # Reverse:
+            rev_comp_pos = rest_enz.search(Seq(seq).reverse_complement())
+            inv.extend([len(seq) - pos + 1 for pos in rev_comp_pos])
 
     return inv
 
@@ -533,6 +538,15 @@ def do_blast(id_seqs_subjects, id_seqs_queries, program='blastn',
           '-outfmt', '5'])
 
     return NCBIXML.parse(open(result_file.name))
+
+
+def read_fasta(filename):
+    '''Reads a fasta file.'''
+    with open(filename, 'rU') as fle:
+        seqs = {record.id: str(record.seq)
+                for record in SeqIO.parse(fle, 'fasta')}
+
+    return seqs
 
 
 def write_fasta(id_seqs, filename=None):

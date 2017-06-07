@@ -17,7 +17,7 @@ class Test(unittest.TestCase):
     '''Test class for structure_utils.'''
 
     def test_get_seq_struct(self):
-        '''Tests isclose method.'''
+        '''Tests get_seq_struct method.'''
         seq_structs = struct_utils.get_seq_structs(['1DWI'])
         self.assertTrue(all([len(v[0]) == len(v[1])
                              for v in seq_structs.values()]))
