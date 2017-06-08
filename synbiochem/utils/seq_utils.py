@@ -95,15 +95,11 @@ NUCL_CODES = {
 
 INV_NUCL_CODES = {val: key for key, val in NUCL_CODES.items()}
 
-
 NA = 'NA'
 K = 'K'
 TRIS = 'TRIS'
 MG = 'MG'
 DNTP = 'DNTP'
-
-START_CODON_PATT = '[ACGT]TG'
-
 
 __DEFAULT_REAG_CONC = {NA: 0.05, K: 0, TRIS: 0, MG: 0.01, DNTP: 0}
 
