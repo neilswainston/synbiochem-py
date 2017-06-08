@@ -560,21 +560,6 @@ def write_fasta(id_seqs, filename=None):
     return filename
 
 
-def apply_mutations(seq, mutations):
-    '''Applies mutations to sequence.'''
-    seq = list(seq)
-
-    for mutation in mutations:
-        if mutation[0] != seq[mutation[1] - 1]:
-            raise ValueError('Invalid mutation at position %d.' +
-                             'Amino acid is %s but mutation is of %s.') \
-                % mutation[1], seq[mutation[1] - 1], mutation[0]
-
-        seq[mutation[1] - 1] = mutation[2]
-
-    return ''.join(seq)
-
-
 def _scale(codon_usage):
     '''Scale codon usage values to add to 1.'''
     codon_usage = dict([(key, value / sum(codon_usage.values()))
