@@ -20,7 +20,7 @@ import tempfile
 import urllib
 import urllib2
 
-from Bio import SeqIO
+from Bio import SeqIO, SeqRecord
 from Bio.Blast import NCBIXML
 from Bio.Restriction import Restriction, Restriction_Dictionary
 from Bio.Seq import Seq
@@ -547,10 +547,10 @@ def write_fasta(id_seqs, filename=None):
                                                 delete=False)
         filename = temp_file.name
 
-    with open(filename, 'w') as fle:
-        for seq_id, seq in id_seqs.iteritems():
-            fle.write('>' + str(seq_id) + '\n')
-            fle.write(seq + '\n')
+    records = [SeqRecord.SeqRecord(Seq(seq), seq_id, '', '')
+               for seq_id, seq in id_seqs.iteritems()]
+
+    SeqIO.write(records, filename, 'fasta')
 
     return filename
 
