@@ -292,12 +292,7 @@ def find_invalid(seq, max_repeat_nuc=float('inf'), restr_enzyms=None):
     # Invalid restriction sites:
     if restr_enzyms:
         for rest_enz in [_get_restr_type(name) for name in restr_enzyms]:
-            # Forward:
             inv.extend(rest_enz.search(Seq(seq)))
-
-            # Reverse:
-            rev_comp_pos = rest_enz.search(Seq(seq).reverse_complement())
-            inv.extend([len(seq) - pos + 1 for pos in rev_comp_pos])
 
     return inv
 
@@ -675,3 +670,7 @@ def _get_restr_type(name):
 
     return Restriction.RestrictionType(
         str(name), enz_types, Restriction_Dictionary.rest_dict[name])
+
+
+seq = 'gaattcaaaagatctgagtcttgtacgcacttccatggggtcaggtcgaggcaaatctggggaaaccatttcctatccgggaggtatgaccatttcttctcctttaatcgacgtcgccaacctgccagacatcaataccactgccggcaagatcgcagatttaaaagcgcggcgtgcggaagcccactttccgatgggtgagaaggccgtggagaaggtccatgccgccggccgtctgactgcccgcgaacgcctggattacctgttagatgagggcagctttattgagaccgatcaattggcacgccatcgtacgaccgccttcggcctgggcgcgaaacgtccggcgaccgatggcattgtgacaggctggggaacgattgatggccgcgaagtttgcatattttcgcaggatggcactgtatttggcggcgcgcttggggaagtgtacggtgaaaagatgataaagatcatggagctggccattgacaccggccgtcccctgataggtctttatgaaggcgccggcgcccgcatccaggacggcgccgtgagcttagacttcatcagccaaacgttctatcaaaacattcaagcgagcggcgttattccgcagatcagcgtcattatgggtgcatgcgccggagggaacgcctacggcccggcattaactgactttgtcgttatggtggacaagacctctaagatgtttgtaacaggtcctgatgttattaaaacggtgaccggggaagaaattacccaggaagagctcggcggtgcgacgacgcatatggtgactgccggcaactcccactatacggcggcgaccgatgaagaggcattggactgggtacaagacctcgtttcattcctgcccagcaataatcgttcctatacgccgctggaagattttgatgaggaagagggcggtgttgaggaaaatatcacagccgatgatctgaaattagatgaaatcatacctgacagcgcgacggttccgtatgatgtccgtgatgtcattgaatgtctgaccgatgatggcgaatatctggaaattcaagccgaccgtgccgaaaatgtagtgattgcattcggtcgcatcgaaggccaaagtgtgggcttcgtggccaaccaaccgacccaatttgctggctgcttggatattgatagctcagagaaagcggcccgatttgtgcgcacttgtgacgcctttaatattcccattgtaatgcttgtggatgtgccggggttcttgccgggtgctgggcaggagtatggcggtattctgcgtcgaggggcgaaacttctttatgcatatggtgaagctacggtcccgaaaattaccgtgacaatgcgaaaggcgtatggtggtgcctattgcgtgatggggtcaaaaggcctcggctcggacattaatctggcctggccgactgcccagatcgccgtgatgggtgcagcgggcgcggtaggcttcatttaccgcaaggaactgatggccgcggacgctaaaggattggatactgtggcgttagcgaagtcgtttgaacgcgaatacgaagatcatatgttaaacccttatcacgcggccgaacgcggtctaattgatgccgtcattctgccgagcgagacacgcggccagatcagtaggaatttgcgcttgcttaaacacaagaacgtcacccgccccgcgcgtaaacatggcaatatgccgctgtaattgtagactcggatccaaactcgag'
+print find_invalid(seq, restr_enzyms=['BsaI'])
