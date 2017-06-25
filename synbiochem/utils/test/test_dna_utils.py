@@ -13,9 +13,8 @@ import json
 import os
 import unittest
 
-from Bio import Restriction
+from Bio.Restriction import HgaI, MlyI
 from synbiochem.utils import dna_utils, sbol_utils
-
 import synbiochem.utils.test.test_sbol_utils as test_sbol_utils
 
 
@@ -51,7 +50,7 @@ class Test(unittest.TestCase):
 
     def test_app_restrict_site_linear(self):
         '''Tests apply_restriction_site method.'''
-        _, dnas = _get_apply_restrict_site_dnas(Restriction.MlyI, False)
+        _, dnas = _get_apply_restrict_site_dnas(MlyI, False)
         self.assertEquals([len(dna['seq']) for dna in dnas], [25, 831, 25])
 
     def test_app_restrict_site_circular(self):
@@ -61,7 +60,7 @@ class Test(unittest.TestCase):
 
     def test_app_restrict_site_nomatch(self):
         '''Tests aplly_restriction_site method.'''
-        parent, dnas = _get_apply_restrict_site_dnas(Restriction.HgaI, False)
+        parent, dnas = _get_apply_restrict_site_dnas(HgaI, False)
         self.assertEquals(len(dnas), 1)
         self.assertEquals(parent, dnas[0])
 
