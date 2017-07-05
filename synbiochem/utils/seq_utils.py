@@ -10,6 +10,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=no-member
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
+from collections import defaultdict
 from subprocess import call, Popen
 import itertools
 import operator
@@ -22,6 +23,7 @@ import urllib2
 
 from Bio import SeqIO, SeqRecord
 from Bio.Blast import NCBIXML
+from Bio.Data import CodonTable
 from Bio.Restriction import Restriction, Restriction_Dictionary
 from Bio.Seq import Seq
 from Bio.SeqUtils.MeltingTemp import Tm_NN
@@ -102,6 +104,13 @@ MG = 'MG'
 DNTP = 'DNTP'
 
 __DEFAULT_REAG_CONC = {NA: 0.05, K: 0, TRIS: 0, MG: 0.01, DNTP: 0}
+
+AA_COD = defaultdict(list)
+
+for cod, am_ac in \
+        CodonTable.unambiguous_dna_by_name[
+            'Standard'].forward_table.iteritems():
+    AA_COD[am_ac].append(cod)
 
 
 def get_codon_usage_organisms(expand=False, verbose=False):
@@ -216,11 +225,6 @@ class CodonOptimiser(object):
                         else dna_seq[3 * i:3 * (i + 1)]
                         for i, amino_acid in enumerate(protein_seq)])
 
-    def get_all_rev_trans(self, aa_seq):
-        '''Returns all reverse translations of amino acid sequence.'''
-        codons = [self.get_all_codons(aa) for aa in aa_seq]
-        return [''.join(t) for t in list(itertools.product(*codons))]
-
     def get_all_codons(self, amino_acid):
         '''Returns all codons for a given amino acid.'''
         return [t[0] for t in self.__aa_to_codon_prob[amino_acid]]
@@ -302,19 +306,20 @@ def is_invalid(seq, max_repeat_nuc=float('inf'), restr_enzyms=None):
     return len(find_invalid(seq, max_repeat_nuc, restr_enzyms)) > 0
 
 
-def get_minimum_free_energy(sequences):
+def get_all_rev_trans(aa_seq):
+    '''Returns all reverse translations of amino acid sequence.'''
+    codons = [AA_COD[aa] for aa in aa_seq]
+    return [''.join(t) for t in list(itertools.product(*codons))]
+
+
+def get_minimum_free_energy(seqs):
     '''Returns minimum free energy of supplied DNA / RNA sequences.'''
-    with open(tempfile.NamedTemporaryFile(), 'w') as input_file, \
-            open(tempfile.NamedTemporaryFile(), 'w') as output_file:
+    input_filename = write_fasta({str(idx): seq
+                                  for idx, seq in enumerate(seqs)})
 
-        for i, sequence in enumerate(sequences):
-            input_file.write('>Seq' + str(i) + '\n' + sequence + '\n')
-            input_file.flush()
-
-        input_file.close()
-
+    with open(tempfile.NamedTemporaryFile().name, 'w') as output_file:
         proc = Popen('RNAfold',
-                     stdin=open(input_file.name),
+                     stdin=open(input_filename),
                      stdout=output_file)
 
         proc.wait()

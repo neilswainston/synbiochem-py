@@ -57,6 +57,12 @@ class CodonOptimiserTest(unittest.TestCase):
 class Test(unittest.TestCase):
     '''Test class for sequence_utils.'''
 
+    def test_get_all_rev_trans(self):
+        '''Tests get_all_rev_trans method.'''
+        aa_seq = 'LS'
+        rev_trans = seq_utils.get_all_rev_trans(aa_seq)
+        self.assertEqual(len(rev_trans), 36)
+
     def test_get_codon_usage_organisms(self):
         '''Tests get_codon_usage_organisms method.'''
         organisms = seq_utils.get_codon_usage_organisms()
