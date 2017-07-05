@@ -308,7 +308,7 @@ def is_invalid(seq, max_repeat_nuc=float('inf'), restr_enzyms=None):
 
 def get_all_rev_trans(aa_seq):
     '''Returns all reverse translations of amino acid sequence.'''
-    codons = [AA_COD[aa] for aa in aa_seq]
+    codons = [AA_COD[aa] for aa in aa_seq.strip()]
     return [''.join(t) for t in list(itertools.product(*codons))]
 
 
