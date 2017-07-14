@@ -369,11 +369,8 @@ class DNAWriter(object):
         except ValueError:
             # If disp_id is not a valid ICE id, try BLAST:
             ice_entries = self.__ice_client.get_ice_entries_by_seq(dna['seq'])
-
-            if len(ice_entries):
-                ice_id = ice_entries[0].get_ice_id()
-            else:
-                ice_id = self.__write(dna)
+            ice_id = ice_entries[0].get_ice_id() if ice_entries \
+                else self.__write(dna)
 
         self.__cache[dna['seq']] = ice_id
         return ice_id
@@ -431,7 +428,7 @@ def get_ice_id(ice_number, id_prefix=_DEFAULT_ID_PREFIX):
 
 def _read_resp(response):
     '''Parses a string response into json.'''
-    return json.loads(unicode(response)) if len(response) else None
+    return json.loads(unicode(response)) if response else None
 
 
 def _add_params(ice_entry, dna):

@@ -239,7 +239,7 @@ class CodonOptimiser(object):
                        for codon_usage in self.__aa_to_codon_prob[amino_acid]
                        if codon_usage[0] not in excl_codons]
 
-        if len(codon_usage) == 0:
+        if not codon_usage:
             raise ValueError('No codons available for ' + amino_acid +
                              ' after excluding ' + str(excl_codons))
 

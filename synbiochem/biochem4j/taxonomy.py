@@ -17,7 +17,7 @@ def get_synonyms_by_id(tax_id):
     parameters = {'tax_id': tax_id}
 
     results = _parse(biochem4j.run_query(qry, parameters))
-    return results[0]['names'] if len(results) > 0 else ''
+    return results[0]['names'] if results else ''
 
 
 def get_children_by_id(tax_id):
@@ -56,7 +56,7 @@ def get_parent_by_name(tax_name):
 
 def _parse(data):
     '''Parses data.'''
-    if len(data['errors']) > 0:
+    if data['errors']:
         raise ValueError(str(data['errors']))
 
     return [datum['row'][0] for datum in data['results'][0]['data']]

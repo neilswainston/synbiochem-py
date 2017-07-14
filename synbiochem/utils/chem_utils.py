@@ -165,7 +165,7 @@ def parse_equation(equation, separator='='):
 
 def _get_reaction_participants(equation_term, stoich_factor):
     '''Adds reaction participants to a list of participants.'''
-    if len(equation_term) == 1 and len(equation_term[0]) == 0:
+    if len(equation_term) == 1 and not equation_term[0]:
         return []
 
     all_terms = [participant.split() for participant in equation_term]

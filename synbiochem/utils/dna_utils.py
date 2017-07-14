@@ -157,9 +157,9 @@ def expand(dna):
     dnas = [dna]
 
     for feature in features:
-        if len(feature['options']):
+        if feature['options']:
             additions = feature['options']
-        elif len(feature['seq']):
+        elif feature['seq']:
             additions = [feature]
         else:
             continue
@@ -210,7 +210,7 @@ def _apply_restrict_to_seq(seq, restrict):
     '''Applies restriction site cleavage to a sequence.'''
     sub_seqs = [(match.group(0), match.start())
                 for match in re.finditer(restrict, seq)]
-    end = sub_seqs[0][1] if len(sub_seqs) > 0 else len(seq)
+    end = sub_seqs[0][1] if sub_seqs else len(seq)
     return [(seq[:end], 0)] + sub_seqs
 
 
