@@ -497,11 +497,11 @@ def get_uniprot_values(uniprot_ids, fields, batch_size=64, verbose=False):
     return values
 
 
-def search_uniprot(name, fields, limit=128):
+def search_uniprot(query, fields, limit=128):
     '''Gets dictionary of ids to values from Uniprot.'''
     values = {}
 
-    url = 'http://www.uniprot.org/uniprot/?query=name:' + name + \
+    url = 'http://www.uniprot.org/uniprot/?query=' + query + \
         '&limit=' + str(limit) + \
         '&format=tab&columns=id,' + ','.join([urllib.quote(field)
                                               for field in fields])
