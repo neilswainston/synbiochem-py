@@ -624,7 +624,7 @@ def _parse_uniprot_data(url, values):
                 headers = tokens
             else:
                 resp = dict(zip(headers, tokens))
-                entry = resp.pop('Entry')
+                entry = resp.get('Entry')
 
                 if 'Protein names' in resp:
                     regexp = re.compile(r'(?<=\()[^)]*(?=\))|^[^(][^()]*')
