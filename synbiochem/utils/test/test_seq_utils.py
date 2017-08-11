@@ -108,13 +108,15 @@ class Test(unittest.TestCase):
                                               ['organism-id',
                                                'protein names'], 1)
 
-        expected = {'P19367': {'Organism ID': '9606',
+        expected = {'P19367': {'Entry': 'P19367',
+                               'Organism ID': '9606',
                                'Protein names': ['Hexokinase-1',
                                                  'EC 2.7.1.1',
                                                  'Brain form hexokinase',
                                                  'Hexokinase type I',
                                                  'HK I']},
-                    'P42212': {'Organism ID': '6100',
+                    'P42212': {'Entry': 'P42212',
+                               'Organism ID': '6100',
                                'Protein names': ['Green fluorescent protein']}}
 
         self.assertEquals(result, expected)

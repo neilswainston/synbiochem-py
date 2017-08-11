@@ -477,7 +477,7 @@ def get_rand_seq_by_melt_temp(target_melt_temp,
 
 def get_uniprot_values(uniprot_ids, fields, batch_size=64, verbose=False):
     '''Gets dictionary of ids to values from Uniprot.'''
-    values = {}
+    values = []
 
     for i in xrange(0, len(uniprot_ids), batch_size):
 
@@ -494,12 +494,12 @@ def get_uniprot_values(uniprot_ids, fields, batch_size=64, verbose=False):
 
         _parse_uniprot_data(url, values)
 
-    return values
+    return {value['Entry']: value for value in values}
 
 
 def search_uniprot(query, fields, limit=128):
     '''Gets dictionary of ids to values from Uniprot.'''
-    values = {}
+    values = []
 
     url = 'http://www.uniprot.org/uniprot/?query=' + query + \
         '&limit=' + str(limit) + \
@@ -624,14 +624,13 @@ def _parse_uniprot_data(url, values):
                 headers = tokens
             else:
                 resp = dict(zip(headers, tokens))
-                entry = resp.get('Entry')
 
                 if 'Protein names' in resp:
                     regexp = re.compile(r'(?<=\()[^)]*(?=\))|^[^(][^()]*')
                     names = regexp.findall(resp.pop('Protein names'))
                     resp['Protein names'] = [nme.strip() for nme in names]
 
-                values.update({entry: resp})
+                values.append(resp)
     except urllib2.HTTPError, err:
         print err
 
