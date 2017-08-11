@@ -502,7 +502,7 @@ def search_uniprot(query, fields, limit=128):
     values = []
 
     url = 'http://www.uniprot.org/uniprot/?query=' + query + \
-        '&limit=' + str(limit) + \
+        '&sort=score&limit=' + str(limit) + \
         '&format=tab&columns=id,' + ','.join([urllib.quote(field)
                                               for field in fields])
 
