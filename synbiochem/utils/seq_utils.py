@@ -169,7 +169,7 @@ class CodonOptimiser(object):
                             max_attempts=1000, tolerant=False):
         '''Returns a codon optimised DNA sequence.'''
         if max_repeat_nuc == float('inf') and restr_enzyms is None:
-            return ''.join([self.get_random_codon(aa)
+            return ''.join([self.get_random_codon(aa, excl_codons)
                             for aa in protein_seq])
         else:
             attempts = 0
