@@ -11,7 +11,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
 from collections import defaultdict
-from subprocess import call, Popen
+from subprocess import call
 import itertools
 import operator
 import os
@@ -312,33 +312,6 @@ def get_all_rev_trans(aa_seq):
     return [''.join(t) for t in list(itertools.product(*codons))]
 
 
-def get_minimum_free_energy(seqs):
-    '''Returns minimum free energy of supplied DNA / RNA sequences.'''
-    input_filename = write_fasta({str(idx): seq
-                                  for idx, seq in enumerate(seqs)})
-
-    with open(tempfile.NamedTemporaryFile().name, 'w') as output_file:
-        proc = Popen('RNAfold',
-                     stdin=open(input_filename),
-                     stdout=output_file)
-
-        proc.wait()
-
-        _cleanup(os.getcwd(), 'Seq\\d+_ss.ps')
-
-        mfes = []
-        pattern = re.compile(r'[+-]?\d+\.\d+')
-
-        with open(output_file.name) as out_file:
-            for line in out_file.readlines():
-                src = pattern.search(line)
-
-                if src:
-                    mfes.append(float(src.group()))
-
-        return mfes
-
-
 def get_random_dna(length, max_repeat_nuc=float('inf'), restr_enzyms=None):
     '''Returns a random sequence of DNA of the supplied length,
     while adhering to a maximum number of repeating nucleotides.'''
@@ -603,13 +576,6 @@ def _scale(codon_usage):
 def _get_random_dna(length):
     '''Returns a random sequence of DNA of the supplied length.'''
     return ''.join(random.choice(['A', 'C', 'G', 'T']) for _ in range(length))
-
-
-def _cleanup(drctry, pattern):
-    '''Deletes files in directory matching pattern.'''
-    for filename in os.listdir(drctry):
-        if re.search(pattern, filename):
-            os.remove(os.path.join(drctry, filename))
 
 
 def _parse_uniprot_data(url, values):
