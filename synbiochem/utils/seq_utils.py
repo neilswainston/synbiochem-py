@@ -474,7 +474,7 @@ def search_uniprot(query, fields, limit=128):
     '''Gets dictionary of ids to values from Uniprot.'''
     values = []
 
-    url = 'http://www.uniprot.org/uniprot/?query=' + query + \
+    url = 'http://www.uniprot.org/uniprot/?query=' + urllib.quote(query) + \
         '&sort=score&limit=' + str(limit) + \
         '&format=tab&columns=id,' + ','.join([urllib.quote(field)
                                               for field in fields])
