@@ -525,7 +525,7 @@ def write_fasta(id_seqs, filename=None):
                                                 delete=False)
         filename = temp_file.name
 
-    records = [SeqRecord.SeqRecord(Seq(seq), seq_id, '', '')
+    records = [SeqRecord.SeqRecord(Seq(seq), str(seq_id), '', '')
                for seq_id, seq in id_seqs.iteritems()]
 
     SeqIO.write(records, filename, 'fasta')
