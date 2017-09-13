@@ -596,6 +596,10 @@ def _parse_uniprot_data(url, values):
                     names = regexp.findall(resp.pop('Protein names'))
                     resp['Protein names'] = [nme.strip() for nme in names]
 
+                for key in resp:
+                    if key.startswith('Cross-reference'):
+                        resp[key] = resp[key].split(';')
+
                 values.append(resp)
     except urllib2.HTTPError, err:
         print err
