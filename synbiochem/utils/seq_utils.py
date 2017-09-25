@@ -564,6 +564,19 @@ def apply_mutations(seq, mutations):
     return ''.join(seq)
 
 
+def get_mutations(wt_seq, seq):
+    '''Get mutations string.'''
+    assert len(wt_seq) == len(seq)
+
+    mut_str = ''
+
+    for (pos, aas) in enumerate(zip(wt_seq, seq)):
+        if aas[0] != aas[1]:
+            mut_str += (aas[0] + str(pos + 1) + aas[1] + ' ')
+
+    return mut_str.strip()
+
+
 def _scale(codon_usage):
     '''Scale codon usage values to add to 1.'''
     codon_usage = dict([(key, value / sum(codon_usage.values()))
