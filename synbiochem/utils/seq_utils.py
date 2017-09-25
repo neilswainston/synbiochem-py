@@ -533,50 +533,6 @@ def write_fasta(id_seqs, filename=None):
     return filename
 
 
-def parse_mutation(mut_str):
-    '''Parse mutation string.'''
-    return [(mut[0], int(mut[1]), mut[2])
-            for mut in [re.compile(r'(\d*)').split(mutation)
-                        for mutation in mut_str.split()]]
-
-
-def apply_mutations(seq, mutations):
-    '''Applies mutations to sequence.'''
-    seq = list(seq)
-    offset = 1
-
-    for mutation in mutations:
-        if mutation[0] != seq[mutation[1] - offset]:
-            err = 'Invalid mutation at position %d. ' % mutation[1] + \
-                'Amino acid is %s ' % seq[mutation[1] - offset] + \
-                'but mutation is of %s.' % mutation[0]
-
-            raise ValueError(err)
-
-        if mutation[2] == '-':
-            # Deletion:
-            del seq[mutation[1] - offset]
-            offset += 1
-        else:
-            # Mutation:
-            seq[mutation[1] - offset] = mutation[2]
-
-    return ''.join(seq)
-
-
-def get_mutations(wt_seq, seq):
-    '''Get mutations string.'''
-    assert len(wt_seq) == len(seq)
-
-    mut_str = ''
-
-    for (pos, aas) in enumerate(zip(wt_seq, seq)):
-        if aas[0] != aas[1]:
-            mut_str += (aas[0] + str(pos + 1) + aas[1] + ' ')
-
-    return mut_str.strip()
-
-
 def _scale(codon_usage):
     '''Scale codon usage values to add to 1.'''
     codon_usage = dict([(key, value / sum(codon_usage.values()))

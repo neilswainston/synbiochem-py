@@ -7,9 +7,10 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
+import random
 import unittest
 
-from synbiochem.utils import mut_utils
+from synbiochem.utils import mut_utils, seq_utils
 
 
 class MutationTest(unittest.TestCase):
@@ -50,8 +51,8 @@ class MutationTest(unittest.TestCase):
 
     def test_repr(self):
         '''Tests __repr__.'''
-        mut = mut_utils.Mutation('A', 12, 'V')
-        self.assertEquals(mut.__repr__(), 'A12V')
+        mut = mut_utils.Mutation('A', 12, '-')
+        self.assertEquals(mut.__repr__(), 'A12-')
 
     def test_str(self):
         '''Tests __str__.'''
@@ -79,6 +80,48 @@ class MutationTest(unittest.TestCase):
 
         self.assertNotEquals(lst, sorted(lst))
         self.assertEquals(sort_lst, sorted(lst))
+
+
+class Test(unittest.TestCase):
+    '''Test class for sequence_utils.'''
+
+    def test_parse_mut_str(self):
+        '''Tests parse_mut_str method.'''
+        mut_a = mut_utils.Mutation('A', 12, 'V')
+        mut_b = mut_utils.Mutation('P', 5, '-')
+        mut_lst = [mut_a, mut_b]
+        mut_str = ' '.join([str(mut) for mut in mut_lst])
+
+        self.assertEquals(mut_str, 'A12V P5-')
+        self.assertEquals(mut_utils.parse_mut_str(mut_str), mut_lst)
+
+    def test_get_mutations(self):
+        '''Tests get_mutations method.'''
+        wt_seq = 'QWERTY'
+        mt_seq = 'QTER-Y'
+        mut_a = mut_utils.Mutation('W', 2, 'T')
+        mut_b = mut_utils.Mutation('T', 5, '-')
+        mut_lst = [mut_a, mut_b]
+        self.assertEquals(mut_utils.get_mutations(wt_seq, mt_seq), mut_lst)
+
+    def test_apply_mutations(self):
+        '''Tests apply_mutations method.'''
+        aa_len = 1024
+        wt_seq = [random.choice(seq_utils.AA_CODES.values())
+                  for _ in range(aa_len)]
+        mt_seq = list(wt_seq)
+
+        mutations = []
+
+        for _ in range(16):
+            pos = random.randint(0, aa_len)
+            wt_res = wt_seq[pos]
+            mt_res = random.choice(seq_utils.AA_CODES.values())
+            mt_seq[pos] = mt_res
+            mutations.append(mut_utils.Mutation(wt_res, pos + 1, mt_res))
+
+        self.assertEquals(mut_utils.apply_mutations(wt_seq, mutations),
+                          ''.join(mt_seq))
 
 
 if __name__ == "__main__":

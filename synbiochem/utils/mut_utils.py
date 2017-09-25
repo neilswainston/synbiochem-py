@@ -7,6 +7,8 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
+import re
+
 from synbiochem.utils import seq_utils
 
 
@@ -19,7 +21,7 @@ class Mutation(object):
             else seq_utils.NUCLEOTIDES
         assert wt_res in alphabet
         assert isinstance(pos, (int, long)) and pos > 0
-        assert mut_res in alphabet
+        assert mut_res in alphabet + ['-']  # Consider deletions
 
         self.__wt_res = wt_res
         self.__pos = pos
@@ -47,3 +49,47 @@ class Mutation(object):
             return pos_diff
 
         return ord(self.__mut_res) - ord(other.get_mut_res())
+
+
+def parse_mut_str(mut_str):
+    '''Parse mutation string.'''
+    return [Mutation(mut[0], int(mut[1]), mut[2])
+            for mut in [re.compile(r'(\d*)').split(mutation)
+                        for mutation in mut_str.split()]]
+
+
+def get_mutations(wt_seq, mut_seq):
+    '''Get Mutations.'''
+    assert len(wt_seq) == len(mut_seq)
+
+    mutations = []
+
+    for (pos, aas) in enumerate(zip(wt_seq, mut_seq)):
+        if aas[0] != aas[1]:
+            mutations.append(Mutation(aas[0], pos + 1, aas[1]))
+
+    return mutations
+
+
+def apply_mutations(seq, mutations):
+    '''Applies mutations to sequence.'''
+    seq = list(seq)
+    offset = 1
+
+    for mutation in mutations:
+        if mutation.get_wt_res() != seq[mutation.get_pos() - offset]:
+            err = 'Invalid mutation at position %d. ' % mutation.get_pos() + \
+                'Amino acid is %s ' % seq[mutation.get_pos() - offset] + \
+                'but mutation is of %s.' % mutation.get_wt_res()
+
+            raise ValueError(err)
+
+        if mutation.get_mut_res() == '-':
+            # Deletion:
+            del seq[mutation.get_pos() - offset]
+            offset += 1
+        else:
+            # Mutation:
+            seq[mutation.get_pos() - offset] = mutation.get_mut_res()
+
+    return ''.join(seq)
