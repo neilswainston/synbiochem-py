@@ -487,16 +487,20 @@ def search_uniprot(query, fields, limit=128):
 def do_blast(id_seqs_subjects, id_seqs_queries, program='blastn',
              dbtype='nucl', evalue=1.0, word_size=28):
     '''Performs BLAST of query sequences against subject sequences.'''
-
     db_filename = write_fasta(id_seqs_subjects)
     query_filename = write_fasta(id_seqs_queries)
     result_file = tempfile.NamedTemporaryFile(prefix='blast_result_',
                                               suffix='.xml',
                                               delete=False)
+    log_file = tempfile.NamedTemporaryFile(prefix='makeblastdb_log',
+                                           suffix='.txt',
+                                           delete=False)
+
     call(['makeblastdb',
           '-in', db_filename,
           '-out', db_filename,
-          '-dbtype', dbtype])
+          '-dbtype', dbtype,
+          '-logfile', log_file.name])
 
     call([program,
           '-query', query_filename,
