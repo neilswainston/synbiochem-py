@@ -11,12 +11,12 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
 from collections import defaultdict
-from subprocess import call
 import itertools
 import operator
 import os
 import random
 import re
+from subprocess import call
 import tempfile
 import urllib
 import urllib2
@@ -53,7 +53,7 @@ AA_CODES = {'Ala': 'A',
             'Val': 'V',
             'Trp': 'W',
             'Tyr': 'Y',
-            'End': '*'}
+            'Stop': '*'}
 
 CODONS = {'A': [['G', 'C', 'ACGT']],
           'C': [['T', 'G', 'CT']],

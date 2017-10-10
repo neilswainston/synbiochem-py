@@ -14,7 +14,7 @@ from synbiochem.utils import mut_utils, seq_utils
 
 
 class MutationTest(unittest.TestCase):
-    '''Test class for CodonOptimiser.'''
+    '''Test class for Mutation.'''
 
     def test_init_err_wt_seq_aa(self):
         '''Tests __init__.'''
@@ -80,6 +80,22 @@ class MutationTest(unittest.TestCase):
 
         self.assertNotEquals(lst, sorted(lst))
         self.assertEquals(sort_lst, sorted(lst))
+
+
+class MutProbTest(unittest.TestCase):
+    '''Test class for MutProb.'''
+
+    def test_get_mut_prob(self):
+        '''Tests get_mut_prob.'''
+        aa_codes = dict(seq_utils.AA_CODES)
+        aa_codes.pop('Stop')
+
+        mut_prob = mut_utils.MutProbs()
+
+        for _ in range(128):
+            wt_res = random.choice(aa_codes.values())
+            mut_res = random.choice(aa_codes.values())
+            self.assertTrue(mut_prob.get_mut_prob(wt_res, mut_res) > 0)
 
 
 class Test(unittest.TestCase):
