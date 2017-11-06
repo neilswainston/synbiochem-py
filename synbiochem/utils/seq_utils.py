@@ -269,9 +269,10 @@ class CodonOptimiser(object):
                 break
             elif in_codons:
                 values = re.split('\\s+', line)
+                am_acid = 'Stop' if values[0] == 'End' else values[0]
 
-                if values[0] in AA_CODES:
-                    codon_prob = aa_to_codon_prob[AA_CODES[values[0]]]
+                if am_acid in AA_CODES:
+                    codon_prob = aa_to_codon_prob[AA_CODES[am_acid]]
                     codon_prob[values[1]] = float(values[3])
 
         aa_to_codon_prob.update((x, _scale(y))
