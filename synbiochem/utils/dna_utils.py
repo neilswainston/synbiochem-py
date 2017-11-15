@@ -9,8 +9,8 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 '''
 # pylint: disable=no-member
 # pylint: disable=too-many-arguments
-from itertools import product
 import copy
+from itertools import product
 import math
 import re
 import uuid
@@ -48,13 +48,13 @@ class DNA(dict):
 
         self.update({'disp_id': disp_id
                      if disp_id is not None else str(uuid.uuid4()),
-                     'seq': seq.upper(),
+                     'seq': re.sub(r'[\s]', '', seq.upper()),
                      'name': name,
                      'desc': desc,
                      'typ': typ,
                      'start': start,
                      'end': end if not math.isnan(end)
-                     else start + len(seq) - 1,
+                     else start + len(re.sub(r'[\s]', '', seq.upper())) - 1,
                      'forward': forward,
                      'features': [] if features is None else features,
                      'children': [] if children is None else children,
@@ -66,7 +66,7 @@ class DNA(dict):
 
     def set_seq(self, seq):
         '''Sets sequence.'''
-        self['seq'] = seq.upper()
+        self['seq'] = re.sub(r'[\s]', '', seq.upper())
         self['end'] = self['start'] + len(seq) - 1
 
     def copy(self):
