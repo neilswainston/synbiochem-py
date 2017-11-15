@@ -29,4 +29,4 @@ setup(name='synbiochem-py',
       packages=find_packages(),
       include_package_data=True,
       test_suite='synbiochem.utils.test',
-      install_requires=['pandas', 'requests', 'biopython'])
+      install_requires=['Cython', 'pandas', 'requests', 'biopython'])
