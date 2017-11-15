@@ -11,7 +11,7 @@ from setuptools import find_packages, setup
 
 
 setup(name='synbiochem-py',
-      version='0.1.30',
+      version='0.1.31',
       description='synbiochem-py: Core python modules for SYNBIOCHEM',
       long_description='synbiochem-py: Core python modules for SYNBIOCHEM',
       url='https://github.com/synbiochem/synbiochem-py',
@@ -29,4 +29,4 @@ setup(name='synbiochem-py',
       packages=find_packages(),
       include_package_data=True,
       test_suite='synbiochem.utils.test',
-      install_requires=['requests', 'biopython'])
+      install_requires=['pandas', 'requests', 'biopython'])
