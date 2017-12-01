@@ -27,7 +27,10 @@ class SimulatedAnnealer(JobThread):
         JobThread.__init__(self)
 
     def run(self):
-        '''Optmises a solution with simulated annealing.'''
+        '''Optimises a solution with simulated annealing.'''
+        self.__fire_event('running', 0, 0, message='Job initialising...')
+        self.__solution.init()
+        self.__fire_event('running', 0, 0, message='Job initialised')
 
         # Initialization:
         iteration = 0
