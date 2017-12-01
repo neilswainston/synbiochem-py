@@ -10,7 +10,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=too-many-arguments
 import math
 import random
-
+import traceback
 from synbiochem.utils.job import JobThread
 
 
@@ -28,83 +28,98 @@ class SimulatedAnnealer(JobThread):
 
     def run(self):
         '''Optimises a solution with simulated annealing.'''
-        self.__fire_event('running', 0, 0, message='Job initialising...')
-        self.__solution.init()
-        self.__fire_event('running', 0, 0, message='Job initialised')
+        if self.__init():
+            # Initialization:
+            iteration = 0
+            accepts = 0
+            rejects = 0
+            r_temp = 0.025
+            cooling_rate = r_temp / 100
 
-        # Initialization:
-        iteration = 0
-        accepts = 0
-        rejects = 0
-        r_temp = 0.025
-        cooling_rate = r_temp / 100
+            energy = self.__solution.get_energy()
 
-        energy = self.__solution.get_energy()
+            while not self._cancelled \
+                    and energy > self.__acceptance \
+                    and iteration < self.__max_iter:
+                iteration += 1
+                energy_new = self.__solution.mutate()
 
-        while not self._cancelled \
-                and energy > self.__acceptance \
-                and iteration < self.__max_iter:
-            iteration += 1
-            energy_new = self.__solution.mutate()
+                if energy_new < energy:
+                    # Accept move immediately:
+                    energy = energy_new
+                    self.__accept(iteration)
+                    print '\t'.join(['T', str(iteration), str(energy_new),
+                                     str(self.__solution)])
+                elif energy_new == energy:
+                    # Reject move:
+                    self.__solution.reject()
+                    rejects += 1
+                    print '\t'.join([' ', str(iteration), str(energy_new),
+                                     str(self.__solution)])
+                elif math.exp((energy - energy_new) / r_temp) > \
+                        random.random():
+                    # Accept move based on conditional probability:
+                    energy = energy_new
+                    self.__accept(iteration)
+                    accepts += 1
+                    print '\t'.join(['*', str(iteration), str(energy_new),
+                                     str(self.__solution)])
+                else:
+                    # Reject move:
+                    self.__solution.reject()
+                    rejects += 1
+                    print '\t'.join([' ', str(iteration), str(energy_new),
+                                     str(self.__solution)])
 
-            if energy_new < energy:
-                # Accept move immediately:
-                energy = energy_new
-                self.__accept(iteration)
-                print '\t'.join(['T', str(iteration), str(energy_new),
-                                 str(self.__solution)])
-            elif energy_new == energy:
-                # Reject move:
-                self.__solution.reject()
-                rejects += 1
-                print '\t'.join([' ', str(iteration), str(energy_new),
-                                 str(self.__solution)])
-            elif math.exp((energy - energy_new) / r_temp) > random.random():
-                # Accept move based on conditional probability:
-                energy = energy_new
-                self.__accept(iteration)
-                accepts += 1
-                print '\t'.join(['*', str(iteration), str(energy_new),
-                                 str(self.__solution)])
+                # Heartbeat:
+                self.__check_heartbeat(iteration)
+
+                # Simulated annealing control:
+                if accepts + rejects > 50:
+                    if float(accepts) / float(accepts + rejects) > 0.2:
+                        # Too many accepts, reduce r_temp:
+                        r_temp /= 2.0
+                        accepts = 0
+                        rejects = 0
+                    elif float(accepts) / float(accepts + rejects) < 0.01:
+                        # Too many rejects, increase r_temp:
+                        r_temp *= 2.0
+                        accepts = 0
+                        rejects = 0
+
+                r_temp *= 1 - cooling_rate
+
+            if iteration == self.__max_iter:
+                message = 'Unable to optimise in ' + str(self.__max_iter) + \
+                    ' iterations'
+                self.__fire_event('error', 100, iteration, message=message)
+            elif self._cancelled:
+                self.__fire_event('cancelled', 100, iteration,
+                                  message='Job cancelled')
             else:
-                # Reject move:
-                self.__solution.reject()
-                rejects += 1
-                print '\t'.join([' ', str(iteration), str(energy_new),
-                                 str(self.__solution)])
+                self.__fire_event('finished', 100, iteration,
+                                  message='Job completed')
 
-            # Heartbeat:
-            if float(iteration) % self.__heartbeat == 0:
-                self.__fire_event('running',
-                                  float(iteration) / self.__max_iter * 100,
-                                  iteration,
-                                  'Running...')
+    def __init(self):
+        '''Initialise.'''
+        self.__fire_event('running', 0, 0, message='Job initialising...')
 
-            # Simulated annealing control:
-            if accepts + rejects > 50:
-                if float(accepts) / float(accepts + rejects) > 0.2:
-                    # Too many accepts, reduce r_temp:
-                    r_temp /= 2.0
-                    accepts = 0
-                    rejects = 0
-                elif float(accepts) / float(accepts + rejects) < 0.01:
-                    # Too many rejects, increase r_temp:
-                    r_temp *= 2.0
-                    accepts = 0
-                    rejects = 0
+        try:
+            self.__solution.init()
+        except ValueError:
+            self.__fire_event('error', 100, 0, message=traceback.format_exc())
+            return False
 
-            r_temp *= 1 - cooling_rate
+        self.__fire_event('running', 0, 0, message='Job initialised')
+        return True
 
-        if iteration == self.__max_iter:
-            message = 'Unable to optimise in ' + str(self.__max_iter) + \
-                ' iterations'
-            self.__fire_event('error', 100, iteration, message=message)
-        elif self._cancelled:
-            self.__fire_event('cancelled', 100, iteration,
-                              message='Job cancelled')
-        else:
-            self.__fire_event('finished', 100, iteration,
-                              message='Job completed')
+    def __check_heartbeat(self, iteration):
+        '''Heartbeat.'''
+        if float(iteration) % self.__heartbeat == 0:
+            self.__fire_event('running',
+                              float(iteration) / self.__max_iter * 100,
+                              iteration,
+                              'Running...')
 
     def __accept(self, iteration):
         '''Accept the current solution.'''
