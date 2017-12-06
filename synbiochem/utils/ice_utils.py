@@ -10,9 +10,10 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=too-few-public-methods
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
-from xml.etree.ElementTree import ParseError
 import json
 import tempfile
+import traceback
+from xml.etree.ElementTree import ParseError
 
 from synbiochem.utils import dna_utils, net_utils, sbol_utils
 
@@ -218,15 +219,21 @@ class ICEClient(object):
     def get_ice_entries_by_seq(self, seq):
         '''Returns entries matching supplied sequence.'''
         entries = []
-        response = self.do_blast(seq)
 
-        if 'results' in response:
-            for result in response['results']:
-                if result['queryLength'] == int(result['alignment']):
-                    entry = self.get_ice_entry(result['entryInfo']['id'])
+        try:
+            response = self.do_blast(seq)
 
-                    if entry.get_seq() == seq:
-                        entries.append(entry)
+            if 'results' in response:
+                for result in response['results']:
+                    if result['queryLength'] == int(result['alignment']):
+                        entry = self.get_ice_entry(result['entryInfo']['id'])
+
+                        if entry.get_seq() == seq:
+                            entries.append(entry)
+        except net_utils.NetworkError:
+            # Sometime BLAST fails inexplicably (on ICE side).
+            # Report error, return empty entries.
+            traceback.print_exc()
 
         return entries
 
