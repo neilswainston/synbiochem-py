@@ -7,13 +7,14 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
+# pylint: disable=too-many-arguments
 import os
 import shutil
 import subprocess
 
 
 def create_db(neo4j_root_loc, nodes_files, rels_files, db_name='graph.db',
-              ignore_duplicates=False):
+              ignore_duplicates=False, delimiter=',', array_delimiter=';'):
     '''Creates the database from csv files.
 
     Import format is:
@@ -46,5 +47,8 @@ def create_db(neo4j_root_loc, nodes_files, rels_files, db_name='graph.db',
 
     if ignore_duplicates:
         params.append('--ignore-duplicate-nodes')
+
+    params.extend(['--delimiter', delimiter])
+    params.extend(['--array-delimiter', array_delimiter])
 
     subprocess.call(params)
