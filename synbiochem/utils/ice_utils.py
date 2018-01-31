@@ -10,6 +10,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=too-few-public-methods
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
+import codecs
 import json
 import tempfile
 import traceback
@@ -321,7 +322,7 @@ class ICEClient(object):
             '/sequence/sbol1?sid=' + self.__sid
         temp_file = tempfile.NamedTemporaryFile(delete=False)
 
-        with open(temp_file.name, 'w') as text_file:
+        with codecs.open(temp_file.name, 'w', 'utf-8') as text_file:
             text_file.write(net_utils.get(url))
 
         return sbol_utils.read(temp_file.name)
