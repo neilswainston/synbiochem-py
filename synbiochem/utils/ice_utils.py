@@ -282,7 +282,7 @@ class ICEClient(object):
             'queryString': term,
             'entryTypes': [entry_type],
             'parameters': {
-                'sortField': 'PART_ID',
+                'sortField': 'RELEVANCE',
                 'retrieveCount': limit,
             }
         }
