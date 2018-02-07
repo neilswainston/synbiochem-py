@@ -276,6 +276,21 @@ class ICEClient(object):
 
         return _read_resp(net_utils.get(url, self.__headers))
 
+    def advanced_search(self, term, entry_type, limit=5):
+        '''Searches ICE.'''
+        data = {
+            'queryString': term,
+            'entryTypes': [entry_type],
+            'parameters': {
+                'sortField': 'PART_ID',
+                'retrieveCount': limit,
+            }
+        }
+
+        return _read_resp(net_utils.post(self.__url + '/rest/search',
+                                         json.dumps(data),
+                                         self.__headers))
+
     def __get_access_token(self, service, username, psswrd):
         '''Gets access token response.'''
         return _read_resp(net_utils.post(self.__url + '/rest' + service,

@@ -250,11 +250,21 @@ class TestICEClient(unittest.TestCase):
         self.assertTrue(True)
 
     def test_search(self):
-        '''Tests add_permission method.'''
+        '''Tests search method.'''
         resp = self.__ice_client.search('PLASMID')
 
         # If test progresses to here, it has succeeded:
         self.assertTrue(resp['resultCount'] > 0)
+
+    def test_advanced_search(self):
+        '''Tests search method.'''
+        typ = 'PLASMID'
+        resp = self.__ice_client.advanced_search('*', typ)
+
+        self.assertTrue(len(resp['results']) == 5)
+
+        for result in resp['results']:
+            self.assertTrue(result['entryInfo']['type'] == typ)
 
 
 class Test(unittest.TestCase):
