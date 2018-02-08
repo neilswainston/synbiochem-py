@@ -387,7 +387,7 @@ class DNAWriter(object):
 
         try:
             ice_entry = self.__ice_client.get_ice_entry(dna['disp_id'])
-            ice_id = ice_entry.get_ice_id(), ice_entry.get_type()
+            ice_id, typ = ice_entry.get_ice_id(), ice_entry.get_type()
         except ValueError:
             # If disp_id is not a valid ICE id, try BLAST:
             ice_entries = self.__ice_client.get_ice_entries_by_seq(dna['seq'])
@@ -428,7 +428,7 @@ class DNAWriter(object):
         entry_id = self.__ice_client.set_ice_entry(ice_entry)
 
         for child in dna['children']:
-            par_ice_entry = self.submit(child)
+            par_ice_entry, _ = self.submit(child)
             self.__ice_client.add_link(entry_id, par_ice_entry)
 
         return entry_id, ice_entry.get_type()
