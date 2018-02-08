@@ -376,9 +376,8 @@ class ICEClient(object):
 class DNAWriter(object):
     '''Class for writing DNA objects to ICE.'''
 
-    def __init__(self, url, username, pssword, group_names):
-        self.__ice_client = ICEClient(url, username, pssword,
-                                      group_names=[group_names])
+    def __init__(self, ice_client):
+        self.__ice_client = ice_client
         self.__cache = {}
 
     def submit(self, dna):
@@ -388,15 +387,19 @@ class DNAWriter(object):
 
         try:
             ice_entry = self.__ice_client.get_ice_entry(dna['disp_id'])
-            ice_id = ice_entry.get_ice_id()
+            ice_id = ice_entry.get_ice_id(), ice_entry.get_type()
         except ValueError:
             # If disp_id is not a valid ICE id, try BLAST:
             ice_entries = self.__ice_client.get_ice_entries_by_seq(dna['seq'])
-            ice_id = ice_entries[0].get_ice_id() if ice_entries \
-                else self.__write(dna)
 
-        self.__cache[dna['seq']] = ice_id
-        return ice_id
+            if ice_entries:
+                ice_entry = ice_entries[0]
+                ice_id, typ = ice_entry.get_ice_id(), ice_entry.get_type()
+            else:
+                ice_id, typ = self.__write(dna)
+
+        self.__cache[dna['seq']] = (ice_id, typ)
+        return ice_id, typ
 
     def __write(self, dna):
         '''Writes DNA document to ICE.'''
@@ -428,7 +431,7 @@ class DNAWriter(object):
             par_ice_entry = self.submit(child)
             self.__ice_client.add_link(entry_id, par_ice_entry)
 
-        return entry_id
+        return entry_id, ice_entry.get_type()
 
 
 def get_ice_number(ice_identifier, id_prefix=_DEFAULT_ID_PREFIX):
