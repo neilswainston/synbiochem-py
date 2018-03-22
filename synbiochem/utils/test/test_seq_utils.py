@@ -26,7 +26,7 @@ class CodonOptimiserTest(unittest.TestCase):
         '''Tests get_codon_optim_seq method.'''
         cod_opt = seq_utils.CodonOptimiser('83333')
         aa_codes = seq_utils.AA_CODES
-        aa_codes.pop('End')
+        aa_codes.pop('Stop')
 
         aa_seq = ''.join([random.choice(aa_codes.values())
                           for _ in range(random.randint(100, 2500))])

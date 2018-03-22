@@ -29,6 +29,7 @@ from Bio.Seq import Seq
 from Bio.SeqUtils.MeltingTemp import Tm_NN
 from requests.exceptions import ConnectionError
 from synbiochem.biochem4j import taxonomy
+from synbiochem.utils import thread_utils
 
 
 NUCLEOTIDES = ['A', 'C', 'G', 'T']
@@ -449,24 +450,23 @@ def get_rand_seq_by_melt_temp(target_melt_temp,
     raise ValueError('Unable to get sequence of required melting temperature')
 
 
-def get_uniprot_values(uniprot_ids, fields, batch_size=64, verbose=False):
+def get_uniprot_values(uniprot_ids, fields, batch_size=128, verbose=False,
+                       num_threads=0):
     '''Gets dictionary of ids to values from Uniprot.'''
     values = []
 
-    for i in xrange(0, len(uniprot_ids), batch_size):
+    if num_threads:
+        thread_pool = thread_utils.ThreadPool(num_threads)
 
-        if verbose:
-            print 'seq_utils: getting Uniprot values ' + str(i) + ' - ' + \
-                str(min(i + batch_size, len(uniprot_ids))) + ' / ' + \
-                str(len(uniprot_ids))
+        for i in xrange(0, len(uniprot_ids), batch_size):
+            thread_pool.add_task(_get_uniprot_batch, uniprot_ids, i,
+                                 batch_size, fields, values, verbose)
 
-        batch = uniprot_ids[i:min(i + batch_size, len(uniprot_ids))]
-        query = '+or+'.join(['id:' + uniprot_id for uniprot_id in batch])
-        url = 'http://www.uniprot.org/uniprot/?query=' + query + \
-            '&format=tab&columns=id,' + ','.join([urllib.quote(field)
-                                                  for field in fields])
-
-        _parse_uniprot_data(url, values)
+        thread_pool.wait_completion()
+    else:
+        for i in xrange(0, len(uniprot_ids), batch_size):
+            _get_uniprot_batch(uniprot_ids, i, batch_size, fields, values,
+                               verbose)
 
     return {value['Entry']: value for value in values}
 
@@ -565,6 +565,22 @@ def _scale(codon_usage):
 def _get_random_dna(length):
     '''Returns a random sequence of DNA of the supplied length.'''
     return ''.join(random.choice(['A', 'C', 'G', 'T']) for _ in range(length))
+
+
+def _get_uniprot_batch(uniprot_ids, i, batch_size, fields, values, verbose):
+    '''Get batch of Uniprot data.'''
+    if verbose:
+        print 'seq_utils: getting Uniprot values ' + str(i) + ' - ' + \
+            str(min(i + batch_size, len(uniprot_ids))) + ' / ' + \
+            str(len(uniprot_ids))
+
+    batch = uniprot_ids[i:min(i + batch_size, len(uniprot_ids))]
+    query = '+or+'.join(['id:' + uniprot_id for uniprot_id in batch])
+    url = 'http://www.uniprot.org/uniprot/?query=' + query + \
+        '&format=tab&columns=id,' + ','.join([urllib.quote(field)
+                                              for field in fields])
+
+    _parse_uniprot_data(url, values)
 
 
 def _parse_uniprot_data(url, values):
