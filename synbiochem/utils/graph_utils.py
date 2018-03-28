@@ -8,7 +8,6 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 @author:  neilswainston
 '''
 # pylint: disable=invalid-name
-from igraph import Graph
 
 
 def add_vertex(graph, name, kwds=None):

@@ -9,9 +9,9 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 '''
 # pylint: disable=no-member
 # pylint: disable=too-many-arguments
-from xml.etree import ElementTree
 import re
 import uuid
+from xml.etree import ElementTree
 
 from synbiochem.utils.dna_utils import DNA
 

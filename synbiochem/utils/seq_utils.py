@@ -209,6 +209,8 @@ class CodonOptimiser(object):
 
             raise ValueError('Unable to generate codon-optimised sequence.')
 
+        return None
+
     def get_cai(self, dna_seq):
         '''Gets the CAI for a given DNA sequence.'''
         cai = 0
