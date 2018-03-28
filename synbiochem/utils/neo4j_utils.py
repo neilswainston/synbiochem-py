@@ -9,6 +9,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 '''
 # pylint: disable=invalid-name
 # pylint: disable=too-many-arguments
+import functools
 import os
 import re
 import shutil
@@ -29,7 +30,10 @@ def create_db(neo4j_root_loc, nodes_files, rels_files, db_name='graph.db',
     '''
     # Apply types to import files:
     for filename in nodes_files + rels_files:
-        _type_file(filename, delimiter)
+        df = pd.read_csv(filename, sep=delimiter,
+                         low_memory=False, dtype=object)
+        type_dfs([df])
+        df.to_csv(filename, delimiter, encoding='utf-8', index=False)
 
     # Stop database:
     bin_loc = os.path.join(neo4j_root_loc, 'bin')
@@ -67,42 +71,66 @@ def create_db(neo4j_root_loc, nodes_files, rels_files, db_name='graph.db',
     subprocess.call(params)
 
 
-def _type_file(filename, sep):
-    '''Update column names in file based on dtype.'''
-    df = pd.read_csv(filename, sep=sep, low_memory=False)
-    _type_cols(df)
-    df.to_csv(filename, sep, index=False)
+def type_dfs(dfs, array_delimiter='|'):
+    '''Format dataframe and update column names in file based on dtype.'''
+    # Apply types to import files:
+    return [_type_cols(df, array_delimiter) for df in dfs]
 
 
-def _type_cols(df):
+def _type_cols(df, array_delimiter):
     '''Update column names based on dtype.'''
-    # Id columns regexps:
-    id_str = r'(:ID|:START_ID|:END_ID)'
-    id_regex = re.compile(id_str)
+    # Id / special case columns regexps:
+    id_regex = re.compile(r'(:ID|:START_ID|:END_ID|:TYPE|:LABEL)')
+    form_list_delim = functools.partial(_format_list,
+                                        array_delimiter=array_delimiter)
 
-    # Ensure absence of colons in non-id column names:
-    type_cols = {col: col.replace(':', '_')
-                 for col in df
-                 if col != ':TYPE' and col != ':LABEL' and ':' in col
-                 and not id_regex.search(col)}
+    new_df = pd.DataFrame()
 
-    # Convert appropriate cols to boolean:
     for col in df:
-        if True in pd.unique(df[col]) and df[col].dtype is np.dtype('O'):
-            type_cols.update({col: col + ':boolean'})
-            df[col] = df[col].astype(str).str.lower()
+        if not id_regex.search(col):
+            # Check if list and reformat if so:
+            res = df[col].apply(form_list_delim)
+            dtype = _get_type(res[0].unique())
 
-    # Add types for int and float columns *except* those of ids,
-    # which are always assumed to be string:
-    col_grouped_by_type = df.columns.to_series().groupby(df.dtypes).groups
-    col_grouped_by_type.pop(np.dtype('O'))
+            if dtype:
+                new_df[col + ':' + dtype + '[]'] = res[1]
+            else:
+                # Convert appropriate cols to int / float / boolean:
+                try:
+                    print col
+                    dtype = _get_type(str(df[col].dtypes))
+                    print dtype
 
-    for type_name, cols in col_grouped_by_type.iteritems():
-        type_name = ''.join([i for i in str(type_name).lower()
-                             if not i.isdigit()])
+                    new_df[col.replace(':', '_') + ':' + dtype] = res[1]
+                except (TypeError, ValueError):
+                    # Ignore errors if data is not numerical.
+                    pass
 
-        type_cols.update({col: col + ':' + type_name
-                          for col in cols
-                          if not id_regex.search(col)})
+    return new_df
 
-    df.rename(columns=type_cols, inplace=True)
+
+def _format_list(cell, array_delimiter):
+    '''Format cell if of type list.'''
+    if not isinstance(cell, list):
+        return pd.Series([None, cell])
+
+    return pd.Series([pd.Series(cell).dtype,
+                      array_delimiter.join(map(str, cell))])
+
+
+def _get_type(dtype):
+    '''Convert dtype to neo4j import type.'''
+    if isinstance(dtype, np.ndarray):
+        if len(dtype) == 1:
+            return _get_type(str(dtype[0]))
+
+        return None
+
+    if dtype == 'bool':
+        return 'boolean'
+    elif dtype == 'object':
+        return 'string'
+    elif dtype == 'nan' or dtype == 'None':
+        return None
+
+    return ''.join([c for c in dtype if not c.isdigit()])
