@@ -28,7 +28,10 @@ class Test(unittest.TestCase):
                  32.124,
                  -34,
                  'random string',
-                 False],
+                 False,
+                 13,
+                 56.3,
+                 [23.5, 'Tree', False]],
                 [[1.6, 3.77, -374.8e-17],
                  ['another', 'random', 'string'],
                  [47, -31],
@@ -36,7 +39,10 @@ class Test(unittest.TestCase):
                  132.124,
                  -314,
                  'another random string',
-                 True]]
+                 True,
+                 34,
+                 78.3,
+                 [-123.5, 6, 'Trees', True]]]
 
         columns = ['float_array',
                    'string_array',
@@ -45,7 +51,10 @@ class Test(unittest.TestCase):
                    'float',
                    'int',
                    'string',
-                   'boolean']
+                   'boolean',
+                   ':START_ID',
+                   ':END_ID(Label)',
+                   ':LABEL']
 
         df = pd.DataFrame(data, columns=columns)
         new_dfs = neo4j_utils.type_dfs([df])
@@ -57,7 +66,10 @@ class Test(unittest.TestCase):
                     'float:float',
                     'int:int',
                     'string:string',
-                    'boolean:boolean']
+                    'boolean:boolean',
+                    ':START_ID',
+                    ':END_ID(Label)',
+                    ':LABEL']
 
         self.assertEqual(sorted((list(new_dfs[0].columns))), sorted(expected))
 

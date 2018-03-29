@@ -87,9 +87,12 @@ def _type_cols(df, array_delimiter):
     new_df = pd.DataFrame()
 
     for col in df:
-        if not id_regex.search(col):
+        res = df[col].apply(form_list_delim)
+
+        if id_regex.search(col):
+            new_df[col] = res[1]
+        else:
             # Check if list and reformat if so:
-            res = df[col].apply(form_list_delim)
             dtype = _get_type(res[0].unique())
 
             if dtype:
@@ -97,10 +100,7 @@ def _type_cols(df, array_delimiter):
             else:
                 # Convert appropriate cols to int / float / boolean:
                 try:
-                    print col
                     dtype = _get_type(str(df[col].dtypes))
-                    print dtype
-
                     new_df[col.replace(':', '_') + ':' + dtype] = res[1]
                 except (TypeError, ValueError):
                     # Ignore errors if data is not numerical.
