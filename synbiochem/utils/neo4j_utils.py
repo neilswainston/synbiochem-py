@@ -33,7 +33,7 @@ def create_db(neo4j_root_loc, nodes_files, rels_files,
     for filename in nodes_files + rels_files:
         df = pd.read_csv(filename, sep=delimiter,
                          low_memory=False, dtype=object)
-        df = type_df(df)
+        df = type_df(df, array_delimiter)
         df.to_csv(filename, delimiter, encoding='utf-8', index=False)
 
     # Stop database:
