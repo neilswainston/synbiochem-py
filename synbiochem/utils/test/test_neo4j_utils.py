@@ -11,9 +11,8 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=wrong-import-order
 import unittest
 
-from synbiochem.utils import neo4j_utils
-
 import pandas as pd
+from synbiochem.utils import neo4j_utils
 
 
 class Test(unittest.TestCase):
@@ -57,7 +56,7 @@ class Test(unittest.TestCase):
                    ':LABEL']
 
         df = pd.DataFrame(data, columns=columns)
-        new_dfs = neo4j_utils.type_dfs([df])
+        new_df = neo4j_utils.type_df(df, array_delimiter='|')
 
         expected = ['float_array:float[]',
                     'string_array:string[]',
@@ -71,7 +70,7 @@ class Test(unittest.TestCase):
                     ':END_ID(Label)',
                     ':LABEL']
 
-        self.assertEqual(sorted((list(new_dfs[0].columns))), sorted(expected))
+        self.assertEqual(sorted((list(new_df.columns))), sorted(expected))
 
 
 if __name__ == "__main__":

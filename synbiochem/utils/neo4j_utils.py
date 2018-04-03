@@ -11,7 +11,6 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=too-many-arguments
 import functools
 import os
-import re
 import shutil
 import subprocess
 
@@ -19,8 +18,10 @@ import numpy as np
 import pandas as pd
 
 
-def create_db(neo4j_root_loc, nodes_files, rels_files, db_name='graph.db',
-              ignore_duplicates=False, delimiter=';', array_delimiter='|'):
+def create_db(neo4j_root_loc, nodes_files, rels_files,
+              delimiter, array_delimiter,
+              db_name='graph.db',
+              ignore_duplicates=False):
     '''Creates the database from csv files.
 
     Import format is:
@@ -32,7 +33,7 @@ def create_db(neo4j_root_loc, nodes_files, rels_files, db_name='graph.db',
     for filename in nodes_files + rels_files:
         df = pd.read_csv(filename, sep=delimiter,
                          low_memory=False, dtype=object)
-        type_dfs([df])
+        df = type_df(df)
         df.to_csv(filename, delimiter, encoding='utf-8', index=False)
 
     # Stop database:
@@ -71,28 +72,19 @@ def create_db(neo4j_root_loc, nodes_files, rels_files, db_name='graph.db',
     subprocess.call(params)
 
 
-def type_dfs(dfs, array_delimiter='|'):
+def type_df(df, array_delimiter):
     '''Format dataframe and update column names in file based on dtype.'''
-    # Apply types to import files:
-    return [_type_cols(df, array_delimiter) for df in dfs]
-
-
-def _type_cols(df, array_delimiter):
-    '''Update column names based on dtype.'''
     # Id / special case columns regexps:
-    id_regex = re.compile(r'(:ID|:START_ID|:END_ID|:TYPE|:LABEL)')
-    form_list_delim = functools.partial(_format_list,
-                                        array_delimiter=array_delimiter)
-
+    _format_list_delim = functools.partial(_format_list,
+                                           array_delimiter=array_delimiter)
     new_df = pd.DataFrame()
 
     for col in df:
-        res = df[col].apply(form_list_delim)
-
-        if id_regex.search(col):
-            new_df[col] = res[1]
+        if ':' in col:
+            new_df[col] = df[col]
         else:
             # Check if list and reformat if so:
+            res = df[col].apply(_format_list_delim)
             dtype = _get_type(res[0].unique())
 
             if dtype:
