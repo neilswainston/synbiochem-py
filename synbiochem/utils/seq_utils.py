@@ -116,7 +116,7 @@ for cod, am_ac in \
 
 def get_codon_usage_organisms(expand=False, verbose=False):
     '''Gets name to taxonomy id dictionary of available codon usage tables.'''
-    destination = os.path.join(os.path.expanduser('~'), 'codon')
+    destination = os.path.dirname(os.path.realpath(__file__))
     filename = 'expand.txt' if expand else 'normal.txt'
     filepath = os.path.join(destination, filename)
 
