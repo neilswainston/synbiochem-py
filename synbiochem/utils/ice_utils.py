@@ -16,6 +16,7 @@ import tempfile
 import traceback
 from xml.etree.ElementTree import ParseError
 
+from future.utils import iteritems
 from synbiochem.utils import dna_utils, net_utils, sbol_utils
 
 
@@ -147,7 +148,7 @@ class ICEClient(object):
 
         self.__group_ids = [group_id
                             for name, group_id
-                            in self.get_groups().iteritems()
+                            in iteritems(self.get_groups())
                             if name in group_names]
 
     def reconnect(self):
@@ -454,7 +455,7 @@ def get_ice_id(ice_number, id_prefix=_DEFAULT_ID_PREFIX):
 
 def _read_resp(response):
     '''Parses a string response into json.'''
-    return json.loads(unicode(response)) if response else None
+    return json.loads(response, encoding='utf-8') if response else None
 
 
 def _add_params(ice_entry, dna):

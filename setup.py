@@ -11,7 +11,7 @@ from setuptools import find_packages, setup
 
 
 setup(name='synbiochem-py',
-      version='0.1.54',
+      version='0.1.55',
       description='synbiochem-py: Core python modules for SYNBIOCHEM',
       long_description='synbiochem-py: Core python modules for SYNBIOCHEM',
       url='https://github.com/synbiochem/synbiochem-py',
@@ -30,6 +30,7 @@ setup(name='synbiochem-py',
       include_package_data=True,
       test_suite='synbiochem.utils.test',
       install_requires=['biopython',
+                        'future',
                         'numpy',
                         'pandas',
                         'python-igraph',

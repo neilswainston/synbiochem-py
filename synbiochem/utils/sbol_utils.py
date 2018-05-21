@@ -8,6 +8,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 @author:  neilswainston
 '''
 # pylint: disable=no-member
+# pylint: disable=superfluous-parens
 # pylint: disable=too-many-arguments
 import re
 import uuid
@@ -119,7 +120,7 @@ def _read_annot(dna, annot):
 
     except ValueError:
         # Prevents cases with no end position and no sequence:
-        print 'Ignoring invalid feature.'
+        print('Ignoring invalid feature.')
 
 
 def _find_text(parent, field):
