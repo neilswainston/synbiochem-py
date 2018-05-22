@@ -516,19 +516,20 @@ def do_blast(id_seqs_subjects, id_seqs_queries, program='blastn',
     return NCBIXML.parse(open(result_file.name))
 
 
-def do_clustal(id_seqs):
+def do_clustal(in_data, is_fasta_file=False, result_file=None):
     '''Performs Clustal Omega multiple sequence alignment.'''
-    in_file = write_fasta(id_seqs)
     result_file = tempfile.NamedTemporaryFile(prefix='clustalo_result_',
                                               suffix='.fasta',
-                                              delete=False)
+                                              delete=False).name \
+        if result_file is None \
+        else result_file
 
     call(['clustalo',
-          '-i', in_file,
-          '-o', result_file.name,
+          '-i', in_data if is_fasta_file else write_fasta(in_data),
+          '-o', result_file,
           '--force'])
 
-    return read_fasta(result_file.name)
+    return read_fasta(result_file)
 
 
 def read_fasta(filename):
