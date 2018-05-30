@@ -232,6 +232,10 @@ class CodonOptimiser(object):
         '''Returns all codons for a given amino acid.'''
         return [t[0] for t in self.__aa_to_codon_prob[amino_acid]]
 
+    def get_best_codon(self, amino_acid):
+        '''Get 'best' codon for a given amino acid.'''
+        return self.__aa_to_codon_prob[amino_acid][0][0]
+
     def get_random_codon(self, amino_acid, excl_codons=None):
         '''Returns a random codon for a given amino acid,
         based on codon probability from the codon usage table.'''

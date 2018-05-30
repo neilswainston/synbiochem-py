@@ -11,6 +11,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
 import codecs
+import copy
 import json
 import tempfile
 import traceback
@@ -119,6 +120,14 @@ class ICEEntry(object):
     def unset_dna_updated(self):
         '''Sets the DNA object updated flag.'''
         self.__dna_updated = False
+
+    def copy(self):
+        '''Copy ICEEntry, making a duplicate.'''
+        metadata = copy.deepcopy(self.__metadata)
+        metadata.pop('id')
+        metadata.pop('partId')
+        metadata.pop('recordId')
+        return ICEEntry(self.__dna, metadata.get('type', None), metadata)
 
     def __repr__(self):
         return str(self.__metadata) + \
