@@ -7,11 +7,12 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
-import csv
 import os
 import sys
 
 import xlrd
+
+import pandas as pd
 
 
 def convert(xl_filename):
@@ -24,15 +25,20 @@ def convert(xl_filename):
     workbook = xlrd.open_workbook(xl_filename)
 
     for sheet in workbook.sheets():
-        csv_filename = os.path.join(dir_name, sheet.name + '.csv')
+        columns = None
+        data = []
 
-        with open(csv_filename, 'wb') as csv_file:
-            writer = csv.writer(csv_file)
+        for row_num in xrange(sheet.nrows):
+            row_data = sheet.row_values(row_num)
+            if not columns:
+                columns = row_data
+            else:
+                data.append(row_data)
 
-            for rownum in xrange(sheet.nrows):
-                writer.writerow(sheet.row_values(rownum))
-
-            csv_file.close()
+        df = pd.DataFrame(data, columns=columns)
+        df.to_csv(os.path.join(dir_name, sheet.name + '.csv'),
+                  index=False,
+                  encoding='utf-8')
 
     return dir_name
 
