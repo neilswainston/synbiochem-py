@@ -308,7 +308,7 @@ class ICEClient(object):
         genbank = net_utils.get(url, self.__headers)
 
         if out:
-            with open(out) as out_file:
+            with open(out, 'w') as out_file:
                 out_file.write(genbank)
 
         return genbank
