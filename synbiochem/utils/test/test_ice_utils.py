@@ -266,6 +266,11 @@ class TestICEClient(unittest.TestCase):
         for result in resp['results']:
             self.assertTrue(result['entryInfo']['type'] == typ)
 
+    def test_get_genbank(self):
+        '''Tests get_genbank method.'''
+        resp = self.__ice_client.get_genbank(6592)
+        self.assertTrue(resp)
+
 
 class Test(unittest.TestCase):
     '''Test class for ice_utils.'''

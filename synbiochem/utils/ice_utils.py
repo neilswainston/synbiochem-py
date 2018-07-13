@@ -301,6 +301,18 @@ class ICEClient(object):
                                          json.dumps(data),
                                          self.__headers))
 
+    def get_genbank(self, ice_id, out=None):
+        '''Get Genbank file.'''
+        url = self.__url + '/rest/file/' + self.__get_ice_number(ice_id) + \
+            '/sequence/genbank'
+        genbank = net_utils.get(url, self.__headers)
+
+        if out:
+            with open(out) as out_file:
+                out_file.write(genbank)
+
+        return genbank
+
     def __get_access_token(self, service, username, psswrd):
         '''Gets access token response.'''
         return _read_resp(net_utils.post(self.__url + '/rest' + service,
