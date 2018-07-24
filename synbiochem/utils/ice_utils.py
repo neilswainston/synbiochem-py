@@ -301,6 +301,13 @@ class ICEClient(object):
                                          json.dumps(data),
                                          self.__headers))
 
+    def search_name(self, name, entry_type):
+        '''Search by name and type.'''
+        resp = self.advanced_search(name, entry_type)
+
+        return [result for result in resp['results']
+                if result['entryInfo']['name'] == name]
+
     def get_genbank(self, ice_id, out=None):
         '''Get Genbank file.'''
         url = self.__url + '/rest/file/' + self.__get_ice_number(ice_id) + \
