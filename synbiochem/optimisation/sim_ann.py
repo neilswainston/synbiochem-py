@@ -18,11 +18,15 @@ from synbiochem.utils.job import JobThread
 class SimulatedAnnealer(JobThread):
     '''Class to perform simulated annealing method.'''
 
-    def __init__(self, solution, acceptance=0.01, max_iter=10000,
+    def __init__(self, solution,
+                 acceptance=0.01, max_iter=10000,
+                 r_temp=0.025, cooling_rate=2.5e-4,
                  heartbeat=1, verbose=False):
         self.__solution = solution
         self.__acceptance = acceptance
         self.__max_iter = max_iter
+        self.__r_temp = r_temp
+        self.__cooling_rate = cooling_rate
         self.__verbose = verbose
         self.__heartbeat = heartbeat
         JobThread.__init__(self)
@@ -34,8 +38,7 @@ class SimulatedAnnealer(JobThread):
             iteration = 0
             accepts = 0
             rejects = 0
-            r_temp = 0.025
-            cooling_rate = r_temp / 100
+            r_temp = self.__r_temp
 
             energy = self.__solution.get_energy()
 
@@ -47,59 +50,38 @@ class SimulatedAnnealer(JobThread):
 
                 if energy_new < energy:
                     # Accept move immediately:
-                    energy = energy_new
                     self.__accept(iteration)
-                    print '\t'.join(['T', str(iteration), str(energy_new),
-                                     str(self.__solution)])
+                    self.__log(iteration, r_temp, energy, energy_new, 'T')
+                    energy = energy_new
                 elif energy_new == energy:
                     # Reject move:
+                    # self.__log(iteration, r_temp, energy, energy_new, ' ')
                     self.__solution.reject()
                     rejects += 1
-                    print '\t'.join([' ', str(iteration), str(energy_new),
-                                     str(self.__solution)])
                 elif math.exp((energy - energy_new) / r_temp) > \
                         random.random():
                     # Accept move based on conditional probability:
-                    energy = energy_new
                     self.__accept(iteration)
+                    self.__log(iteration, r_temp, energy, energy_new, '*')
+                    energy = energy_new
                     accepts += 1
-                    print '\t'.join(['*', str(iteration), str(energy_new),
-                                     str(self.__solution)])
                 else:
                     # Reject move:
+                    # self.__log(iteration, r_temp, energy, energy_new, ' ')
                     self.__solution.reject()
                     rejects += 1
-                    print '\t'.join([' ', str(iteration), str(energy_new),
-                                     str(self.__solution)])
 
                 # Heartbeat:
                 self.__check_heartbeat(iteration)
 
                 # Simulated annealing control:
-                if accepts + rejects > 50:
-                    if float(accepts) / float(accepts + rejects) > 0.2:
-                        # Too many accepts, reduce r_temp:
-                        r_temp /= 2.0
-                        accepts = 0
-                        rejects = 0
-                    elif float(accepts) / float(accepts + rejects) < 0.01:
-                        # Too many rejects, increase r_temp:
-                        r_temp *= 2.0
-                        accepts = 0
-                        rejects = 0
+                accepts, rejects, r_temp = \
+                    _control_r_temp(accepts, rejects, r_temp)
 
-                r_temp *= 1 - cooling_rate
+                r_temp *= 1 - self.__cooling_rate
 
-            if iteration == self.__max_iter:
-                message = 'Unable to optimise in ' + str(self.__max_iter) + \
-                    ' iterations'
-                self.__fire_event('error', 100, iteration, message=message)
-            elif self._cancelled:
-                self.__fire_event('cancelled', 100, iteration,
-                                  message='Job cancelled')
-            else:
-                self.__fire_event('finished', 100, iteration,
-                                  message='Job completed')
+            self.__log(iteration, r_temp, energy, energy_new, 'E')
+            self.__exit(iteration)
 
     def __init(self):
         '''Initialise.'''
@@ -113,6 +95,17 @@ class SimulatedAnnealer(JobThread):
 
         self.__fire_event('running', 0, 0, message='Job initialised')
         return True
+
+    def __log(self, iteration, r_temp, energy, energy_new, symbol):
+        '''Log data.'''
+        if self.__verbose:
+            print('\t'.join([symbol,
+                             str(iteration),
+                             str(energy),
+                             str(energy_new),
+                             '%.2f' % r_temp,
+                             '%.2f' % math.exp((energy - energy_new) / r_temp),
+                             str(self.__solution)]))
 
     def __check_heartbeat(self, iteration):
         '''Heartbeat.'''
@@ -144,3 +137,33 @@ class SimulatedAnnealer(JobThread):
             event['result'] = self.__solution.get_result()
 
         self._fire_event(event)
+
+    def __exit(self, iteration):
+        '''Exit.'''
+        if iteration == self.__max_iter:
+            message = 'Unable to optimise in ' + str(self.__max_iter) + \
+                ' iterations'
+            self.__fire_event('error', 100, iteration, message=message)
+        elif self._cancelled:
+            self.__fire_event('cancelled', 100, iteration,
+                              message='Job cancelled')
+        else:
+            self.__fire_event('finished', 100, iteration,
+                              message='Job completed')
+
+
+def _control_r_temp(accepts, rejects, r_temp):
+    '''Control temperature.'''
+    if accepts + rejects > 50:
+        if float(accepts) / float(accepts + rejects) > 0.2:
+            # Too many accepts, reduce r_temp:
+            r_temp /= 2.0
+            accepts = 0
+            rejects = 0
+        elif float(accepts) / float(accepts + rejects) < 0.025:
+            # Too many rejects, increase r_temp:
+            r_temp *= 2.0
+            accepts = 0
+            rejects = 0
+
+    return accepts, rejects, r_temp
