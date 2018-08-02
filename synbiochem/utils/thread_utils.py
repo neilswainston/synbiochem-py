@@ -8,6 +8,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 @author:  neilswainston
 '''
 # pylint: disable=broad-except
+# pylint: disable=superfluous-parens
 # pylint: disable=useless-object-inheritance
 from threading import Thread
 

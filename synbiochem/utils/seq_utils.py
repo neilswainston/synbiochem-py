@@ -11,11 +11,11 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=no-member
 # pylint: disable=protected-access
 # pylint: disable=redefined-builtin
+# pylint: disable=relative-import
+# pylint: disable=superfluous-parens
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
 # pylint: disable=ungrouped-imports
-# pylint: disable=useless-import-alias
-# pylint: disable=useless-object-inheritance
 from collections import defaultdict
 import itertools
 import operator
@@ -35,17 +35,15 @@ from Bio.SeqUtils.MeltingTemp import Tm_NN
 from synbiochem.biochem4j import taxonomy
 from synbiochem.utils import thread_utils
 
+from six.moves.urllib import parse
+from six.moves.urllib import request
+
 
 try:
     # Python 2:
     from requests.exceptions import ConnectionError
-    import urllib.urlretrieve as urlretrieve
-    import urllib2.urlopen as urlopen
 except ImportError:
-    # Python 3:
-    from urllib.parse import quote
-    from urllib.request import urlopen as urlopen
-    from urllib.request import urlretrieve as urlretrieve
+    pass
 
 
 NUCLEOTIDES = ['A', 'C', 'G', 'T']
@@ -142,7 +140,7 @@ def get_codon_usage_organisms(expand=False, verbose=False):
 
         url = 'ftp://ftp.kazusa.or.jp/pub/codon/current/species.table'
         tmp = tempfile.NamedTemporaryFile(delete=False)
-        urlretrieve(url, tmp.name)
+        request.urlretrieve(url, tmp.name)
 
         # Read:
         codon_orgs = _read_codon_usage_orgs_file(tmp.name)
@@ -282,7 +280,7 @@ class CodonOptimiser(object):
 
         in_codons = False
 
-        for line in urlopen(url):
+        for line in request.urlopen(url):
             line = line.decode('utf-8')
 
             if line == '<PRE>\n':
@@ -496,9 +494,9 @@ def search_uniprot(query, fields, limit=128):
     '''Gets dictionary of ids to values from Uniprot.'''
     values = []
 
-    url = 'http://www.uniprot.org/uniprot/?query=' + quote(query) + \
+    url = 'http://www.uniprot.org/uniprot/?query=' + parse.quote(query) + \
         '&sort=score&limit=' + str(limit) + \
-        '&format=tab&columns=id,' + ','.join([quote(field)
+        '&format=tab&columns=id,' + ','.join([parse.quote(field)
                                               for field in fields])
 
     _parse_uniprot_data(url, values)
@@ -599,7 +597,7 @@ def _get_uniprot_batch(uniprot_ids, i, batch_size, fields, values, verbose):
     batch = uniprot_ids[i:min(i + batch_size, len(uniprot_ids))]
     query = '+or+'.join(['id:' + uniprot_id for uniprot_id in batch])
     url = 'https://www.uniprot.org/uniprot/?query=' + query + \
-        '&format=tab&columns=id,' + ','.join([quote(field)
+        '&format=tab&columns=id,' + ','.join([parse.quote(field)
                                               for field in fields])
 
     _parse_uniprot_data(url, values)
@@ -612,7 +610,7 @@ def _parse_uniprot_data(url, values):
     try:
         context = ssl._create_unverified_context()
 
-        for line in urlopen(url, context=context):
+        for line in request.urlopen(url, context=context):
             line = line.decode('utf-8')
             tokens = line.strip().split('\t')
 

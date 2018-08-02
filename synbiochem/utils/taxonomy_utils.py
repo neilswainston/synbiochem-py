@@ -7,26 +7,18 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
-# pylint: disable=ungrouped-imports
-# pylint: disable=useless-import-alias
+# pylint: disable=relative-import
 import json
-
-try:
-    # Python 2:
-    # import urlparse as urlparse
-    import urllib2.urlopen as urlopen
-except ImportError:
-    # Python 3:
-    from urllib.parse import quote
-    from urllib.request import urlopen as urlopen
+from six.moves.urllib import parse
+from six.moves.urllib import request
 
 
 def get_taxonomy_id(name):
     '''Gets the NCBI Taxonomy id from supplied name.'''
     url = 'http://www.ebi.ac.uk/ols/api/search?ontology=ncbitaxon' + \
-        '&exact=true&queryFields=label&q=' + quote(name)
+        '&exact=true&queryFields=label&q=' + parse.quote(name)
 
-    response = urlopen(url)
+    response = request.urlopen(url)
     data = json.loads(response.read())
 
     if data['response']['numFound'] == 1:
@@ -39,9 +31,9 @@ def get_taxonomy_id(name):
 def search(term, exact=False):
     '''Gets the NCBI Taxonomy id from supplied name.'''
     url = 'http://www.ebi.ac.uk/ols/api/search?ontology=ncbitaxon' + \
-        '&exact=' + str(exact) + '&queryFields=label&q=' + quote(term)
+        '&exact=' + str(exact) + '&queryFields=label&q=' + parse.quote(term)
 
-    response = urlopen(url)
+    response = request.urlopen(url)
     data = json.loads(response.read())
 
     return [{'id': doc['obo_id'].replace('NCBITaxon:', ''),

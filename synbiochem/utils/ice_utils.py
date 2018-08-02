@@ -7,6 +7,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  pablocarbonell / neilswainston / alanwilliams
 '''
+# pylint: disable=bad-option-value
 # pylint: disable=too-few-public-methods
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
@@ -18,7 +19,6 @@ import tempfile
 import traceback
 from xml.etree.ElementTree import ParseError
 
-from future.utils import iteritems
 from synbiochem.utils import dna_utils, net_utils, sbol_utils
 
 
@@ -158,7 +158,7 @@ class ICEClient(object):
 
         self.__group_ids = [group_id
                             for name, group_id
-                            in iteritems(self.get_groups())
+                            in self.get_groups().items()
                             if name in group_names]
 
     def reconnect(self):
