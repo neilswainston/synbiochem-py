@@ -10,9 +10,8 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 import os
 import sys
 
-import xlrd
-
 import pandas as pd
+import xlrd
 
 
 def convert(xl_filename):

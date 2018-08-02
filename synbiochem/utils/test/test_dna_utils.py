@@ -15,7 +15,6 @@ import unittest
 
 from Bio.Restriction import HgaI, MlyI
 from synbiochem.utils import dna_utils, sbol_utils
-
 import synbiochem.utils.test.test_sbol_utils as test_sbol_utils
 
 
