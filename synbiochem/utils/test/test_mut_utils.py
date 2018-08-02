@@ -52,12 +52,12 @@ class MutationTest(unittest.TestCase):
     def test_repr(self):
         '''Tests __repr__.'''
         mut = mut_utils.Mutation('A', 12, '-')
-        self.assertEquals(mut.__repr__(), 'A12-')
+        self.assertEqual(mut.__repr__(), 'A12-')
 
     def test_str(self):
         '''Tests __str__.'''
         mut = mut_utils.Mutation('A', 12, 'V')
-        self.assertEquals(mut.__str__(), 'A12V')
+        self.assertEqual(mut.__str__(), 'A12V')
 
     def test_eq(self):
         '''Tests __eq__.'''
@@ -66,9 +66,9 @@ class MutationTest(unittest.TestCase):
         mut_c = mut_utils.Mutation('A', 13, 'V')
         mut_d = mut_utils.Mutation('A', 12, 'T')
 
-        self.assertEquals(mut_a, mut_b)
-        self.assertNotEquals(mut_a, mut_c)
-        self.assertNotEquals(mut_a, mut_d)
+        self.assertEqual(mut_a, mut_b)
+        self.assertNotEqual(mut_a, mut_c)
+        self.assertNotEqual(mut_a, mut_d)
 
     def test_cmp(self):
         '''Tests __cmp__.'''
@@ -78,8 +78,8 @@ class MutationTest(unittest.TestCase):
         lst = [mut_a, mut_b, mut_c]
         sort_lst = [mut_b, mut_c, mut_a]
 
-        self.assertNotEquals(lst, sorted(lst))
-        self.assertEquals(sort_lst, sorted(lst))
+        self.assertNotEqual(lst, sorted(lst))
+        self.assertEqual(sort_lst, sorted(lst))
 
 
 class Test(unittest.TestCase):
@@ -92,8 +92,8 @@ class Test(unittest.TestCase):
         mut_lst = [mut_a, mut_b]
         mut_str = ' '.join([str(mut) for mut in mut_lst])
 
-        self.assertEquals(mut_str, 'A12V P5-')
-        self.assertEquals(mut_utils.parse_mut_str(mut_str), mut_lst)
+        self.assertEqual(mut_str, 'A12V P5-')
+        self.assertEqual(mut_utils.parse_mut_str(mut_str), mut_lst)
 
     def test_get_mutations(self):
         '''Tests get_mutations method.'''
@@ -102,12 +102,12 @@ class Test(unittest.TestCase):
         mut_a = mut_utils.Mutation('W', 2, 'T')
         mut_b = mut_utils.Mutation('T', 5, '-')
         mut_lst = [mut_a, mut_b]
-        self.assertEquals(mut_utils.get_mutations(wt_seq, mt_seq), mut_lst)
+        self.assertEqual(mut_utils.get_mutations(wt_seq, mt_seq), mut_lst)
 
     def test_apply_mutations(self):
         '''Tests apply_mutations method.'''
         aa_len = 1024
-        wt_seq = [random.choice(seq_utils.AA_CODES.values())
+        wt_seq = [random.choice(list(seq_utils.AA_CODES.values()))
                   for _ in range(aa_len)]
         mt_seq = list(wt_seq)
 
@@ -116,12 +116,14 @@ class Test(unittest.TestCase):
         for _ in range(16):
             pos = random.randint(0, aa_len)
             wt_res = wt_seq[pos]
-            mt_res = random.choice(seq_utils.AA_CODES.values())
+            aa_codes = list(seq_utils.AA_CODES.values())
+            aa_codes.remove('*')
+            mt_res = random.choice(aa_codes)
             mt_seq[pos] = mt_res
             mutations.append(mut_utils.Mutation(wt_res, pos + 1, mt_res))
 
-        self.assertEquals(mut_utils.apply_mutations(wt_seq, mutations),
-                          ''.join(mt_seq))
+        self.assertEqual(mut_utils.apply_mutations(wt_seq, mutations),
+                         ''.join(mt_seq))
 
 
 if __name__ == "__main__":

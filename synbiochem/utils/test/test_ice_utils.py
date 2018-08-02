@@ -22,8 +22,13 @@ class TestICEEntry(unittest.TestCase):
     '''Test class for ICEEntry.'''
     @classmethod
     def setUpClass(cls):
-        ice_url = raw_input('ICE url: ')
-        username = raw_input('ICE username: ')
+        try:
+            std_input = raw_input
+        except NameError:
+            std_input = input
+
+        ice_url = std_input('ICE url: ')
+        username = std_input('ICE username: ')
         password = getpass.getpass(prompt='ICE password: ')
         cls.__ice_client = ICEClient(ice_url, username, password)
 
@@ -154,8 +159,13 @@ class TestICEClient(unittest.TestCase):
     '''Test class for ICEClient.'''
     @classmethod
     def setUpClass(cls):
-        ice_url = raw_input('ICE url: ')
-        username = raw_input('ICE username: ')
+        try:
+            std_input = raw_input
+        except NameError:
+            std_input = input
+
+        ice_url = std_input('ICE url: ')
+        username = std_input('ICE username: ')
         password = getpass.getpass(prompt='ICE password: ')
         cls.__ice_client = ICEClient(ice_url, username, password)
 

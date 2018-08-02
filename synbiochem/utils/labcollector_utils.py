@@ -9,6 +9,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 '''
 # pylint: disable=missing-docstring
 # pylint: disable=too-few-public-methods
+# pylint: disable=useless-object-inheritance
 import json
 
 import requests

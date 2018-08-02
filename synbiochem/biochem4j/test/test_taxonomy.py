@@ -28,15 +28,15 @@ class TestTaxonomy(unittest.TestCase):
 
     def test_get_parent_by_id(self):
         '''Tests get_parent_by_id method.'''
-        self.assertEquals(taxonomy.get_parent_by_id('511145')['taxonomy'],
-                          '83333')
+        self.assertEqual(taxonomy.get_parent_by_id('511145')['taxonomy'],
+                         '83333')
 
     def test_get_parent_by_name(self):
         '''Tests taxonomy method.'''
         name = 'Escherichia coli str. K-12 substr. MG1655'
 
-        self.assertEquals(taxonomy.get_parent_by_name(name)['taxonomy'],
-                          '83333')
+        self.assertEqual(taxonomy.get_parent_by_name(name)['taxonomy'],
+                         '83333')
 
 
 if __name__ == "__main__":

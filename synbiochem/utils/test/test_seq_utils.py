@@ -20,7 +20,7 @@ class CodonOptimiserTest(unittest.TestCase):
     def test_get_codon_prob(self):
         '''Tests get_codon_prob method.'''
         cod_opt = seq_utils.CodonOptimiser('83333')
-        self.assertAlmostEquals(0.46, cod_opt.get_codon_prob('CTG'), 2)
+        self.assertAlmostEqual(0.46, cod_opt.get_codon_prob('CTG'), 2)
 
     def test_get_codon_optim_seq(self):
         '''Tests get_codon_optim_seq method.'''
@@ -28,7 +28,7 @@ class CodonOptimiserTest(unittest.TestCase):
         aa_codes = seq_utils.AA_CODES
         aa_codes.pop('Stop')
 
-        aa_seq = ''.join([random.choice(aa_codes.values())
+        aa_seq = ''.join([random.choice(list(aa_codes.values()))
                           for _ in range(random.randint(100, 2500))])
 
         max_repeat_nuc = 5
@@ -43,9 +43,9 @@ class CodonOptimiserTest(unittest.TestCase):
     def test_get_random_codon(self):
         '''Tests get_random_codon method.'''
         cod_opt = seq_utils.CodonOptimiser('83333')
-        self.assertEquals('CTA', cod_opt.get_random_codon('L', ['CTG', 'TTA',
-                                                                'CTT', 'TTG',
-                                                                'CTC']))
+        self.assertEqual('CTA', cod_opt.get_random_codon('L', ['CTG', 'TTA',
+                                                               'CTT', 'TTG',
+                                                               'CTC']))
 
     def test_get_random_codon_fail(self):
         '''Tests get_random_codon method.'''
@@ -74,8 +74,8 @@ class Test(unittest.TestCase):
         '''Tests find_invalid method.'''
         seq = 'ggtctaaaaatttttttaaaaaccagagtttttt'
 
-        self.assertEquals(seq_utils.find_invalid(seq, 5, ['BsaI']),
-                          [10, 11, 28])
+        self.assertEqual(seq_utils.find_invalid(seq, 5, ['BsaI']),
+                         [10, 11, 28])
 
     def test_is_invalid(self):
         '''Tests is_invalid method.'''
@@ -119,7 +119,7 @@ class Test(unittest.TestCase):
                                'Organism ID': '6100',
                                'Protein names': ['Green fluorescent protein']}}
 
-        self.assertEquals(result, expected)
+        self.assertEqual(result, expected)
 
     def test_do_blast(self):
         '''Tests do_blast method.'''
@@ -132,7 +132,7 @@ class Test(unittest.TestCase):
             for alignment in result.alignments:
                 for hsp in alignment.hsps:
                     alignments.append(hsp)
-                    print hsp
+                    print(hsp)
 
         self.assertGreater(len(alignments), 1)
 

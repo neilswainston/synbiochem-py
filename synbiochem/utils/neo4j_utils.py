@@ -120,9 +120,9 @@ def _get_type(dtype):
 
     if dtype == 'bool':
         return 'boolean'
-    elif dtype == 'object':
+    if dtype == 'object':
         return 'string'
-    elif dtype == 'nan' or dtype == 'None':
+    if dtype in ['nan', 'None']:
         return None
 
     return ''.join([c for c in dtype if not c.isdigit()])

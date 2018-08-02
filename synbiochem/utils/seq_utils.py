@@ -7,19 +7,24 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
+# pylint: disable=broad-except
 # pylint: disable=no-member
+# pylint: disable=protected-access
+# pylint: disable=redefined-builtin
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
+# pylint: disable=ungrouped-imports
+# pylint: disable=useless-import-alias
+# pylint: disable=useless-object-inheritance
 from collections import defaultdict
 import itertools
 import operator
 import os
 import random
 import re
+import ssl
 from subprocess import call
 import tempfile
-import urllib
-import urllib2
 
 from Bio import SeqIO, SeqRecord
 from Bio.Blast import NCBIXML
@@ -27,9 +32,20 @@ from Bio.Data import CodonTable
 from Bio.Restriction import Restriction, Restriction_Dictionary
 from Bio.Seq import Seq
 from Bio.SeqUtils.MeltingTemp import Tm_NN
-from requests.exceptions import ConnectionError
 from synbiochem.biochem4j import taxonomy
 from synbiochem.utils import thread_utils
+
+
+try:
+    # Python 2:
+    from requests.exceptions import ConnectionError
+    import urllib.urlretrieve as urlretrieve
+    import urllib2.urlopen as urlopen
+except ImportError:
+    # Python 3:
+    from urllib.parse import quote
+    from urllib.request import urlopen as urlopen
+    from urllib.request import urlretrieve as urlretrieve
 
 
 NUCLEOTIDES = ['A', 'C', 'G', 'T']
@@ -109,8 +125,7 @@ __DEFAULT_REAG_CONC = {NA: 0.05, K: 0, TRIS: 0, MG: 0.01, DNTP: 0}
 AA_COD = defaultdict(list)
 
 for cod, am_ac in \
-        CodonTable.unambiguous_dna_by_name[
-            'Standard'].forward_table.iteritems():
+        CodonTable.unambiguous_dna_by_name['Standard'].forward_table.items():
     AA_COD[am_ac].append(cod)
 
 
@@ -127,7 +142,7 @@ def get_codon_usage_organisms(expand=False, verbose=False):
 
         url = 'ftp://ftp.kazusa.or.jp/pub/codon/current/species.table'
         tmp = tempfile.NamedTemporaryFile(delete=False)
-        urllib.urlretrieve(url, tmp.name)
+        urlretrieve(url, tmp.name)
 
         # Read:
         codon_orgs = _read_codon_usage_orgs_file(tmp.name)
@@ -140,8 +155,8 @@ def get_codon_usage_organisms(expand=False, verbose=False):
         _write_codon_usage_orgs_file(codon_orgs, filepath)
 
         return codon_orgs
-    else:
-        return _read_codon_usage_orgs_file(filepath)
+
+    return _read_codon_usage_orgs_file(filepath)
 
 
 class CodonOptimiser(object):
@@ -157,8 +172,8 @@ class CodonOptimiser(object):
         self.__codon_to_w = {}
 
         for key in self.__aa_to_codon_prob:
-            aa_dict = dict([(a, b / self.__aa_to_codon_prob[key][0][1])
-                            for a, b in self.__aa_to_codon_prob[key]])
+            aa_dict = {a: b / self.__aa_to_codon_prob[key][0][1]
+                       for a, b in self.__aa_to_codon_prob[key]}
             self.__codon_to_w.update(aa_dict)
 
     def get_codon_prob(self, codon):
@@ -172,44 +187,42 @@ class CodonOptimiser(object):
         if max_repeat_nuc == float('inf') and restr_enzyms is None:
             return ''.join([self.get_random_codon(aa, excl_codons)
                             for aa in protein_seq])
-        else:
-            attempts = 0
-            seq = ''
-            i = 0
-            blockage_i = -1
-            inv_patterns = 0
 
-            while attempts < max_attempts:
-                amino_acid = protein_seq[i]
-                new_seq = seq + self.get_random_codon(amino_acid, excl_codons)
+        attempts = 0
+        seq = ''
+        i = 0
+        blockage_i = -1
+        inv_patterns = 0
 
-                invalids = find_invalid(new_seq, max_repeat_nuc,
-                                        restr_enzyms)
+        while attempts < max_attempts:
+            amino_acid = protein_seq[i]
+            new_seq = seq + self.get_random_codon(amino_acid, excl_codons)
 
-                if len(invalids) == inv_patterns or \
-                        (attempts == max_attempts - 1 and tolerant):
+            invalids = find_invalid(new_seq, max_repeat_nuc,
+                                    restr_enzyms)
 
-                    if i == blockage_i:
-                        if attempts == max_attempts - 1:
-                            inv_patterns = inv_patterns + 1
+            if len(invalids) == inv_patterns or \
+                    (attempts == max_attempts - 1 and tolerant):
 
-                        attempts = 0
+                if i == blockage_i:
+                    if attempts == max_attempts - 1:
+                        inv_patterns = inv_patterns + 1
 
-                    seq = new_seq
+                    attempts = 0
 
-                    if i == len(protein_seq) - 1:
-                        return seq
+                seq = new_seq
 
-                    i += 1
-                else:
-                    blockage_i = max(i, blockage_i)
-                    i = max(0, (invalids[-1] / 3) - stepback)
-                    seq = seq[:i * 3]
-                    attempts += 1
+                if i == len(protein_seq) - 1:
+                    return seq
 
-            raise ValueError('Unable to generate codon-optimised sequence.')
+                i += 1
+            else:
+                blockage_i = max(i, blockage_i)
+                i = max(0, (invalids[-1] // 3) - stepback)
+                seq = seq[:i * 3]
+                attempts += 1
 
-        return None
+        raise ValueError('Unable to generate codon-optimised sequence.')
 
     def get_cai(self, dna_seq):
         '''Gets the CAI for a given DNA sequence.'''
@@ -269,7 +282,9 @@ class CodonOptimiser(object):
 
         in_codons = False
 
-        for line in urllib2.urlopen(url):
+        for line in urlopen(url):
+            line = line.decode('utf-8')
+
             if line == '<PRE>\n':
                 in_codons = True
             elif line == '</PRE>\n':
@@ -385,7 +400,7 @@ def get_melting_temp(dna1, dna2=None, reag_concs=None, strict=True):
     if reag_concs is not None:
         reagent_concs.update(reag_concs)
 
-    reagent_conc = {k: v * 1000 for k, v in reagent_concs.iteritems()}
+    reagent_conc = {k: v * 1000 for k, v in reagent_concs.items()}
     dnac1 = 30
 
     return Tm_NN(dna1, check=True, strict=strict, c_seq=dna2, shift=0,
@@ -464,13 +479,13 @@ def get_uniprot_values(uniprot_ids, fields, batch_size=128, verbose=False,
     if num_threads:
         thread_pool = thread_utils.ThreadPool(num_threads)
 
-        for i in xrange(0, len(uniprot_ids), batch_size):
+        for i in range(0, len(uniprot_ids), batch_size):
             thread_pool.add_task(_get_uniprot_batch, uniprot_ids, i,
                                  batch_size, fields, values, verbose)
 
         thread_pool.wait_completion()
     else:
-        for i in xrange(0, len(uniprot_ids), batch_size):
+        for i in range(0, len(uniprot_ids), batch_size):
             _get_uniprot_batch(uniprot_ids, i, batch_size, fields, values,
                                verbose)
 
@@ -481,9 +496,9 @@ def search_uniprot(query, fields, limit=128):
     '''Gets dictionary of ids to values from Uniprot.'''
     values = []
 
-    url = 'http://www.uniprot.org/uniprot/?query=' + urllib.quote(query) + \
+    url = 'http://www.uniprot.org/uniprot/?query=' + quote(query) + \
         '&sort=score&limit=' + str(limit) + \
-        '&format=tab&columns=id,' + ','.join([urllib.quote(field)
+        '&format=tab&columns=id,' + ','.join([quote(field)
                                               for field in fields])
 
     _parse_uniprot_data(url, values)
@@ -553,7 +568,7 @@ def write_fasta(id_seqs, filename=None):
         filename = temp_file.name
 
     records = [SeqRecord.SeqRecord(Seq(seq), str(seq_id), '', '')
-               for seq_id, seq in id_seqs.iteritems()]
+               for seq_id, seq in id_seqs.items()]
 
     SeqIO.write(records, filename, 'fasta')
 
@@ -562,8 +577,8 @@ def write_fasta(id_seqs, filename=None):
 
 def _scale(codon_usage):
     '''Scale codon usage values to add to 1.'''
-    codon_usage = dict([(key, value / sum(codon_usage.values()))
-                        for key, value in codon_usage.items()])
+    codon_usage = {key: value / sum(codon_usage.values())
+                   for key, value in codon_usage.items()}
 
     return sorted(codon_usage.items(), key=operator.itemgetter(1),
                   reverse=True)
@@ -577,14 +592,14 @@ def _get_random_dna(length):
 def _get_uniprot_batch(uniprot_ids, i, batch_size, fields, values, verbose):
     '''Get batch of Uniprot data.'''
     if verbose:
-        print 'seq_utils: getting Uniprot values ' + str(i) + ' - ' + \
-            str(min(i + batch_size, len(uniprot_ids))) + ' / ' + \
-            str(len(uniprot_ids))
+        print('seq_utils: getting Uniprot values ' + str(i) + ' - ' +
+              str(min(i + batch_size, len(uniprot_ids))) + ' / ' +
+              str(len(uniprot_ids)))
 
     batch = uniprot_ids[i:min(i + batch_size, len(uniprot_ids))]
     query = '+or+'.join(['id:' + uniprot_id for uniprot_id in batch])
-    url = 'http://www.uniprot.org/uniprot/?query=' + query + \
-        '&format=tab&columns=id,' + ','.join([urllib.quote(field)
+    url = 'https://www.uniprot.org/uniprot/?query=' + query + \
+        '&format=tab&columns=id,' + ','.join([quote(field)
                                               for field in fields])
 
     _parse_uniprot_data(url, values)
@@ -595,7 +610,10 @@ def _parse_uniprot_data(url, values):
     headers = None
 
     try:
-        for line in urllib2.urlopen(url):
+        context = ssl._create_unverified_context()
+
+        for line in urlopen(url, context=context):
+            line = line.decode('utf-8')
             tokens = line.strip().split('\t')
 
             if headers is None:
@@ -613,8 +631,8 @@ def _parse_uniprot_data(url, values):
                         resp[key] = resp[key].split(';')
 
                 values.append(resp)
-    except urllib2.HTTPError, err:
-        print err
+    except Exception as err:
+        print(err)
 
 
 def _read_codon_usage_orgs_file(filename):
@@ -636,7 +654,7 @@ def _expand_codon_usage_orgs(codon_orgs, verbose, max_errors=16):
     for tax_id in codon_orgs.values():
 
         if verbose:
-            print 'Expanding codon usage for NCBI Taxonomy id: ' + tax_id
+            print('Expanding codon usage for NCBI Taxonomy id: ' + tax_id)
 
         errors = 0
         success = False
@@ -654,7 +672,7 @@ def _expand_codon_usage_orgs(codon_orgs, verbose, max_errors=16):
 
                 success = True
 
-            except ConnectionError, err:
+            except ConnectionError as err:
                 errors += 1
 
                 if errors == max_errors:

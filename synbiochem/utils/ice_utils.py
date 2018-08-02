@@ -10,6 +10,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=too-few-public-methods
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
+# pylint: disable=useless-object-inheritance
 import codecs
 import copy
 import json
@@ -72,7 +73,7 @@ class ICEEntry(object):
 
         self.set_value('parameters',
                        [{'name': key, 'value': value}
-                        for key, value in parameters.iteritems()])
+                        for key, value in parameters.items()])
 
     def get_parameters(self):
         '''Gets parameters.'''

@@ -137,7 +137,7 @@ def get_molecular_mass(formula):
     return sum([__ELEMENTAL_MASSES[element] * count
                 if element in __ELEMENTAL_MASSES
                 else float('NaN')
-                for element, count in get_elem_comp(formula).iteritems()])
+                for element, count in get_elem_comp(formula).items()])
 
 
 def get_elem_comp(formula):

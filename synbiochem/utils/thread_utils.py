@@ -8,8 +8,14 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 @author:  neilswainston
 '''
 # pylint: disable=broad-except
-from Queue import Queue
+# pylint: disable=useless-object-inheritance
 from threading import Thread
+
+
+try:
+    import Queue as queue
+except ImportError:
+    pass
 
 
 class Worker(Thread):
@@ -26,8 +32,8 @@ class Worker(Thread):
             func, args, kargs = self.__tasks.get()
             try:
                 func(*args, **kargs)
-            except Exception, err:
-                print err
+            except Exception as err:
+                print(err)
             finally:
                 # Mark this task as done, whether an exception happened or not
                 self.__tasks.task_done()
@@ -37,7 +43,7 @@ class ThreadPool(object):
     '''Pool of threads consuming tasks from a queue.'''
 
     def __init__(self, num_threads):
-        self.__tasks = Queue(num_threads)
+        self.__tasks = queue.Queue(num_threads)
 
         for _ in range(num_threads):
             Worker(self.__tasks)

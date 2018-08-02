@@ -9,6 +9,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 '''
 # pylint: disable=no-member
 # pylint: disable=too-many-arguments
+# pylint: disable=too-many-locals
 import copy
 from itertools import product
 import math
@@ -128,7 +129,7 @@ def add(dna1, dna2):
     dna1['end'] = len(dna1['seq'])
 
     # Update parameters:
-    for key, value in dna2['parameters'].iteritems():
+    for key, value in dna2['parameters'].items():
         param = dna1['parameters'].get(key, None)
 
         if param is None:

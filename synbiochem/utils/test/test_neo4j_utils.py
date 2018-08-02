@@ -11,8 +11,9 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=wrong-import-order
 import unittest
 
-import pandas as pd
 from synbiochem.utils import neo4j_utils
+
+import pandas as pd
 
 
 class Test(unittest.TestCase):

@@ -7,11 +7,12 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
+# pylint: disable=invalid-name
 import os
-import sys
+
+import xlrd
 
 import pandas as pd
-import xlrd
 
 
 def convert(xl_filename):
@@ -27,7 +28,7 @@ def convert(xl_filename):
         columns = None
         data = []
 
-        for row_num in xrange(sheet.nrows):
+        for row_num in range(sheet.nrows):
             row_data = sheet.row_values(row_num)
             if not columns:
                 columns = row_data
@@ -40,12 +41,3 @@ def convert(xl_filename):
                   encoding='utf-8')
 
     return dir_name
-
-
-def main(args):
-    '''main method.'''
-    print convert(args[0])
-
-
-if __name__ == '__main__':
-    main(sys.argv[1:])

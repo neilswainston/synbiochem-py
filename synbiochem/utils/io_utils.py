@@ -7,11 +7,18 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
+# pylint: disable=useless-import-alias
 import gzip
 import os
 import tempfile
-import urllib
 import zipfile
+
+try:
+    # Python 2:
+    import urllib.urlretrieve as urlretrieve
+except ImportError:
+    # Python 3:
+    from urllib.request import urlretrieve as urlretrieve
 
 
 def get_file(source_url, target_filename):
@@ -21,7 +28,7 @@ def get_file(source_url, target_filename):
         if not os.path.exists(os.path.dirname(target_filename)):
             os.makedirs(os.path.dirname(target_filename))
 
-        urllib.urlretrieve(source_url, target_filename)
+        urlretrieve(source_url, target_filename)
 
     destination = os.path.dirname(target_filename)
 

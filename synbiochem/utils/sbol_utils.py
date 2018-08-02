@@ -63,7 +63,7 @@ def write(dna, filename=None):
 
     sbol = ElementTree.tostring(root)
 
-    with open(filename, 'w') as outfile:
+    with open(filename, 'wb') as outfile:
         outfile.write(sbol)
 
     return sbol
