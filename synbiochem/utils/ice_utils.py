@@ -479,7 +479,7 @@ def get_ice_number(ice_identifier, id_prefix=_DEFAULT_ID_PREFIX):
 
 def get_ice_id(ice_number, id_prefix=_DEFAULT_ID_PREFIX):
     '''Maps ICE id to ICE number, i.e. from 123 to SBC000123.'''
-    return id_prefix + format(ice_number, '06')
+    return id_prefix + format(int(get_ice_number(ice_number)), '06')
 
 
 def _read_resp(response):
