@@ -33,55 +33,57 @@ class SimulatedAnnealer(JobThread):
 
     def run(self):
         '''Optimises a solution with simulated annealing.'''
-        if self.__init():
-            # Initialization:
-            iteration = 0
-            accepts = 0
-            rejects = 0
-            r_temp = self.__r_temp
+        try:
+            if self.__init():
+                # Initialization:
+                iteration = 0
+                accepts = 0
+                rejects = 0
+                r_temp = self.__r_temp
 
-            energy = self.__solution.get_energy()
+                energy = self.__solution.get_energy()
 
-            while not self._cancelled \
-                    and energy > self.__acceptance \
-                    and iteration < self.__max_iter:
-                iteration += 1
-                energy_new = self.__solution.mutate()
+                while not self._cancelled \
+                        and energy > self.__acceptance \
+                        and iteration < self.__max_iter:
+                    iteration += 1
+                    energy_new = self.__solution.mutate()
 
-                if energy_new < energy:
-                    # Accept move immediately:
-                    self.__accept(iteration)
-                    self.__log(iteration, r_temp, energy, energy_new, 'T')
-                    energy = energy_new
-                elif energy_new == energy:
-                    # Reject move:
-                    # self.__log(iteration, r_temp, energy, energy_new, ' ')
-                    self.__solution.reject()
-                    rejects += 1
-                elif math.exp((energy - energy_new) / r_temp) > \
-                        random.random():
-                    # Accept move based on conditional probability:
-                    self.__accept(iteration)
-                    self.__log(iteration, r_temp, energy, energy_new, '*')
-                    energy = energy_new
-                    accepts += 1
-                else:
-                    # Reject move:
-                    # self.__log(iteration, r_temp, energy, energy_new, ' ')
-                    self.__solution.reject()
-                    rejects += 1
+                    if energy_new < energy:
+                        # Accept move immediately:
+                        self.__accept(iteration)
+                        self.__log(iteration, r_temp, energy, energy_new, 'T')
+                        energy = energy_new
+                    elif energy_new == energy:
+                        # Reject move:
+                        self.__solution.reject()
+                        rejects += 1
+                    elif _get_exp((energy - energy_new) / r_temp) > \
+                            random.random():
+                        # Accept move based on conditional probability:
+                        self.__accept(iteration)
+                        self.__log(iteration, r_temp, energy, energy_new, '*')
+                        energy = energy_new
+                        accepts += 1
+                    else:
+                        # Reject move:
+                        self.__solution.reject()
+                        rejects += 1
 
-                # Heartbeat:
-                self.__check_heartbeat(iteration)
+                    # Heartbeat:
+                    self.__check_heartbeat(iteration)
 
-                # Simulated annealing control:
-                accepts, rejects, r_temp = \
-                    _control_r_temp(accepts, rejects, r_temp)
+                    # Simulated annealing control:
+                    accepts, rejects, r_temp = \
+                        _control_r_temp(accepts, rejects, r_temp)
 
-                r_temp *= 1 - self.__cooling_rate
+                    r_temp *= 1 - self.__cooling_rate
 
-            self.__log(iteration, r_temp, energy, energy_new, 'E')
-            self.__exit(iteration)
+                self.__log(iteration, r_temp, energy, energy_new, 'E')
+                self.__exit(iteration)
+        except Exception:
+            self.__fire_event('error', 100, 0, message=traceback.format_exc())
+            return False
 
     def __init(self):
         '''Initialise.'''
@@ -104,7 +106,7 @@ class SimulatedAnnealer(JobThread):
                              str(energy),
                              str(energy_new),
                              '%.2f' % r_temp,
-                             '%.2f' % math.exp((energy - energy_new) / r_temp),
+                             '%.2f' % _get_exp((energy - energy_new) / r_temp),
                              str(self.__solution)]))
 
     def __check_heartbeat(self, iteration):
@@ -167,3 +169,13 @@ def _control_r_temp(accepts, rejects, r_temp):
             rejects = 0
 
     return accepts, rejects, r_temp
+
+
+def _get_exp(value):
+    '''Get exp safely.'''
+    try:
+        ans = math.exp(value)
+    except OverflowError:
+        ans = float('inf')
+
+    return ans
