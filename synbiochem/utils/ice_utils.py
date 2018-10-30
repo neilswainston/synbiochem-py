@@ -11,7 +11,6 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=too-few-public-methods
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-instance-attributes
-# pylint: disable=useless-object-inheritance
 import codecs
 import copy
 import json

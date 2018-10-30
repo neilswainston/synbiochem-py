@@ -80,7 +80,7 @@ class DNA(dict):
         return self.__dict__ == other.__dict__
 
     def __repr__(self):
-        return self['name']
+        return self.get('name', None)
 
 
 def get_dna(dct):
