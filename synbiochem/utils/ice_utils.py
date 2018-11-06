@@ -30,7 +30,7 @@ _SESSION_KEY = 'X-ICE-Authentication-SessionId'
 _ICE_CLIENTS = {}
 
 
-def _check_clients(max_age=60 * 15, sleep=60):
+def _check_clients(max_age=60 * 15, sleep_time=60):
     '''Check ICE clients.'''
     while True:
         to_remove = []
@@ -42,8 +42,8 @@ def _check_clients(max_age=60 * 15, sleep=60):
         for ice_params in to_remove:
             del _ICE_CLIENTS[ice_params]
 
-        print 'ICE clients: %s' % len(_ICE_CLIENTS)
-        time.sleep(sleep)
+        print('ICE clients: %s' % len(_ICE_CLIENTS))
+        time.sleep(sleep_time)
 
 
 threading.Thread(target=_check_clients).start()
