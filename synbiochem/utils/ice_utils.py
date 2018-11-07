@@ -27,26 +27,49 @@ from synbiochem.utils import dna_utils, net_utils, sbol_utils
 _DEFAULT_ID_PREFIX = 'SBC'
 _SESSION_KEY = 'X-ICE-Authentication-SessionId'
 
-_ICE_CLIENTS = {}
 
+class ICEClientFactory(object):
+    '''Factory class for controlling ICE factories.'''
 
-def _check_clients(max_age=60 * 15, sleep_time=60):
-    '''Check ICE clients.'''
-    while True:
-        to_remove = []
+    def __init__(self):
+        self.__ice_clients = {}
+        self.__running = True
+        threading.Thread(target=self.__check_clients).start()
 
-        for ice_params, values in _ICE_CLIENTS.items():
-            if time.time() - values[1] > max_age:
-                to_remove.append(ice_params)
+    def close(self):
+        '''Close factory.'''
+        self.__running = False
 
-        for ice_params in to_remove:
-            del _ICE_CLIENTS[ice_params]
+    def get_ice_client(self, url, username, psswrd,
+                       id_prefix=_DEFAULT_ID_PREFIX, group_names=None):
+        '''Get ICEClient.'''
+        if group_names is None:
+            group_names = []
 
-        print('ICE clients: %s' % len(_ICE_CLIENTS))
-        time.sleep(sleep_time)
+        params = (url, username, psswrd, id_prefix, tuple(group_names))
 
+        if params in self.__ice_clients:
+            return self.__ice_clients[params][0]
 
-threading.Thread(target=_check_clients).start()
+        ice_client = ICEClient(url, username, psswrd, id_prefix, group_names)
+        self.__ice_clients[params] = [ice_client, time.time()]
+
+        return ice_client
+
+    def __check_clients(self, max_age=60 * 15, sleep_time=60):
+        '''Check ICE clients.'''
+        while self.__running:
+            to_remove = []
+
+            for ice_params, values in self.__ice_clients.items():
+                if time.time() - values[1] > max_age:
+                    to_remove.append(ice_params)
+
+            for ice_params in to_remove:
+                del self.__ice_clients[ice_params]
+
+            print('ICE clients: %s' % len(self.__ice_clients))
+            time.sleep(sleep_time)
 
 
 class ICEEntry(object):
@@ -485,23 +508,6 @@ class DNAWriter(object):
             self.__ice_client.add_link(entry_id, par_ice_entry)
 
         return entry_id, ice_entry.get_type()
-
-
-def get_ice_client(url, username, psswrd, id_prefix=_DEFAULT_ID_PREFIX,
-                   group_names=None):
-    '''Get ICEClient.'''
-    if group_names is None:
-        group_names = []
-
-    params = (url, username, psswrd, id_prefix, tuple(group_names))
-
-    if params in _ICE_CLIENTS:
-        return _ICE_CLIENTS[params][0]
-
-    ice_client = ICEClient(url, username, psswrd, id_prefix, group_names)
-    _ICE_CLIENTS[params] = [ice_client, time.time()]
-
-    return ice_client
 
 
 def get_ice_number(ice_identifier, id_prefix=_DEFAULT_ID_PREFIX):
