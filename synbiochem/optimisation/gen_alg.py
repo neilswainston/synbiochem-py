@@ -11,7 +11,6 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=protected-access
 # pylint: disable=too-few-public-methods
 # pylint: disable=too-many-arguments
-import abc
 import random
 
 import numpy
@@ -20,10 +19,8 @@ import numpy
 class Chromosome(object):
     '''Class to represent a chromosome.'''
 
-    def __init__(self, chromosome, len_chromosome, mutation_rate=0.01):
+    def __init__(self, chromosome, mutation_rate=0.01):
         self._chromosome = chromosome
-        self._len_chromosome = len_chromosome
-        self.__mask = 2 ** (self._len_chromosome) - 1
         self.__mutation_rate = mutation_rate
 
     def get_chromosome(self):
@@ -32,18 +29,15 @@ class Chromosome(object):
 
     def mutate(self):
         '''Mutate.'''
-        for i in range(self._len_chromosome):
-            if random.random() < self.__mutation_rate:
-                # Mutate:
-                mask = 1 << i
-                self._chromosome = self._chromosome ^ mask
+        pass
 
     def breed(self, partner):
         '''Breed.'''
-        i = int(random.random() * self._len_chromosome)
-        end = 2 ** i - 1
-        start = self.__mask - end
-        return (partner._chromosome & start) + (self._chromosome & end)
+        pass
+
+    def fitness(self):
+        '''Get fitness.'''
+        pass
 
     def __repr__(self):
         return str(self._chromosome)
@@ -51,21 +45,14 @@ class Chromosome(object):
 
 class GeneticAlgorithm(object):
     '''Base class to run a genetic algorithm.'''
-    __metaclass__ = abc.ABCMeta
 
-    def __init__(self, pop_size, args, retain=0.2, random_select=0.05,
+    def __init__(self, population, retain=0.2, random_select=0.05,
                  mutate=0.01, verbose=False):
-        self.__pop_size = pop_size
-        self.__args = args
+        self.__population = population
         self.__retain = retain
         self.__random_select = random_select
         self.__mutate = mutate
         self._verbose = verbose
-        self.__population = []
-
-        while len(list(numpy.unique(numpy.array(self.__population)))) < \
-                pop_size:
-            self.__population.append(self.__get_individual())
 
     def run(self, max_iter=1024):
         '''Run.'''
@@ -77,22 +64,9 @@ class GeneticAlgorithm(object):
 
         raise ValueError('Unable to optimise in %d iterations.') % max_iter
 
-    @abc.abstractmethod
-    def _fitness(self, _):
-        '''Determine the fitness of an individual.'''
-        pass
-
-    def __get_individual(self):
-        'Create a member of the population.'
-        return {k: self.__get_arg(args) for k, args in self.__args.iteritems()}
-
-    def __get_arg(self, args):
-        '''Get arguments.'''
-        return random.randint(args[0], args[1]) if isinstance(args, tuple) \
-            else random.choice(args)
-
     def __evolve(self):
-        graded = sorted([(self._fitness(x), x) for x in self.__population])
+        graded = sorted([(chrm.fitness(), chrm)
+                         for chrm in self.__population])
 
         if graded[0][0] == 0:
             return graded[0][1]
@@ -101,7 +75,7 @@ class GeneticAlgorithm(object):
             print graded[0]
 
         graded = [x[1] for x in graded]
-        retain_length = int(self.__pop_size * self.__retain)
+        retain_length = int(len(self.__population) * self.__retain)
 
         # Retain best and randomly add other individuals to promote genetic
         # diversity:
@@ -112,8 +86,7 @@ class GeneticAlgorithm(object):
         # Mutate some individuals:
         for individual in self.__population:
             if self.__mutate > random.random():
-                key = random.choice(individual.keys())
-                individual[key] = self.__get_arg(self.__args[key])
+                individual.mutate()
 
         # Ensure uniqueness in population:
         self.__population = list(numpy.unique(numpy.array(self.__population)))
@@ -121,23 +94,15 @@ class GeneticAlgorithm(object):
         # Breed parents to create children:
         new_population = []
 
-        while len(new_population) < self.__pop_size:
+        while len(new_population) < len(self.__population):
             male = random.choice(self.__population)
             female = random.choice(self.__population)
 
             if male != female:
-                pos = random.randint(0, len(male))
-
-                male_parts = {k: male[k]
-                              for i, k in enumerate(male.keys())
-                              if i < pos}
-                female_parts = {k: female[k]
-                                for i, k in enumerate(female.keys())
-                                if i >= pos}
-
-                child = dict(male_parts.items() + female_parts.items())
+                child = male.breed(female)
 
                 new_population.append(child)
+
                 new_population = list(
                     numpy.unique(numpy.array(new_population)))
 
