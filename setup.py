@@ -9,9 +9,8 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 '''
 from setuptools import find_packages, setup
 
-
 setup(name='synbiochem-py',
-      version='0.6.9',
+      version='0.6.10',
       description='synbiochem-py: Core python modules for SYNBIOCHEM',
       long_description='synbiochem-py: Core python modules for SYNBIOCHEM',
       url='https://github.com/synbiochem/synbiochem-py',

@@ -19,7 +19,7 @@ import numpy
 class Chromosome(object):
     '''Class to represent a chromosome.'''
 
-    def __init__(self, chromosome, mutation_rate=0.01):
+    def __init__(self, chromosome, mutation_rate=0.1):
         self._chromosome = chromosome
         self.__mutation_rate = mutation_rate
 
@@ -47,7 +47,7 @@ class GeneticAlgorithm(object):
     '''Base class to run a genetic algorithm.'''
 
     def __init__(self, population, retain=0.2, random_select=0.05,
-                 mutate=0.01, verbose=False):
+                 mutate=0.1, verbose=False):
         self.__population = population
         self.__retain = retain
         self.__random_select = random_select
@@ -62,7 +62,7 @@ class GeneticAlgorithm(object):
             if result is not None:
                 return result
 
-        raise ValueError('Unable to optimise in %d iterations.') % max_iter
+        raise ValueError('Unable to optimise in %d iterations.' % max_iter)
 
     def __evolve(self):
         graded = sorted([(chrm.fitness(), chrm)
@@ -79,20 +79,9 @@ class GeneticAlgorithm(object):
 
         # Retain best and randomly add other individuals to promote genetic
         # diversity:
-        self.__population = graded[:retain_length] + \
+        new_population = graded[:retain_length] + \
             [ind for ind in graded[retain_length:]
              if self.__random_select > random.random()]
-
-        # Mutate some individuals:
-        for individual in self.__population:
-            if self.__mutate > random.random():
-                individual.mutate()
-
-        # Ensure uniqueness in population:
-        self.__population = list(numpy.unique(numpy.array(self.__population)))
-
-        # Breed parents to create children:
-        new_population = []
 
         while len(new_population) < len(self.__population):
             male = random.choice(self.__population)
@@ -105,6 +94,11 @@ class GeneticAlgorithm(object):
 
                 new_population = list(
                     numpy.unique(numpy.array(new_population)))
+
+        # Mutate some individuals:
+        for individual in new_population:
+            if self.__mutate > random.random():
+                individual.mutate()
 
         self.__population = new_population
 
