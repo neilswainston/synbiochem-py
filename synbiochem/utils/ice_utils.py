@@ -357,7 +357,7 @@ class ICEClient(object):
 
     def search_design(self, design_number):
         '''Search plasmids by design.'''
-        return self.search_name('SBC_DE%s_PL' % (str(design_number)),
+        return self.search_name('SBCDE%05d_PL' % (int(design_number)),
                                 'PLASMID', limit=128)
 
     def get_genbank(self, ice_id, out=None):
