@@ -348,12 +348,17 @@ class ICEClient(object):
                                          json.dumps(data),
                                          self.__headers))
 
-    def search_name(self, name, entry_type):
+    def search_name(self, name, entry_type, limit=5):
         '''Search by name and type.'''
-        resp = self.advanced_search(name, entry_type)
+        resp = self.advanced_search(name, entry_type, limit)
 
         return [result for result in resp['results']
-                if result['entryInfo']['name'] == name]
+                if name in result['entryInfo']['name']]
+
+    def search_design(self, design_number):
+        '''Search plasmids by design.'''
+        return self.search_name('SBC_DE%s_PL' % (str(design_number)),
+                                'PLASMID', limit=128)
 
     def get_genbank(self, ice_id, out=None):
         '''Get Genbank file.'''

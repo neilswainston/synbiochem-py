@@ -273,6 +273,13 @@ class TestICEClient(unittest.TestCase):
         # If test progresses to here, it has succeeded:
         self.assertTrue(resp)
 
+    def test_search_design(self):
+        '''Tests advanced search by name method.'''
+        resp = self.__ice_client.search_design(15)
+
+        # If test progresses to here, it has succeeded:
+        self.assertTrue(len(resp) == 46)
+
     def test_advanced_search(self):
         '''Tests search method.'''
         typ = 'PLASMID'
