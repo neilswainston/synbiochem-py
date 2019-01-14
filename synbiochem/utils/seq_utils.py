@@ -16,6 +16,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
 # pylint: disable=ungrouped-imports
+# pylint: disable=wrong-import-order
 from collections import defaultdict
 import itertools
 import operator
@@ -26,11 +27,10 @@ import ssl
 from subprocess import call
 import tempfile
 
-from Bio import SeqIO, SeqRecord
+from Bio import Seq, SeqIO, SeqRecord
 from Bio.Blast import NCBIXML
 from Bio.Data import CodonTable
 from Bio.Restriction import Restriction, Restriction_Dictionary
-from Bio.Seq import Seq
 from Bio.SeqUtils.MeltingTemp import Tm_NN
 from synbiochem.biochem4j import taxonomy
 from synbiochem.utils import thread_utils
@@ -317,7 +317,7 @@ def find_invalid(seq, max_repeat_nuc=float('inf'), restr_enzyms=None):
     # Invalid restriction sites:
     if restr_enzyms:
         for rest_enz in [_get_restr_type(name) for name in restr_enzyms]:
-            inv.extend(rest_enz.search(Seq(seq)))
+            inv.extend(rest_enz.search(Seq.Seq(seq)))
 
     return inv
 
@@ -573,12 +573,30 @@ def write_fasta(id_seqs, filename=None):
                                                 delete=False)
         filename = temp_file.name
 
-    records = [SeqRecord.SeqRecord(Seq(seq), str(seq_id), '', '')
+    records = [SeqRecord.SeqRecord(Seq.Seq(seq), str(seq_id), '', '')
                for seq_id, seq in id_seqs.items()]
 
     SeqIO.write(records, filename, 'fasta')
 
     return filename
+
+
+def pcr(seq, forward_primer, reverse_primer):
+    '''Apply in silico PCR.'''
+    for_primer_pos = seq.find(forward_primer.upper())
+
+    rev_primer_pos = \
+        seq.find(str(Seq.Seq(reverse_primer).reverse_complement().upper()))
+
+    if for_primer_pos > -1 and rev_primer_pos > -1:
+        seq = seq[for_primer_pos:] + \
+            seq[:rev_primer_pos + len(reverse_primer)]
+    elif for_primer_pos > -1:
+        seq = seq[for_primer_pos:]
+    elif rev_primer_pos > -1:
+        seq = seq[:rev_primer_pos + len(reverse_primer)]
+
+    return seq, for_primer_pos
 
 
 def _scale(codon_usage):
