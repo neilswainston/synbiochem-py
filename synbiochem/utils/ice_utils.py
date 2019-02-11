@@ -266,11 +266,12 @@ class ICEClient(object):
 
         return response['id']
 
-    def do_blast(self, seq, max_num=1024):
+    def do_blast(self, seq, max_num=1024, sort_field='RELEVANCE'):
         '''Performs BLAST search against database.'''
         data = {'blastQuery': {'blastProgram': 'BLAST_N',
                                'sequence': seq.lower()},
-                'parameters': {'retrieveCount': max_num}}
+                'parameters': {'retrieveCount': max_num,
+                               'sortField': sort_field}}
         return _read_resp(net_utils.post(self.__url + '/rest/search',
                                          json.dumps(data), self.__headers))
 
@@ -286,7 +287,7 @@ class ICEClient(object):
                     if result['queryLength'] == int(result['alignment']):
                         entry = self.get_ice_entry(result['entryInfo']['id'])
 
-                        if entry.get_seq() == seq:
+                        if entry.get_seq().lower() == seq.lower():
                             entries.append(entry)
         except net_utils.NetworkError:
             # Sometime BLAST fails inexplicably (on ICE side).

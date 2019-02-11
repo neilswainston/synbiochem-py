@@ -199,6 +199,12 @@ class TestICEClient(unittest.TestCase):
                                             'ttacgaaaggacgtccctatgagcctgatta')
         self.assertTrue(result['resultCount'] > 0)
 
+    def test_do_blast_2(self):
+        '''Tests do_blast method.'''
+        result = self.__ice_client.do_blast('aggcaaattcagtgaggctgacttctcatct' +
+                                            'taaatagttcccttcacgatagccgcctga')
+        self.assertTrue(result['resultCount'] > 0)
+
     def test_get_ice_entries_by_seq(self):
         '''Tests get_ice_entries_by_seq method.'''
         dna = _read('sbol.xml')
@@ -209,6 +215,12 @@ class TestICEClient(unittest.TestCase):
 
         self.__ice_client.reconnect()
         result = self.__ice_client.get_ice_entries_by_seq(dna['seq'])
+        self.assertTrue(len(result) > 0)
+
+    def test_get_ice_entries_by_seq_2(self):
+        '''Tests get_ice_entries_by_seq method.'''
+        seq = 'aggcaaattcagtgaggctgacttctcatcttaaatagttcccttcacgatagccgcctga'
+        result = self.__ice_client.get_ice_entries_by_seq(seq)
         self.assertTrue(len(result) > 0)
 
     def test_add_link(self):
