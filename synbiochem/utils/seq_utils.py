@@ -456,7 +456,7 @@ def get_rand_seq_by_melt_temp(target_melt_temp,
         seq += random.choice(NUCLEOTIDES)
 
         if is_invalid(seq, max_repeat_nuc, restr_enzyms):
-            seq = seq[:-random.choice(range(len(seq)))]
+            seq = random.choice(NUCLEOTIDES)
             continue
 
         melt_temp = get_melting_temp(seq, None, reagent_concs)
