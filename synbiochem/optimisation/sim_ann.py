@@ -7,6 +7,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
+# pylint: disable=broad-except
 # pylint: disable=too-many-arguments
 import math
 import random
@@ -83,7 +84,6 @@ class SimulatedAnnealer(JobThread):
                 self.__exit(iteration)
         except Exception:
             self.__fire_event('error', 100, 0, message=traceback.format_exc())
-            return False
 
     def __init(self):
         '''Initialise.'''

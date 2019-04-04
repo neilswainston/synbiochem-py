@@ -28,7 +28,7 @@ _DEFAULT_ID_PREFIX = 'SBC'
 _SESSION_KEY = 'X-ICE-Authentication-SessionId'
 
 
-class ICEClientFactory(object):
+class ICEClientFactory():
     '''Factory class for controlling ICE factories.'''
 
     def __init__(self):
@@ -72,7 +72,7 @@ class ICEClientFactory(object):
             time.sleep(sleep_time)
 
 
-class ICEEntry(object):
+class ICEEntry():
     '''Class to represent an ICE entry.'''
 
     def __init__(self, dna=None, typ=None, metadata=None):
@@ -183,7 +183,7 @@ class ICEEntry(object):
              else '')
 
 
-class ICEClient(object):
+class ICEClient():
     '''Class representing an ICE client.'''
 
     def __init__(self, url, username, psswrd, id_prefix=_DEFAULT_ID_PREFIX,
@@ -455,7 +455,7 @@ class ICEClient(object):
         return get_ice_id(ice_number, self.__id_prefix)
 
 
-class DNAWriter(object):
+class DNAWriter():
     '''Class for writing DNA objects to ICE.'''
 
     def __init__(self, ice_client):
@@ -541,7 +541,7 @@ def _read_resp(response):
 
 def _add_params(ice_entry, dna):
     '''Adds parameter values to ICEENtry.'''
-    for key, value in dna['parameters'].iteritems():
+    for key, value in dna['parameters'].items():
         ice_entry.set_parameter(key, (', '.join([str(val) for val in value])
                                       if isinstance(value, list)
                                       else value))

@@ -157,7 +157,7 @@ def get_codon_usage_organisms(expand=False, verbose=False):
     return _read_codon_usage_orgs_file(filepath)
 
 
-class CodonOptimiser(object):
+class CodonOptimiser():
     '''Class to support codon optimisation.'''
 
     def __init__(self, taxonomy_id):
@@ -714,7 +714,7 @@ def _write_codon_usage_orgs_file(codon_orgs, filepath):
     with open(filepath, 'w+') as fle:
         fle.write('Name\tId\n')
 
-        for name, tax_id in codon_orgs.iteritems():
+        for name, tax_id in codon_orgs.items():
             fle.write(name + '\t' + tax_id + '\n')
 
 
