@@ -29,7 +29,7 @@ class Chromosome():
 
     def mutate(self):
         '''Mutate.'''
-        pass
+        return None
 
     def breed(self, partner):
         '''Breed.'''
@@ -46,8 +46,8 @@ class Chromosome():
 class GeneticAlgorithm():
     '''Base class to run a genetic algorithm.'''
 
-    def __init__(self, population, retain=0.2, random_select=0.05,
-                 mutate=0.1, verbose=False):
+    def __init__(self, population, retain=0.05, random_select=0.2,
+                 mutate=0.25, verbose=False):
         self.__population = population
         self.__retain = retain
         self.__random_select = random_select
@@ -57,31 +57,43 @@ class GeneticAlgorithm():
     def run(self, max_iter=1024):
         '''Run.'''
         for _ in range(max_iter):
-            result = self.__evolve()
+            results = self.__evolve()
 
-            if result is not None:
-                return result
+            if results is not None:
+                return results
 
         raise ValueError('Unable to optimise in %d iterations.' % max_iter)
 
-    def __evolve(self):
-        graded = sorted([(chrm.fitness(), chrm)
-                         for chrm in self.__population])
+    def get_results(self):
+        '''Get results.'''
+        return sorted([(chrm.fitness(), chrm) for chrm in self.__population])
 
-        if graded[0][0] == 0:
-            return graded[0][1]
+    def __evolve(self):
+        results = self.get_results()
+
+        if results[0][0] == 0:
+            return results
 
         if self._verbose:
-            print(graded[0])
+            print(results[0])
 
-        graded = [x[1] for x in graded]
+        results = [x[1] for x in results]
         retain_length = int(len(self.__population) * self.__retain)
 
         # Retain best and randomly add other individuals to promote genetic
         # diversity:
-        new_population = graded[:retain_length] + \
-            [ind for ind in graded[retain_length:]
-             if self.__random_select > random.random()]
+        new_population = results[:retain_length]
+
+        # Mutate some individuals:
+        for individual in new_population:
+            if self.__mutate > random.random():
+                mutated = individual.mutate()
+
+                if mutated:
+                    new_population.append(mutated)
+
+        new_population.extend([ind for ind in results[retain_length:]
+                               if self.__random_select > random.random()])
 
         while len(new_population) < len(self.__population):
             male = random.choice(self.__population)
@@ -90,15 +102,11 @@ class GeneticAlgorithm():
             if male != female:
                 child = male.breed(female)
 
-                new_population.append(child)
+                if child:
+                    new_population.append(child)
 
                 new_population = list(
                     numpy.unique(numpy.array(new_population)))
-
-        # Mutate some individuals:
-        for individual in new_population:
-            if self.__mutate > random.random():
-                individual.mutate()
 
         self.__population = new_population
 
