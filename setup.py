@@ -10,7 +10,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 from setuptools import find_packages, setup
 
 setup(name='synbiochem-py',
-      version='0.6.16',
+      version='0.6.17',
       description='synbiochem-py: Core python modules for SYNBIOCHEM',
       long_description='synbiochem-py: Core python modules for SYNBIOCHEM',
       url='https://github.com/synbiochem/synbiochem-py',
@@ -22,7 +22,7 @@ setup(name='synbiochem-py',
                    'Intended Audience :: Developers',
                    'Topic :: Software Development :: Build Tools',
                    'License :: OSI Approved :: MIT License',
-                   'Programming Language :: Python :: 2.7'
+                   'Programming Language :: Python :: 3.7'
       ],
       keywords='synbio synthetic biology',
       packages=find_packages(),
@@ -32,5 +32,4 @@ setup(name='synbiochem-py',
                         'future',
                         'numpy',
                         'pandas',
-                        'python-igraph',
                         'requests'])
