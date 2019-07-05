@@ -10,12 +10,12 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 from setuptools import find_packages, setup
 
 setup(name='synbiochem-py',
-      version='0.6.18',
+      version='0.6.19',
       description='synbiochem-py: Core python modules for SYNBIOCHEM',
       long_description='synbiochem-py: Core python modules for SYNBIOCHEM',
       url='https://github.com/synbiochem/synbiochem-py',
       author='Neil Swainston',
-      author_email='neil.swainston@manchester.ac.uk',
+      author_email='neil.swainston@liverpool.ac.uk',
       license='MIT',
       classifiers=[
                    'Development Status :: 4 - Beta',

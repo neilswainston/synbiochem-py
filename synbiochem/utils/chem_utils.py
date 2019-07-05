@@ -132,10 +132,18 @@ __ELEMENTAL_MASSES = {
 }
 
 
-def get_molecular_mass(formula):
+def get_molecular_mass(formula, r_mass=float('NaN')):
     '''Calculate and return molecular mass from chemical formula.'''
-    return sum([__ELEMENTAL_MASSES[element] * count
-                if element in __ELEMENTAL_MASSES
+
+    # Handle R-groups with 'dummy' mass:
+    if 'R' in formula and r_mass:
+        elem_masses = __ELEMENTAL_MASSES.copy()
+        elem_masses['R'] = r_mass
+    else:
+        elem_masses = __ELEMENTAL_MASSES
+
+    return sum([elem_masses[element] * count
+                if element in elem_masses
                 else float('NaN')
                 for element, count in get_elem_comp(formula).items()])
 
