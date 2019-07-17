@@ -32,11 +32,11 @@ from Bio.Blast import NCBIXML
 from Bio.Data import CodonTable
 from Bio.Restriction import Restriction, Restriction_Dictionary
 from Bio.SeqUtils.MeltingTemp import Tm_NN
-from synbiochem.biochem4j import taxonomy
-from synbiochem.utils import thread_utils
 
 from six.moves.urllib import parse
 from six.moves.urllib import request
+from synbiochem.biochem4j import taxonomy
+from synbiochem.utils import thread_utils
 
 
 try:
@@ -439,7 +439,10 @@ def get_seq_by_melt_temp(seq, target_melt_temp, forward=True,
                     best_subseq = subseq
                     best_melt_temp = melt_temp
             elif in_tol:
-                return best_subseq, best_melt_temp
+                break
+
+    if in_tol:
+        return best_subseq, best_melt_temp
 
     raise ValueError('Unable to get sequence of required melting temperature')
 
