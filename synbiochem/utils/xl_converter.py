@@ -10,8 +10,9 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=invalid-name
 import os
 
-import pandas as pd
 import xlrd
+
+import pandas as pd
 
 
 def convert(xl_filename):
