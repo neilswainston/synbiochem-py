@@ -222,7 +222,8 @@ class CodonOptimiser():
                 seq = seq[:i * 3]
                 attempts += 1
 
-        raise ValueError('Unable to generate codon-optimised sequence.')
+        raise ValueError('Unable to generate codon-optimised sequence with '
+                         '%i maximum repeating nucleotides.' % max_repeat_nuc)
 
     def get_cai(self, dna_seq):
         '''Gets the CAI for a given DNA sequence.'''
