@@ -8,6 +8,7 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 @author:  neilswainston
 '''
 # pylint: disable=broad-except
+# pylint: disable=invalid-name
 # pylint: disable=no-member
 # pylint: disable=protected-access
 # pylint: disable=redefined-builtin
@@ -32,11 +33,12 @@ from Bio.Blast import NCBIXML
 from Bio.Data import CodonTable
 from Bio.Restriction import Restriction, Restriction_Dictionary
 from Bio.SeqUtils.MeltingTemp import Tm_NN
-from synbiochem.biochem4j import taxonomy
-from synbiochem.utils import thread_utils
 
+import numpy as np
 from six.moves.urllib import parse
 from six.moves.urllib import request
+from synbiochem.biochem4j import taxonomy
+from synbiochem.utils import thread_utils
 
 
 try:
@@ -224,12 +226,15 @@ class CodonOptimiser():
 
     def get_cai(self, dna_seq):
         '''Gets the CAI for a given DNA sequence.'''
-        cai = 0
+        ws = []
 
         for i in range(0, len(dna_seq), 3):
-            cai += self.__codon_to_w[dna_seq[i:i + 3]]
+            codon = dna_seq[i:i + 3]
 
-        return cai / (len(dna_seq) / 3)
+            if codon in self.__codon_to_w:
+                ws.append(self.__codon_to_w[codon])
+
+        return np.mean(ws)
 
     def mutate(self, protein_seq, dna_seq, mutation_rate):
         '''Mutate a protein-encoding DNA sequence according to a
@@ -424,7 +429,7 @@ def get_seq_by_melt_temp(seq, target_melt_temp, forward=True,
     best_melt_temp = float('NaN')
     in_tol = False
 
-    for i in range(1, len(seq)):
+    for i in range(3, len(seq)):
         subseq = seq[:(i + 1)] if forward else seq[-(i + 1):]
         melt_temp = get_melting_temp(subseq, None, reagent_concs)
 
@@ -604,8 +609,14 @@ def pcr(seq, forward_primer, reverse_primer):
 
 def _scale(codon_usage):
     '''Scale codon usage values to add to 1.'''
-    codon_usage = {key: value / sum(codon_usage.values())
-                   for key, value in codon_usage.items()}
+    sum_cdn_usage = sum(codon_usage.values())
+
+    if sum_cdn_usage:
+        codon_usage = {key: value / sum_cdn_usage
+                       for key, value in codon_usage.items()}
+    else:
+        codon_usage = {key: 1 / len(codon_usage)
+                       for key in codon_usage}
 
     return sorted(codon_usage.items(), key=operator.itemgetter(1),
                   reverse=True)
