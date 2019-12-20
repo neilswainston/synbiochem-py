@@ -7,11 +7,8 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
-# pylint: disable=relative-import
 import json
-
-from six.moves.urllib import parse
-from six.moves.urllib import request
+from urllib import parse, request
 
 
 def get_taxonomy_id(name):

@@ -7,13 +7,11 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 
 @author:  neilswainston
 '''
-# pylint: disable=relative-import
 import gzip
 import os
 import tempfile
+from urllib import request
 import zipfile
-
-from six.moves.urllib import request
 
 
 def get_file(source_url, target_filename):

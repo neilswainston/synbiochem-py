@@ -27,18 +27,17 @@ import re
 import ssl
 from subprocess import call
 import tempfile
+from urllib import parse, request
 
 from Bio import Seq, SeqIO, SeqRecord
 from Bio.Blast import NCBIXML
 from Bio.Data import CodonTable
 from Bio.Restriction import Restriction, Restriction_Dictionary
 from Bio.SeqUtils.MeltingTemp import Tm_NN
-
-import numpy as np
-from six.moves.urllib import parse
-from six.moves.urllib import request
 from synbiochem.biochem4j import taxonomy
 from synbiochem.utils import thread_utils
+
+import numpy as np
 
 
 try:
