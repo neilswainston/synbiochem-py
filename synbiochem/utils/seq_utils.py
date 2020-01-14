@@ -24,7 +24,6 @@ import operator
 import os
 import random
 import re
-import ssl
 from subprocess import call
 import tempfile
 from urllib import parse, request
@@ -648,9 +647,7 @@ def _parse_uniprot_data(url, values):
     headers = None
 
     try:
-        context = ssl._create_unverified_context()
-
-        for line in request.urlopen(url, context=context):
+        for line in request.urlopen(url):
             line = line.decode('utf-8')
             tokens = line.strip().split('\t')
 
