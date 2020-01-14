@@ -115,7 +115,8 @@ class Test(unittest.TestCase):
                                                  'EC 2.7.1.1',
                                                  'Brain form hexokinase',
                                                  'Hexokinase type I',
-                                                 'HK I']},
+                                                 'HK I',
+                                                 'Hexokinase-A']},
                     'P42212': {'Entry': 'P42212',
                                'Organism ID': '6100',
                                'Protein names': ['Green fluorescent protein']}}
