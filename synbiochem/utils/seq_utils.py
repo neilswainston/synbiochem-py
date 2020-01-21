@@ -24,6 +24,7 @@ import operator
 import os
 import random
 import re
+import ssl
 from subprocess import call
 import tempfile
 from urllib import parse, request
@@ -37,13 +38,6 @@ from synbiochem.biochem4j import taxonomy
 from synbiochem.utils import thread_utils
 
 import numpy as np
-
-
-try:
-    # Python 2:
-    from requests.exceptions import ConnectionError
-except ImportError:
-    pass
 
 
 NUCLEOTIDES = ['A', 'C', 'G', 'T']
@@ -125,6 +119,8 @@ AA_COD = defaultdict(list)
 for cod, am_ac in \
         CodonTable.unambiguous_dna_by_name['Standard'].forward_table.items():
     AA_COD[am_ac].append(cod)
+
+ssl._create_default_https_context = ssl._create_unverified_context
 
 
 def get_codon_usage_organisms(expand=False, verbose=False):
