@@ -58,7 +58,7 @@ def get_filename(filename):
     return filename
 
 
-def get_filenames(filepaths, max_files=1e16):
+def get_filenames(filepaths, max_files=int(1e16)):
     '''Get filename.'''
     all_filenames = []
 
