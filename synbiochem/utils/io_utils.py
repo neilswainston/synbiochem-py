@@ -56,3 +56,27 @@ def get_filename(filename):
         return fle.name
 
     return filename
+
+
+def get_filenames(filepaths, max_files=1e16):
+    '''Get filename.'''
+    all_filenames = []
+
+    for filepath in filepaths:
+        all_filenames.extend(_get_filenames(filepath))
+
+    return all_filenames[:max_files]
+
+
+def _get_filenames(filepath):
+    '''Get filename.'''
+    filenames = []
+
+    if os.path.isdir(filepath):
+        for filename in os.listdir(os.path.abspath(filepath)):
+            filenames.append(os.path.join(filepath, filename))
+
+        return filenames
+
+    # else:
+    return [filepath]
