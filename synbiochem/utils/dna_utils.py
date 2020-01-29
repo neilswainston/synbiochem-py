@@ -19,15 +19,15 @@ import uuid
 from Bio.Restriction import RestrictionBatch
 from Bio.Seq import Seq
 
-
-SO_PROM = 'http://purl.obolibrary.org/obo/SO_0000167'
-SO_RBS = 'http://purl.obolibrary.org/obo/SO_0000139'
-SO_CDS = 'http://purl.obolibrary.org/obo/SO_0000316'
-SO_PART = 'http://purl.obolibrary.org/obo/SO_0000804'
-SO_ASS_COMP = 'http://purl.obolibrary.org/obo/SO_0000143'
-SO_PLASMID = 'http://purl.obolibrary.org/obo/SO_0000637'
-SO_DESIGNED = 'http://purl.obolibrary.org/obo/SO_0000546'
-SO_RANDOM = 'http://purl.obolibrary.org/obo/SO_0000449'
+SO_GENE = 'http://identifiers.org/so/SO:0000704'
+SO_PROM = 'http://identifiers.org/so/SO:0000167'
+SO_RBS = 'http://identifiers.org/so/SO:0000139'
+SO_CDS = 'http://identifiers.org/so/SO:0000316'
+SO_PART = 'http://identifiers.org/so/SO:0000804'
+SO_ASS_COMP = 'http://identifiers.org/so/SO:0000143'
+SO_PLASMID = 'http://identifiers.org/so/SO:0000637'
+SO_DESIGNED = 'http://identifiers.org/so/SO:0000546'
+SO_RANDOM = 'http://identifiers.org/so/SO:0000449'
 
 _RDF_NS = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
 _NS = {'ns': 'http://sbols.org/v1#',
