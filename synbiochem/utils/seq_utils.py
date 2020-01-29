@@ -24,7 +24,7 @@ import operator
 import os
 import random
 import re
-# import ssl
+import ssl
 from subprocess import call
 import tempfile
 from urllib import parse
@@ -121,7 +121,7 @@ for cod, am_ac in \
         CodonTable.unambiguous_dna_by_name['Standard'].forward_table.items():
     AA_COD[am_ac].append(cod)
 
-# ssl._create_default_https_context = ssl._create_unverified_context
+ssl._create_default_https_context = ssl._create_unverified_context
 
 
 def get_codon_usage_organisms(expand=False, verbose=False):
