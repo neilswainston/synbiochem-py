@@ -32,4 +32,4 @@ setup(name='synbiochem-py',
       install_requires=['biopython',
                         'numpy',
                         'pandas',
-                        'requests==2.11.1'])
+                        'requests==2.20.0'])
