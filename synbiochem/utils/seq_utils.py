@@ -24,16 +24,17 @@ import operator
 import os
 import random
 import re
-import ssl
+# import ssl
 from subprocess import call
 import tempfile
-from urllib import parse, request
+from urllib import parse
 
 from Bio import Seq, SeqIO, SeqRecord
 from Bio.Blast import NCBIXML
 from Bio.Data import CodonTable
 from Bio.Restriction import Restriction, Restriction_Dictionary
 from Bio.SeqUtils.MeltingTemp import Tm_NN
+import requests
 from synbiochem.biochem4j import taxonomy
 from synbiochem.utils import thread_utils
 
@@ -120,7 +121,7 @@ for cod, am_ac in \
         CodonTable.unambiguous_dna_by_name['Standard'].forward_table.items():
     AA_COD[am_ac].append(cod)
 
-ssl._create_default_https_context = ssl._create_unverified_context
+# ssl._create_default_https_context = ssl._create_unverified_context
 
 
 def get_codon_usage_organisms(expand=False, verbose=False):
@@ -136,7 +137,11 @@ def get_codon_usage_organisms(expand=False, verbose=False):
 
         url = 'ftp://ftp.kazusa.or.jp/pub/codon/current/species.table'
         tmp = tempfile.NamedTemporaryFile(delete=False)
-        request.urlretrieve(url, tmp.name)
+
+        resp = requests.get(url, allow_redirects=True)
+
+        with open(tmp.name, 'w') as target_file:
+            target_file.write_bytes(resp.content)
 
         # Read:
         codon_orgs = _read_codon_usage_orgs_file(tmp.name)
@@ -280,12 +285,14 @@ class CodonOptimiser():
 
         in_codons = False
 
-        for line in request.urlopen(url):
+        resp = requests.get(url, allow_redirects=True)
+
+        for line in resp.iter_lines():
             line = line.decode('utf-8')
 
-            if line == '<PRE>\n':
+            if line == '<PRE>':
                 in_codons = True
-            elif line == '</PRE>\n':
+            elif line == '</PRE>':
                 break
             elif in_codons:
                 values = re.split('\\s+', line)
@@ -643,7 +650,9 @@ def _parse_uniprot_data(url, values):
     headers = None
 
     try:
-        for line in request.urlopen(url):
+        resp = requests.get(url, allow_redirects=True)
+
+        for line in resp.iter_lines():
             line = line.decode('utf-8')
             tokens = line.strip().split('\t')
 

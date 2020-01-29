@@ -10,8 +10,8 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 import gzip
 import os
 import tempfile
-from urllib import request
 import zipfile
+import requests
 
 
 def get_file(source_url, target_filename):
@@ -21,7 +21,10 @@ def get_file(source_url, target_filename):
         if not os.path.exists(os.path.dirname(target_filename)):
             os.makedirs(os.path.dirname(target_filename))
 
-        request.urlretrieve(source_url, target_filename)
+        resp = requests.get(source_url, allow_redirects=True)
+
+        with open(target_filename, 'w') as target_file:
+            target_file.write_bytes(resp.content)
 
     destination = os.path.dirname(target_filename)
 
