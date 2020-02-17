@@ -11,7 +11,7 @@ from setuptools import find_packages, setup
 
 
 setup(name='synbiochem-py',
-      version='0.6.32',
+      version='0.6.34',
       description='synbiochem-py: Core python modules for SYNBIOCHEM',
       long_description='synbiochem-py: Core python modules for SYNBIOCHEM',
       url='https://github.com/synbiochem/synbiochem-py',
@@ -32,4 +32,5 @@ setup(name='synbiochem-py',
       install_requires=['biopython',
                         'numpy',
                         'pandas',
-                        'requests==2.20.0'])
+                        'requests[security]',
+                        'pyopenssl'])
