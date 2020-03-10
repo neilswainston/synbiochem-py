@@ -12,7 +12,6 @@ To view a copy of this license, visit <http://opensource.org/licenses/MIT/>.
 # pylint: disable=no-member
 # pylint: disable=protected-access
 # pylint: disable=redefined-builtin
-# pylint: disable=relative-import
 # pylint: disable=superfluous-parens
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-locals
@@ -65,47 +64,6 @@ AA_CODES = {'Ala': 'A',
             'Tyr': 'Y',
             'Stop': '*'}
 
-CODONS = {'A': [['G', 'C', 'ACGT']],
-          'C': [['T', 'G', 'CT']],
-          'D': [['G', 'A', 'CT']],
-          'E': [['G', 'A', 'AG']],
-          'F': [['T', 'T', 'CT']],
-          'G': [['G', 'G', 'ACGT']],
-          'H': [['C', 'A', 'CT']],
-          'I': [['A', 'T', 'ACT']],
-          'K': [['A', 'A', 'AG']],
-          'L': [['C', 'T', 'ACGT'], ['T', 'T', 'AG']],
-          'M': [['A', 'T', 'G']],
-          'N': [['A', 'A', 'CT']],
-          'P': [['C', 'C', 'ACGT']],
-          'Q': [['C', 'A', 'AG']],
-          'R': [['C', 'G', 'ACGT'], ['A', 'G', 'AG']],
-          'S': [['T', 'C', 'ACGT'], ['A', 'G', 'CT']],
-          'T': [['A', 'C', 'ACGT']],
-          'V': [['G', 'T', 'ACGT']],
-          'W': [['T', 'G', 'G']],
-          'Y': [['T', 'A', 'CT']],
-          'Stop': [['T', 'A', 'AG'], ['T', 'G', 'A']]}
-
-NUCL_CODES = {
-    'A': 'A',
-    'C': 'C',
-    'G': 'G',
-    'T': 'T',
-    'AG': 'R',
-    'CT': 'Y',
-    'CG': 'S',
-    'AT': 'W',
-    'GT': 'K',
-    'AC': 'M',
-    'CGT': 'B',
-    'AGT': 'D',
-    'ACT': 'H',
-    'ACG': 'V',
-    'ACGT': 'N',
-}
-
-INV_NUCL_CODES = {val: key for key, val in NUCL_CODES.items()}
 
 NA = 'NA'
 K = 'K'
