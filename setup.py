@@ -32,5 +32,5 @@ setup(name='synbiochem-py',
       install_requires=['biopython',
                         'numpy',
                         'pandas',
-                        'requests==2.12.4',
+                        'requests==2.20.0',
                         'pyopenssl'])
